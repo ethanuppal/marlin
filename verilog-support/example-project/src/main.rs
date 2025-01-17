@@ -18,8 +18,10 @@ fn main() -> Result<(), Whatever> {
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, 0);
     main.eval();
     println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, u32::MAX);
 
     Ok(())
 }

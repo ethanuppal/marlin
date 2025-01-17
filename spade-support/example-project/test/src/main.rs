@@ -14,6 +14,7 @@ fn main() -> Result<(), Whatever> {
 
     main.eval();
     println!("{}", main.out);
+    assert_eq!(main.out, 42); // hardcoded into Spade source
 
     Ok(())
 }

@@ -43,7 +43,7 @@ impl SpadeRuntime {
 
         if call_swim_build {
             if verbose {
-                log::info!("Invoking `swim build`");
+                log::info!("Invoking `swim build` (this may take a while)");
             }
             let mut swim_project_path = swim_toml_path.clone();
             swim_project_path.pop();
