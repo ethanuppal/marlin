@@ -8,7 +8,7 @@ modules into Rust.
 
 No precompilation step and manual updates with `verilator` harnesses; no 
 Makefiles, magical comments, and quirky decorators with `cocotb`.
-testbenches.
+testbenches. You're writing a regular Rust crate here.
 
 Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
