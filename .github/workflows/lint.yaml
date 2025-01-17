@@ -1,0 +1,25 @@
+name: Code Style
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust Caching
+        uses: Swatinem/rust-cache@v2
+      - name: Install nightly rustfmt
+        # https://stegosaurusdormant.com/rustfmt-nightly/
+        run: rustup toolchain install nightly --allow-downgrade -c rustfmt
+      - name: Lint
+        run: cargo clippy --all --all-targets -- --deny warnings
+      - name: Check formatting
+        run: cargo +nightly fmt --check
