@@ -36,6 +36,6 @@ jobs:
       - name: Install verilator
         uses: veryl-lang/setup-verilator@v1
       - name: Install swim
-        uses: cargo install --locked --git https://gitlab.com/spade-lang/swim
+        run: cargo install --locked --git https://gitlab.com/spade-lang/swim
       - name: Test
         run: cargo run -p example-spade-project
