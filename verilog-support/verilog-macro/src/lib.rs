@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this project. If not, see <https://www.gnu.org/licenses/>.
 
-use std::{collections::HashMap, path::PathBuf, env};
+use std::{collections::HashMap, env, path::PathBuf};
 
 use proc_macro::TokenStream;
 use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
@@ -37,7 +37,8 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
                     args.source_path,
                     error.to_string(),
                 )
-                .into_compile_error().into();
+                .into_compile_error()
+                .into();
             }
         };
 
@@ -71,7 +72,8 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
                 args.source_path.value()
             ),
         )
-        .into_compile_error().into();
+        .into_compile_error()
+        .into();
     };
 
     let Some(port_declarations_list) = module
@@ -89,11 +91,11 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
                 args.name.value()
             ),
         )
-        .into_compile_error().into();
+        .into_compile_error()
+        .into();
     };
 
-
-let mut ports = vec![];
+    let mut ports = vec![];
     for (_, port) in port_declarations_list.contents() {
         match port {
             sv::AnsiPortDeclaration::Net(net) => {
@@ -101,13 +103,18 @@ let mut ports = vec![];
                     "Port identifier could not be traced back to source code",
                 );
 
-        if port_name.chars().any(|c| c == '\\' || c == ' ') {
-            return syn::Error::new_spanned(args.name, "Escaped module names are not supported").into_compile_error().into();
-        }
+                if port_name.chars().any(|c| c == '\\' || c == ' ') {
+                    return syn::Error::new_spanned(
+                        args.name,
+                        "Escaped module names are not supported",
+                    )
+                    .into_compile_error()
+                    .into();
+                }
 
                 let Some((port_direction, port_type ))= net.nodes.0.as_ref().and_then(|maybe_net_header| match maybe_net_header {
                     sv::NetPortHeaderOrInterfacePortHeader::NetPortHeader(net_port_header) => {
-                        net_port_header.nodes.0.as_ref().map(|port_direction| (port_direction, &net_port_header.nodes.1))   
+                        net_port_header.nodes.0.as_ref().map(|port_direction| (port_direction, &net_port_header.nodes.1))
                     },
                     _ => todo!("Other port header")
                 }) else {
@@ -124,22 +131,26 @@ let mut ports = vec![];
                 let port_dimensions = match port_type {
                     sv::NetPortType::DataType(net_port_type_data_type) => {
                         match &net_port_type_data_type.nodes.1 {
-                            sv::DataTypeOrImplicit::DataType(_data_type) => todo!("a"),
-                            sv::DataTypeOrImplicit::ImplicitDataType(implicit_data_type) => {
-                                &implicit_data_type.nodes.1
-                            },
+                            sv::DataTypeOrImplicit::DataType(_data_type) => {
+                                todo!("a")
+                            }
+                            sv::DataTypeOrImplicit::ImplicitDataType(
+                                implicit_data_type,
+                            ) => &implicit_data_type.nodes.1,
                         }
-                    },
-                    sv::NetPortType::NetTypeIdentifier(_net_type_identifier) => todo!("bklk"),
-                    sv::NetPortType::Interconnect(_net_port_type_interconnect) => todo!("ckl"),
+                    }
+                    sv::NetPortType::NetTypeIdentifier(
+                        _net_type_identifier,
+                    ) => todo!("bklk"),
+                    sv::NetPortType::Interconnect(
+                        _net_port_type_interconnect,
+                    ) => todo!("ckl"),
                 };
 
                 let (port_msb, port_lsb) = match port_dimensions.len() {
                     0 => (0, 0),
                     1 => match &port_dimensions[0] {
-                        sv::PackedDimension::Range(
-                            packed_dimension_range,
-                        ) => {
+                        sv::PackedDimension::Range(packed_dimension_range) => {
                             let range =
                                 &packed_dimension_range.nodes.0.nodes.1.nodes;
                             (
@@ -150,8 +161,8 @@ let mut ports = vec![];
                                     &ast, &range.2,
                                 ),
                             )
-                        },
-                        _ => todo!()
+                        }
+                        _ => todo!(),
                     },
                     _ => todo!("Don't support multidimensional ports yet"),
                 };
@@ -163,16 +174,24 @@ let mut ports = vec![];
                     sv::PortDirection::Ref(_) => todo!(),
                 };
 
-                ports.push((port_name.to_string(), port_msb, port_lsb, port_direction));
+                ports.push((
+                    port_name.to_string(),
+                    port_msb,
+                    port_lsb,
+                    port_direction,
+                ));
             }
             _ => todo!("Other types of ports"),
         }
-}
+    }
 
     build_verilated_struct(
         "verilog",
         args.name,
-        syn::LitStr::new(source_path.to_string_lossy().as_ref(), args.source_path.span()),
+        syn::LitStr::new(
+            source_path.to_string_lossy().as_ref(),
+            args.source_path.span(),
+        ),
         ports,
         args.clock_port,
         args.reset_port,
