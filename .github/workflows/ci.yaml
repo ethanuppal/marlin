@@ -24,7 +24,7 @@ jobs:
         run: make install_verilator
       - run: ls
       - name: Test
-        run: cd verilog-support/example-verilog-project && cargo run -p example-verilog-project
+        run: cd verilog-support/example-project && cargo run -p example-verilog-project
   test_spade:
     strategy:
       matrix:
@@ -39,4 +39,4 @@ jobs:
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim
       - name: Test
-        run: cd spade-support/example-spade-project && cargo run -p example-spade-project
+        run: cd spade-support/example-project && cargo run -p example-spade-project
