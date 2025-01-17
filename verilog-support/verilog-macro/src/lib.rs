@@ -124,14 +124,14 @@ let mut ports = vec![];
                 let port_dimensions = match port_type {
                     sv::NetPortType::DataType(net_port_type_data_type) => {
                         match &net_port_type_data_type.nodes.1 {
-                            sv::DataTypeOrImplicit::DataType(data_type) => todo!("a"),
+                            sv::DataTypeOrImplicit::DataType(_data_type) => todo!("a"),
                             sv::DataTypeOrImplicit::ImplicitDataType(implicit_data_type) => {
                                 &implicit_data_type.nodes.1
                             },
                         }
                     },
-                    sv::NetPortType::NetTypeIdentifier(net_type_identifier) => todo!("bklk"),
-                    sv::NetPortType::Interconnect(net_port_type_interconnect) => todo!("ckl"),
+                    sv::NetPortType::NetTypeIdentifier(_net_type_identifier) => todo!("bklk"),
+                    sv::NetPortType::Interconnect(_net_port_type_interconnect) => todo!("ckl"),
                 };
 
                 let (port_msb, port_lsb) = match port_dimensions.len() {

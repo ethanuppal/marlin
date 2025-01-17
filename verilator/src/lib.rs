@@ -298,7 +298,7 @@ fn build(
     )?;
     let verilator_artifact_directory = artifact_directory.join("obj_dir");
 
-    let ffi_wrappers = build_ffi(&ffi_artifact_directory, top_module, ports)
+    let _ffi_wrappers = build_ffi(&ffi_artifact_directory, top_module, ports)
         .whatever_context("Failed to build FFI wrappers")?;
 
     // bug in verilator#5226 means the directory must be relative to -Mdir

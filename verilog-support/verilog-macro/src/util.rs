@@ -25,27 +25,27 @@ pub fn evaluate_numeric_constant_expression(
                                             .parse()
                                             .unwrap(),
                                         sv::DecimalNumber::BaseUnsigned(
-                                            decimal_number_base_unsigned,
+                                            _decimal_number_base_unsigned,
                                         ) => todo!(),
                                         sv::DecimalNumber::BaseXNumber(
-                                            decimal_number_base_xnumber,
+                                            _decimal_number_base_xnumber,
                                         ) => todo!(),
                                         sv::DecimalNumber::BaseZNumber(
-                                            decimal_number_base_znumber,
+                                            _decimal_number_base_znumber,
                                         ) => todo!(),
                                     },
                                     sv::IntegralNumber::OctalNumber(
-                                        octal_number,
+                                        _octal_number,
                                     ) => todo!(),
                                     sv::IntegralNumber::BinaryNumber(
-                                        binary_number,
+                                        _binary_number,
                                     ) => todo!(),
                                     sv::IntegralNumber::HexNumber(
-                                        hex_number,
+                                        _hex_number,
                                     ) => todo!(),
                                 }
                             }
-                            sv::Number::RealNumber(real_number) => {
+                            sv::Number::RealNumber(_real_number) => {
                                 panic!("Real number")
                             }
                         },
@@ -55,13 +55,13 @@ pub fn evaluate_numeric_constant_expression(
                 _ => panic!("Not a number"),
             }
         }
-        sv::ConstantExpression::Unary(constant_expression_unary) => {
+        sv::ConstantExpression::Unary(_constant_expression_unary) => {
             todo!("Constant unary expressions")
         }
-        sv::ConstantExpression::Binary(constant_expression_binary) => {
+        sv::ConstantExpression::Binary(_constant_expression_binary) => {
             todo!("Constant binary expressions")
         }
-        sv::ConstantExpression::Ternary(constant_expression_ternary) => {
+        sv::ConstantExpression::Ternary(_constant_expression_ternary) => {
             todo!("Constant ternary expressions")
         }
     }

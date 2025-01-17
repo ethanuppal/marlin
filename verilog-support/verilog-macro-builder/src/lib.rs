@@ -166,7 +166,7 @@ pub fn build_verilated_struct(
                     }
                 }
 
-                if let Some(reset_port) = &reset_port {
+                if let Some(_reset_port) = &reset_port {
                     todo!("reset ports");
                 }
 
