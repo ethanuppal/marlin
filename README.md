@@ -36,7 +36,7 @@ The problem gets worse with custom HDLs:
   macro magic](https://docs.spade-lang.org/simulation.html#verilator) and [using
   `cocotb`](https://docs.spade-lang.org/simulation.html#cocotb) makes no LSP
   support even worse.
-- [Veryl](https://veryl-lang.org): you literally (write inline Verilog or Python)[https://doc.veryl-lang.org/book/05_language_reference/13_integrated_test.html]. Yes, inside Veryl code.
+- [Veryl](https://veryl-lang.org): you literally [write inline Verilog or Python](https://doc.veryl-lang.org/book/05_language_reference/13_integrated_test.html). Yes, inside Veryl code.
 
 ## 🚀 Showcase
 
