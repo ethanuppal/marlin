@@ -22,6 +22,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install verilator
         run: make install_verilator
+      - run: ls
       - name: Test
         run: cd verilog-support/example-verilog-project && cargo run -p example-verilog-project
   test_spade:
