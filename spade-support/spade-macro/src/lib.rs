@@ -36,17 +36,6 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         let mut source_path = swim_toml.clone();
         source_path.pop();
         source_path.push("build/spade.sv");
-
-        // TODO: parse spade file directory and remove this
-        if !source_path.is_file() {
-            return syn::Error::new_spanned(
-                args.source_path,
-                "Please run swim build or similar",
-            )
-            .into_compile_error()
-            .into();
-        }
-
         syn::LitStr::new(source_path.as_str(), args.source_path.span())
     };
 
