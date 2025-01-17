@@ -21,7 +21,7 @@ jobs:
       - name: Rust Caching
         uses: Swatinem/rust-cache@v2
       - name: Install verilator
-        uses: veryl-lang/setup-verilator@v1
+        run: make install_verilator
       - name: Test
         run: cargo run -p example-verilator-project
   test_spade:
@@ -34,7 +34,7 @@ jobs:
       - name: Rust Caching
         uses: Swatinem/rust-cache@v2
       - name: Install verilator
-        uses: veryl-lang/setup-verilator@v1
+        run: make install_verilator
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim
       - name: Test
