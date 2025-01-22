@@ -3,6 +3,9 @@
 ![CI Badge](https://github.com/ethanuppal/dumbname/actions/workflows/ci.yaml/badge.svg)
 ![Code Style Badge](https://github.com/ethanuppal/dumbname/actions/workflows/lint.yaml/badge.svg)
 
+> [!IMPORTANT]
+> I need a better name than `dumbname` --- I'm open to suggestions!
+
 dumbname is a really powerful library (and API) that lets you "import" hardware
 modules into Rust. 
 
