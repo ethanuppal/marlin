@@ -10,7 +10,7 @@ dumbname is a really powerful library (and API) that lets you "import" hardware
 modules into Rust. 
 
 No precompilation step and manual updates with `verilator` harnesses; no 
-Makefiles, magical comments, and quirky decorators with `cocotb`.
+Makefiles and quirky decorators with `cocotb`.
 testbenches. You're writing a regular Rust crate here.
 
 Add this library to your `Cargo.toml` like any other library. Use hardware
@@ -55,10 +55,14 @@ Still, a lot of these are less than optimal.
 
 dumbname is currently in development.
 You can currently install the crates via `git` specifications.
+(I'm aware that this is not explained well.)
 
 ## ✨ Usage
 
 I'll write more documentation once I get further in the development process.
+
+- [Testing a Verilog project](./docs/testing_verilog.md)
+- [Testing a Spade project](./docs/testing_spade.md)
 
 ## 💡 How it works
 
