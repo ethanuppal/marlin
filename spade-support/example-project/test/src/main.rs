@@ -8,7 +8,7 @@ struct Main;
 fn main() -> Result<(), Whatever> {
     colog::init();
 
-    let mut runtime = SpadeRuntime::new("artifacts".into(), true, true)?;
+    let mut runtime = SpadeRuntime::new(true, true)?;
 
     let mut main = runtime.create_model::<Main>()?;
 

@@ -22,11 +22,7 @@ pub struct SpadeRuntime {
 }
 
 impl SpadeRuntime {
-    pub fn new(
-        artifact_directory: &Utf8Path,
-        call_swim_build: bool,
-        verbose: bool,
-    ) -> Result<Self, Whatever> {
+    pub fn new(call_swim_build: bool, verbose: bool) -> Result<Self, Whatever> {
         if verbose {
             log::info!("Searching for swim project root");
         }
@@ -40,16 +36,16 @@ impl SpadeRuntime {
         ) else {
             whatever!("Failed to find swim.toml");
         };
+        let mut swim_project_path = swim_toml_path;
+        swim_project_path.pop();
 
         if call_swim_build {
             if verbose {
                 log::info!("Invoking `swim build` (this may take a while)");
             }
-            let mut swim_project_path = swim_toml_path.clone();
-            swim_project_path.pop();
             let swim_output = Command::new("swim")
                 .arg("build")
-                .current_dir(swim_project_path)
+                .current_dir(&swim_project_path)
                 .output()
                 .whatever_context("Invocation of swim failed")?;
 
@@ -63,13 +59,12 @@ impl SpadeRuntime {
             }
         }
 
-        let mut spade_sv_path = swim_toml_path;
-        spade_sv_path.pop();
-        spade_sv_path.push("build/spade.sv");
+        let spade_sv_path = swim_project_path.join("build/spade.sv");
 
         Ok(Self {
             verilator_runtime: VerilatorRuntime::new(
-                artifact_directory,
+                // https://discord.com/channels/962274366043873301/962296357018828822/1332274022280466503
+                &swim_project_path.join("build/thirdparty"),
                 &[&spade_sv_path],
                 verbose,
             )?,
