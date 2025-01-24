@@ -47,7 +47,7 @@ cargo init --bin .
 
 In the `Cargo.toml` generated, we'll want to add some dependencies:
 
-```
+```toml
 # file: Cargo.toml
 [dependencies]
 # other dependencies...
@@ -94,13 +94,15 @@ fn main() -> Result<(), Whatever> {
 
 Let's break down the relevant parts of what's going on here:
 
-1. ```rust
+1. Binding at compile time:
+```rust
 #[verilog(src = "sv/main.sv", name = "main")]
 struct Main;
 ``` declares that the Rust `struct Main` binds to the Verilog module `main` as
 defined in `sv/main.sv` (this path is relative to the `Cargo.toml` parent directory).
 
-2. ```rust
+2. Binding at runtime:
+```rust
 let mut runtime = VerilatorRuntime::new(
     "artifacts".into(),
     &["sv/main.sv".as_ref()],
@@ -109,7 +111,8 @@ let mut runtime = VerilatorRuntime::new(
 ``` creates a Verilog runtime powered by verilator, allowing you to run Verilog
 from Rust.
 
-3. ```rust
+3. Using at runtime: 
+```rust
 let mut main = runtime.create_model::<Main>()?;
 ``` asks the runtime to create a new version of `Main`, that is, our `main`
 model.
