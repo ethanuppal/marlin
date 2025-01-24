@@ -8,4 +8,73 @@ dumbname. You can find the full source code for this tutorial [here](../spade-su
 
 I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
 
-TODO
+If you don't already have Spade installed, [make sure to do that](https://docs.spade-lang.org/installation.html).
+You can either integrate dumbname into an existing [Swim](https://docs.spade-lang.org/swim/index.html) project at no effort or (in this case) make a new Swim project from scratch with an eye to dumbname.
+
+```shell
+swim init tutorial-project
+cd tutorial-project
+git init # optional, if using git
+```
+
+In `main.spade` we'll write some simple Spade code:
+
+```rust
+// file: src/main.spade
+#[no_mangle(all)]
+entity main(out: inv &int<8>) {
+    set out = 42;
+}}
+```
+
+You can read the [Spade book](https://docs.spade-lang.org/introduction.html) for an
+introduction to Spade; this tutorial will not focus on teaching the language.
+Nonetheless, the essence of the above code is to expose an inverted wire which
+we pin to the value `42` (think of `assign`ing to an `output` in Verilog).
+
+Then, we'll make a new crate to use dumbname:
+
+```shell
+cargo init --bin --name swim_tests test
+vi test/main.rs
+```
+
+In the `Cargo.toml`, we'll add the `spade` dependency:
+
+```toml
+[dependencies]
+# other dependencies...
+spade = { git = "https://github.com/ethanuppal/dumbname" }
+snafu = "0.8.5" # optional, whatever version
+colog = "1.3.0" # optional, whatever version
+```
+
+Our testing code will be similar to the Verilog code:
+
+```rust
+// test/src/main.rs
+use snafu::Whatever;
+use spade::{spade, SpadeRuntime};
+
+#[spade(src = "src/main.spade", name = "main")]
+struct Main;
+
+#[snafu::report]
+fn main() -> Result<(), Whatever> {
+    colog::init();
+
+    // the first `true` says we want to automatically compile the Spade
+    // the second `true` says we want debug logging
+    let mut runtime = SpadeRuntime::new(true, true)?;
+
+    let mut main = runtime.create_model::<Main>()?;
+
+    main.eval();
+    println!("{}", main.out);
+    assert_eq!(main.out, 42); // hardcoded into Spade source
+
+    Ok(())
+}
+```
+
+A `cargo run` from the project root lets us test our Spade!
