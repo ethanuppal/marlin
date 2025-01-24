@@ -95,27 +95,27 @@ fn main() -> Result<(), Whatever> {
 Let's break down the relevant parts of what's going on here:
 
 1. Binding at compile time:
-```rust
-#[verilog(src = "sv/main.sv", name = "main")]
-struct Main;
-``` declares that the Rust `struct Main` binds to the Verilog module `main` as
-defined in `sv/main.sv` (this path is relative to the `Cargo.toml` parent directory).
+    ```rust
+    #[verilog(src = "sv/main.sv", name = "main")]
+    struct Main;
+    ``` declares that the Rust `struct Main` binds to the Verilog module `main` as
+    defined in `sv/main.sv` (this path is relative to the `Cargo.toml` parent directory).
 
 2. Binding at runtime:
-```rust
-let mut runtime = VerilatorRuntime::new(
-    "artifacts".into(),
-    &["sv/main.sv".as_ref()],
-    true,
-)?;
-``` creates a Verilog runtime powered by verilator, allowing you to run Verilog
-from Rust.
+    ```rust
+    let mut runtime = VerilatorRuntime::new(
+        "artifacts".into(),
+        &["sv/main.sv".as_ref()],
+        true,
+    )?;
+    ``` creates a Verilog runtime powered by verilator, allowing you to run Verilog
+    from Rust.
 
 3. Using at runtime: 
-```rust
-let mut main = runtime.create_model::<Main>()?;
-``` asks the runtime to create a new version of `Main`, that is, our `main`
-model.
+    ```rust
+    let mut main = runtime.create_model::<Main>()?;
+    ``` asks the runtime to create a new version of `Main`, that is, our `main`
+    model.
 
 I won't comment on the rest; it's just regular Rust --- including the part where
 we assign to values and call `eval()` on the model object! (Yes, that is the
