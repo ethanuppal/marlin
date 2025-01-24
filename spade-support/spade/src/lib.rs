@@ -3,7 +3,7 @@ pub use verilog::__reexports;
 
 use std::{env::current_dir, process::Command};
 
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::Utf8PathBuf;
 use snafu::{whatever, ResultExt, Whatever};
 use verilog::{VerilatorRuntime, __reexports::verilator::VerilatedModel};
 
@@ -34,7 +34,9 @@ impl SpadeRuntime {
                     "Failed to convert current directory to UTF-8",
                 )?,
         ) else {
-            whatever!("Failed to find swim.toml");
+            whatever!(
+                "Failed to find swim.toml searching from current directory"
+            );
         };
         let mut swim_project_path = swim_toml_path;
         swim_project_path.pop();
