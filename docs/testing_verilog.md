@@ -98,7 +98,9 @@ Let's break down the relevant parts of what's going on here:
     ```rust
     #[verilog(src = "sv/main.sv", name = "main")]
     struct Main;
-    ``` declares that the Rust `struct Main` binds to the Verilog module `main` as
+    ``` 
+
+    This snippet declares that the Rust `struct Main` binds to the Verilog module `main` as
     defined in `sv/main.sv` (this path is relative to the `Cargo.toml` parent directory).
 
 2. Binding at runtime:
@@ -108,13 +110,15 @@ Let's break down the relevant parts of what's going on here:
         &["sv/main.sv".as_ref()],
         true,
     )?;
-    ``` creates a Verilog runtime powered by verilator, allowing you to run Verilog
+    ``` 
+    This line creates a Verilog runtime powered by verilator, allowing you to run Verilog
     from Rust.
 
 3. Using at runtime: 
     ```rust
     let mut main = runtime.create_model::<Main>()?;
-    ``` asks the runtime to create a new version of `Main`, that is, our `main`
+    ``` 
+    This line asks the runtime to create a new version of `Main`, that is, our `main`
     model.
 
 I won't comment on the rest; it's just regular Rust --- including the part where
