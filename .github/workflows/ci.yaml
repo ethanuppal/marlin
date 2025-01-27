@@ -23,7 +23,11 @@ jobs:
       - name: Install verilator
         run: make install_verilator
       - name: Test
-        run: cd verilog-support/example-project && cargo run -p example-verilog-project
+        run: |
+          cd verilog-support/example-project
+          cargo run -p example-verilog-project
+          cargo run -p example-verilog-project # rerun
+      
   test_spade:
     strategy:
       matrix:
