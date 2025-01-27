@@ -42,9 +42,13 @@ solutions:
 
 Still, a lot of these are less than optimal.
 
-## 🚀 Showcase
+## ✨ Features
 
 ![Early example of using this with Spade](./assets/demo-alpha.png)
+
+- 🚀 Minimal overhead over directly using `verilator`
+- 🔌 Works completely drop-in in your existing projects
+- 🦀 Rust. Did I say Rust?
 
 ## ⚡️ Requirements
 
@@ -57,7 +61,7 @@ dumbname is currently in development.
 You can currently install the crates via `git` specifications.
 (I'm aware that this is not explained well.)
 
-## ✨ Usage
+## ❓ Usage
 
 I'll write more documentation once I get further in the development process.
 
