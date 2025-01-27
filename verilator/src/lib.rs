@@ -290,8 +290,15 @@ fn needs_rebuild(
     source_files: &[&str],
     verilator_artifact_directory: &Utf8Path,
 ) -> Result<bool, Whatever> {
+    if !verilator_artifact_directory.exists() {
+        return Ok(true);
+    }
+
     let Some(last_built) = fs::read_dir(verilator_artifact_directory)
-        .expect("Couldn't access local directory")
+        .whatever_context(format!(
+            "{} exists but could not read it",
+            verilator_artifact_directory
+        ))?
         .flatten() // Remove failed
         .filter_map(|f| {
             if f.metadata()
