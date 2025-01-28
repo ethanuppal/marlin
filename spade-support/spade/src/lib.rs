@@ -1,7 +1,7 @@
 pub use spade_macro::spade;
 pub use verilog::__reexports;
 
-use std::{env::current_dir, process::Command};
+use std::{env::current_dir, ffi::OsString, path::Path, process::Command};
 
 use camino::Utf8PathBuf;
 use snafu::{whatever, ResultExt, Whatever};
@@ -17,12 +17,29 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     None
 }
 
+pub struct SpadeRuntimeOptions {
+    pub swim_executable: OsString,
+    pub call_swim_build: bool,
+}
+
+impl Default for SpadeRuntimeOptions {
+    fn default() -> Self {
+        Self {
+            swim_executable: "swim".into(),
+            call_swim_build: true,
+        }
+    }
+}
+
 pub struct SpadeRuntime {
     verilator_runtime: VerilatorRuntime,
 }
 
 impl SpadeRuntime {
-    pub fn new(call_swim_build: bool, verbose: bool) -> Result<Self, Whatever> {
+    pub fn new(
+        options: SpadeRuntimeOptions,
+        verbose: bool,
+    ) -> Result<Self, Whatever> {
         if verbose {
             log::info!("Searching for swim project root");
         }
@@ -41,11 +58,24 @@ impl SpadeRuntime {
         let mut swim_project_path = swim_toml_path;
         swim_project_path.pop();
 
-        if call_swim_build {
+        if options.call_swim_build {
             if verbose {
                 log::info!("Invoking `swim build` (this may take a while)");
             }
-            let swim_output = Command::new("swim")
+            if !Path::new(&options.swim_executable)
+                .metadata()
+                .whatever_context(format!(
+                    "Failed to read metadata for `swim` binary at {}",
+                    options.swim_executable.to_string_lossy()
+                ))?
+                .is_file()
+            {
+                whatever!(
+                    "`swim` binary (at path {}) is not a file",
+                    options.swim_executable.to_string_lossy()
+                );
+            }
+            let swim_output = Command::new(options.swim_executable)
                 .arg("build")
                 .current_dir(&swim_project_path)
                 .output()
