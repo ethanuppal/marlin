@@ -62,19 +62,6 @@ impl SpadeRuntime {
             if verbose {
                 log::info!("Invoking `swim build` (this may take a while)");
             }
-            if !Path::new(&options.swim_executable)
-                .metadata()
-                .whatever_context(format!(
-                    "Failed to read metadata for `swim` binary at {}",
-                    options.swim_executable.to_string_lossy()
-                ))?
-                .is_file()
-            {
-                whatever!(
-                    "`swim` binary (at path {}) is not a file",
-                    options.swim_executable.to_string_lossy()
-                );
-            }
             let swim_output = Command::new(options.swim_executable)
                 .arg("build")
                 .current_dir(&swim_project_path)
