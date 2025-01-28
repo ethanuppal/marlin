@@ -16,9 +16,9 @@ version = "0.0.0"
 authors = ["Ethan Uppal"]
 edition = "2021"
 rust-version = "1.83"
-description = ""
+description = "No nonsense hardware testing in RUst"
 readme = "README.md"
-license = "LGPL-3.0-only"
+license = "MPL-2.0"
 
 [workspace.dependencies]
 snafu = "0.8.5"
