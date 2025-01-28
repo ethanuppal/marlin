@@ -1,7 +1,7 @@
 pub use spade_macro::spade;
 pub use verilog::__reexports;
 
-use std::{env::current_dir, ffi::OsString, path::Path, process::Command};
+use std::{env::current_dir, ffi::OsString, process::Command};
 
 use camino::Utf8PathBuf;
 use snafu::{whatever, ResultExt, Whatever};
