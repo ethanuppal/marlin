@@ -79,3 +79,11 @@ The TLDR is procedural macros + `dlopen`.
 - [verilated-rs](https://github.com/djg/verilated-rs) is a super cool library
 that uses a build script to statically link in verilated bindings, but is
 unmaintained for years as of writing this.
+
+## License
+
+dumbname is licensed under the Mozilla Public License 2.0. This license is
+similar to the Lesser GNU Public License, except that the copyleft applies only
+to the source code of this library, not any library that uses it. That means you
+can statically or dynamically link with unfree code (see
+<https://www.mozilla.org/en-US/MPL/2.0/FAQ/#virality>).

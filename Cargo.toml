@@ -16,7 +16,8 @@ version = "0.0.0"
 authors = ["Ethan Uppal"]
 edition = "2021"
 rust-version = "1.83"
-description = "No nonsense hardware testing in RUst"
+description = "🦀 No nonsense hardware testing in Rust 🛠️"
+repository = "https://github.com/ethanuppal/dumbname"
 readme = "README.md"
 license = "MPL-2.0"
 
