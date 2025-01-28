@@ -23,6 +23,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use libloading::Library;
 use snafu::{whatever, ResultExt, Whatever};
 
+/// Verilator-defined types for C FFI.
 pub mod types {
     /// From the Verilator documentation: "Data representing 'bit' of 1-8 packed
     /// bits."
@@ -49,22 +50,31 @@ pub mod types {
     pub type WData = EData;
 }
 
+/// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
 pub enum PortDirection {
     Input,
     Output,
     Inout,
 }
 
+/// You should not implement this `trait` manually. Instead, use a procedural
+/// macro like `#[verilog(...)]` to derive it for you.
 pub trait VerilatedModel {
+    /// The source-level name of the module.
     fn name() -> &'static str;
 
+    /// The path of the module's definition.
     fn source_path() -> &'static str;
 
+    /// The module's interface.
     fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
 
+    /// Use [`VerilatorRuntime::create_model`] or similar function for another
+    /// runtime.
     fn init_from(library: &Library) -> Self;
 }
 
+/// Runtime for (System)Verilog code.
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
     source_files: Vec<Utf8PathBuf>,
@@ -74,6 +84,8 @@ pub struct VerilatorRuntime {
 }
 
 impl VerilatorRuntime {
+    /// Creates a new runtime for instantiating (Systen)Verilog modules as Rust
+    /// objects.
     pub fn new(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
@@ -102,9 +114,8 @@ impl VerilatorRuntime {
         })
     }
 
-    // function name needs some work
-    /// Constructs a new model. Incrementally builds the Verilated model library
-    /// only once.
+    /// Constructs a new model. Uses lazy and incremental building for
+    /// efficiency.
     pub fn create_model<M: VerilatedModel>(&mut self) -> Result<M, Whatever> {
         if M::name().chars().any(|c| c == '\\' || c == ' ') {
             whatever!("Escaped module names are not supported");

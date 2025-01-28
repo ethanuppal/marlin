@@ -17,8 +17,16 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     None
 }
 
+/// Optional configuration for creating a `SpadeRuntime`. Usually, you can just
+/// use `SpadeRuntimeOptions::default()`.
 pub struct SpadeRuntimeOptions {
+    /// The name of the `swim` executable, interpreted in some way by the
+    /// OS/shell.
     pub swim_executable: OsString,
+
+    /// Whether `swim build` should be automatically called. This switch is
+    /// useful to disable when, for example, another tool has already
+    /// called `swim build`.
     pub call_swim_build: bool,
 }
 
@@ -31,11 +39,13 @@ impl Default for SpadeRuntimeOptions {
     }
 }
 
+/// Runtime for Spade code.
 pub struct SpadeRuntime {
     verilator_runtime: VerilatorRuntime,
 }
 
 impl SpadeRuntime {
+    /// Creates a new runtime for instantiating Spade units as Rust objects.
     pub fn new(
         options: SpadeRuntimeOptions,
         verbose: bool,
@@ -90,6 +100,8 @@ impl SpadeRuntime {
         })
     }
 
+    /// Instantiates a new Spade unit. This function simply wraps
+    /// [`VerilatorRuntime::create_model`].
     pub fn create_model<M: VerilatedModel>(&mut self) -> Result<M, Whatever> {
         self.verilator_runtime.create_model()
     }
