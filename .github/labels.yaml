@@ -1,0 +1,21 @@
+"Code: Verilator":
+  - changed-files:
+      - any-glob-to-any-file: "verilator/**"
+
+"Code: Verilog Support":
+  - changed-files:
+      - any-glob-to-any-file: "verilog-support/**"
+
+"Code: Spade Support":
+  - changed-files:
+      - any-glob-to-any-file: "spade-support/**"
+
+"Infra: CI":
+  - changed-files:
+      - any-glob-to-any-file: ".github/workflows/*"
+      - any-glob-to-any-file: ".github/labels.yaml"
+
+"Documentation":
+  - changed-files:
+      - any-glob-to-any-file: "**/*.md"
+      - any-glob-to-any-file: "assets/**"
