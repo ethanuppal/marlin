@@ -17,6 +17,8 @@ Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 `serde` even.
 
+![Early example of using this with Spade](./assets/demo-alpha.png)
+
 ## 🔥 Motivation
 
 Why does hardware testing suck? Consider the ways we have to test
@@ -44,8 +46,6 @@ Still, a lot of these are less than optimal.
 
 ## ✨ Features
 
-![Early example of using this with Spade](./assets/demo-alpha.png)
-
 - 🚀 Minimal overhead over directly using `verilator`
 - 🔌 Works completely drop-in in your existing projects
 - 🦀 Rust. Did I say Rust?
@@ -60,6 +60,7 @@ Still, a lot of these are less than optimal.
 dumbname is currently in development.
 You can currently install the crates via `git` specifications.
 (I'm aware that this is not explained well.)
+Look at the tutorials in the Usage section for detailed instructions.
 
 ## ❓ Usage
 
