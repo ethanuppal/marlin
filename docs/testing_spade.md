@@ -54,7 +54,7 @@ Our testing code will be similar to the Verilog code:
 ```rust
 // test/src/main.rs
 use snafu::Whatever;
-use spade::{spade, SpadeRuntime};
+use spade::{spade, SpadeRuntime, SpadeRuntimeOptions};
 
 #[spade(src = "src/main.spade", name = "main")]
 struct Main;
@@ -65,7 +65,7 @@ fn main() -> Result<(), Whatever> {
 
     // the first `true` says we want to automatically compile the Spade
     // the second `true` says we want debug logging
-    let mut runtime = SpadeRuntime::new(true, true)?;
+    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default(), true)?;
 
     let mut main = runtime.create_model::<Main>()?;
 
