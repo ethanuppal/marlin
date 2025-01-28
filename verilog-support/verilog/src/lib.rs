@@ -10,5 +10,5 @@ pub mod __reexports {
     pub use verilator;
 }
 
-pub use verilator::VerilatorRuntime;
-pub use verilog_macro::verilog;
+pub use verilator::{DpiFunction, VerilatorRuntime, VerilatorRuntimeOptions};
+pub use verilog_macro::{dpi, verilog};

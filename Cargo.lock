@@ -870,6 +870,7 @@ dependencies = [
 name = "verilog-macro"
 version = "0.0.0"
 dependencies = [
+ "quote",
  "sv-parser",
  "syn 2.0.96",
  "verilator",

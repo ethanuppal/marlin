@@ -11,7 +11,10 @@ use std::{env::current_dir, ffi::OsString, process::Command};
 
 use camino::Utf8PathBuf;
 use snafu::{whatever, ResultExt, Whatever};
-use verilog::{VerilatorRuntime, __reexports::verilator::VerilatedModel};
+use verilog::{
+    VerilatorRuntime, VerilatorRuntimeOptions,
+    __reexports::verilator::VerilatedModel,
+};
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {
@@ -23,8 +26,8 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     None
 }
 
-/// Optional configuration for creating a `SpadeRuntime`. Usually, you can just
-/// use `SpadeRuntimeOptions::default()`.
+/// Optional configuration for creating a [`SpadeRuntime`]. Usually, you can
+/// just use [`SpadeRuntimeOptions::default()`].
 pub struct SpadeRuntimeOptions {
     /// The name of the `swim` executable, interpreted in some way by the
     /// OS/shell.
@@ -34,6 +37,9 @@ pub struct SpadeRuntimeOptions {
     /// useful to disable when, for example, another tool has already
     /// called `swim build`.
     pub call_swim_build: bool,
+
+    /// See [`VerilatorRuntimeOptions`].
+    pub verilator_options: VerilatorRuntimeOptions,
 }
 
 impl Default for SpadeRuntimeOptions {
@@ -41,6 +47,7 @@ impl Default for SpadeRuntimeOptions {
         Self {
             swim_executable: "swim".into(),
             call_swim_build: true,
+            verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
 }
@@ -101,6 +108,8 @@ impl SpadeRuntime {
                 // https://discord.com/channels/962274366043873301/962296357018828822/1332274022280466503
                 &swim_project_path.join("build/thirdparty"),
                 &[&spade_sv_path],
+                [],
+                options.verilator_options,
                 verbose,
             )?,
         })

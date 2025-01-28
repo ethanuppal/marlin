@@ -6,6 +6,7 @@
 
 use std::{
     collections::{hash_map::Entry, HashMap},
+    ffi::{OsStr, OsString},
     fmt::Write,
     fs,
     process::Command,
@@ -66,10 +67,52 @@ pub trait VerilatedModel {
     fn init_from(library: &Library) -> Self;
 }
 
+/// `DpiFunction(c_name, c_function_code, rust_function_code)`.
+pub struct DpiFunction(pub &'static str, pub &'static str, pub &'static str);
+
+/// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can
+/// just use [`VerilatorRuntimeOptions::default()`].
+pub struct VerilatorRuntimeOptions {
+    /// The name of the `verilator` executable, interpreted in some way by the
+    /// OS/shell.
+    pub verilator_executable: OsString,
+
+    /// If `None`, there will be no optimization. If a value from `0` to `3`
+    /// inclusive, the flag `-O<level>` will be passed. Enabling will slow
+    /// compilation times.
+    pub verilator_optimization: Option<usize>,
+
+    /// Whether verilator should always be invoked instead of only when the
+    /// source files or DPI functions change.
+    pub force_verilator_rebuild: bool,
+
+    /// The name of the `rustc` executable, interpreted in some way by the
+    /// OS/shell.
+    pub rustc_executable: OsString,
+
+    /// Whether to enable optimization when calling `rustc`. Enabling will slow
+    /// compilation times.
+    pub rustc_optimization: bool,
+}
+
+impl Default for VerilatorRuntimeOptions {
+    fn default() -> Self {
+        Self {
+            verilator_executable: "verilator".into(),
+            verilator_optimization: None,
+            force_verilator_rebuild: false,
+            rustc_executable: "rustc".into(),
+            rustc_optimization: false,
+        }
+    }
+}
+
 /// Runtime for (System)Verilog code.
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
     source_files: Vec<Utf8PathBuf>,
+    dpi_functions: Vec<DpiFunction>,
+    options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and Verilator implementations
     libraries: HashMap<(String, String), Library>,
     verbose: bool,
@@ -78,9 +121,11 @@ pub struct VerilatorRuntime {
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (Systen)Verilog modules as Rust
     /// objects.
-    pub fn new(
+    pub fn new<I: IntoIterator<Item = DpiFunction>>(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
+        dpi_functions: I,
+        options: VerilatorRuntimeOptions,
         verbose: bool,
     ) -> Result<Self, Whatever> {
         if verbose {
@@ -89,7 +134,7 @@ impl VerilatorRuntime {
         for source_file in source_files {
             if !source_file.is_file() {
                 whatever!(
-                    "Source file {} does not exist or is not a file",
+                    "Source file (with *relative path* {}) does not exist or is not a file",
                     source_file
                 );
             }
@@ -101,6 +146,8 @@ impl VerilatorRuntime {
                 .iter()
                 .map(|path| path.to_path_buf())
                 .collect(),
+            dpi_functions: dpi_functions.into_iter().collect(),
+            options,
             libraries: HashMap::new(),
             verbose,
         })
@@ -151,9 +198,12 @@ impl VerilatorRuntime {
                 .collect::<Vec<_>>();
             let library_path = build(
                 &source_files,
+                &self.dpi_functions,
                 M::name(),
                 M::ports(),
                 &local_artifacts_directory,
+                &self.options,
+                self.verbose,
             )
             .whatever_context("Failed to build verilator dynamic library")?;
 
@@ -174,10 +224,95 @@ impl VerilatorRuntime {
     }
 }
 
-// hardcoded knowledge:
+// TODO: hardcoded knowledge:
 // - output library is obj_dir/libV${top_module}.a
 // - location of verilated.h
 // - verilator library is obj_dir/libverilated.a
+
+/// Returns a tuple of the DPI object file, DPI C wrapper, and whether it was
+/// rebuilt.
+fn build_dpi_if_needed(
+    rustc: &OsStr,
+    rustc_optimize: bool,
+    dpi_functions: &[DpiFunction],
+    dpi_artifact_directory: &Utf8Path,
+    verbose: bool,
+) -> Result<(Utf8PathBuf, Utf8PathBuf, bool), Whatever> {
+    let dpi_file = dpi_artifact_directory.join("dpi.rs");
+    // TODO: hard-coded knowledge
+    let dpi_object_file = Utf8PathBuf::from("../dpi/dpi.o"); // dpi_file.with_extension("o");
+    let dpi_c_wrappers = Utf8PathBuf::from("../dpi/wrappers.c"); // dpi_artifact_directory.join("wrappers.cpp");
+
+    let current_file_code = dpi_functions
+        .iter()
+        .map(|DpiFunction(_, _, rust_code)| rust_code)
+        .cloned()
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let c_file_code = format!(
+        "#include \"verilated.h\"\n#include <stdint.h>\n{}",
+        dpi_functions
+            .iter()
+            .map(|DpiFunction(_, c_code, _)| c_code)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+
+    // only rebuild if there's been a change
+    if fs::read_to_string(&dpi_file)
+        .map(|file_code| file_code == current_file_code)
+        .unwrap_or(false)
+    {
+        if verbose {
+            log::info!("| Skipping rebuild of DPI due to no changes");
+        }
+        return Ok((dpi_object_file, dpi_c_wrappers, false));
+    }
+
+    if verbose {
+        log::info!("| Building DPI");
+    }
+
+    fs::write(dpi_artifact_directory.join("wrappers.c"), c_file_code)
+        .whatever_context(format!(
+            "Failed to write DPI function wrapper code to {}",
+            dpi_c_wrappers
+        ))?;
+    fs::write(&dpi_file, current_file_code).whatever_context(format!(
+        "Failed to write DPI function code to {}",
+        dpi_file
+    ))?;
+
+    let mut rustc_command = Command::new(rustc);
+    rustc_command
+        .args(["--emit=obj", "--crate-type=lib"])
+        .arg(
+            dpi_file
+                .components()
+                .last()
+                .expect("We just added dpi.rs to the end..."),
+        )
+        .current_dir(dpi_artifact_directory);
+    if rustc_optimize {
+        rustc_command.arg("-O");
+    }
+    let rustc_output = rustc_command
+        .output()
+        .whatever_context("Invocation of verilator failed")?;
+
+    if !rustc_output.status.success() {
+        whatever!(
+            "Invocation of rustc failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+            rustc_output.status,
+            String::from_utf8(rustc_output.stdout).unwrap_or_default(),
+            String::from_utf8(rustc_output.stderr).unwrap_or_default()
+        );
+    }
+
+    Ok((dpi_object_file, dpi_c_wrappers, true))
+}
 
 fn build_ffi(
     artifact_directory: &Utf8Path,
@@ -289,7 +424,7 @@ extern "C" {{
     Ok(ffi_wrappers)
 }
 
-fn needs_rebuild(
+fn needs_verilator_rebuild(
     source_files: &[&str],
     verilator_artifact_directory: &Utf8Path,
 ) -> Result<bool, Whatever> {
@@ -339,22 +474,48 @@ fn needs_rebuild(
 
 fn build(
     source_files: &[&str],
+    dpi_functions: &[DpiFunction],
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
     artifact_directory: &Utf8Path,
+    options: &VerilatorRuntimeOptions,
+    verbose: bool,
 ) -> Result<Utf8PathBuf, Whatever> {
+    if verbose {
+        log::info!("| Preparing artifacts directory");
+    }
+
     let ffi_artifact_directory = artifact_directory.join("ffi");
     fs::create_dir_all(&ffi_artifact_directory).whatever_context(
-        "Failed to create ffi subdirectory under artifacts directory",
+        "Failed to create ffi/ subdirectory under artifacts directory",
     )?;
     let verilator_artifact_directory = artifact_directory.join("obj_dir");
+    let dpi_artifact_directory = artifact_directory.join("dpi");
+    fs::create_dir_all(&dpi_artifact_directory).whatever_context(
+        "Failed to create dpi/ subdirectory under artifacts directory",
+    )?;
     let library_name = format!("V{}_dyn", top_module);
     let library_path =
         verilator_artifact_directory.join(format!("lib{}.so", library_name));
 
-    if !needs_rebuild(source_files, &verilator_artifact_directory)
+    let (dpi_object_file, dpi_c_wrapper, dpi_rebuilt) = build_dpi_if_needed(
+        &options.rustc_executable,
+        options.rustc_optimization,
+        dpi_functions,
+        &dpi_artifact_directory,
+        verbose,
+    )
+    .whatever_context("Failed to build DPI functions")?;
+
+    if !options.force_verilator_rebuild
+        && (!needs_verilator_rebuild(
+            source_files,
+            &verilator_artifact_directory,
+        )
         .whatever_context("Failed to check if artifacts need rebuilding")?
+            && !dpi_rebuilt)
     {
+        log::info!("| Skipping rebuild of verilated model due to no changes");
         return Ok(library_path);
     }
 
@@ -364,15 +525,28 @@ fn build(
     // bug in verilator#5226 means the directory must be relative to -Mdir
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
-    let verilator_output = Command::new("verilator")
+    let mut verilator_command = Command::new(&options.verilator_executable);
+    verilator_command
         .args(["--cc", "-sv", "--build", "-j", "0"])
         .args(["-CFLAGS", "-shared -fpic"])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
-        //.arg("-O3")
         .args(source_files)
         .arg(ffi_wrappers)
+        .arg(dpi_c_wrapper)
+        .arg(dpi_object_file);
+    if let Some(level) = options.verilator_optimization {
+        if (0..=3).contains(&level) {
+            verilator_command.arg(format!("-O{}", level));
+        } else {
+            whatever!("Invalid verilator optimization level: {}", level);
+        }
+    }
+    if verbose {
+        log::info!("| Verilator invocation: {:?}", verilator_command);
+    }
+    let verilator_output = verilator_command
         .output()
         .whatever_context("Invocation of verilator failed")?;
 
