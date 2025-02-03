@@ -92,7 +92,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         return syn::Error::new_spanned(
             &args.name,
             format!(
-                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle]`",
+                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle(all)]`",
                 args.name.value(),
                 args.source_path.value()
             ),
@@ -109,7 +109,10 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     else {
         return syn::Error::new_spanned(
             &args.name,
-            format!("Annotate `{}` with `#[no_mangle]`", args.name.value()),
+            format!(
+                "Annotate `{}` with `#[no_mangle(all)]`",
+                args.name.value()
+            ),
         )
         .into_compile_error()
         .into();
@@ -143,7 +146,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
                 &args.name,
                 format!(
                     "Annotate the unit `{}` with `#[no_mangle(all)]` or just the port `{}` with `#[no_mangle]`",
-                    args.name.value()
+                    args.name.value(),
                     port_name.inner,
                 ),
             )
