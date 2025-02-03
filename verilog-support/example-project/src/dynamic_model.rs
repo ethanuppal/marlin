@@ -5,10 +5,7 @@
 // obtain one at https://mozilla.org/MPL/2.0/.
 
 use snafu::{ResultExt, Whatever};
-use verilog::{verilog, PortDirection, VerilatorRuntime};
-
-#[verilog(src = "sv/main.sv", name = "main")]
-struct Main;
+use verilog::{PortDirection, VerilatorRuntime};
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {

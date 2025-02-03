@@ -62,10 +62,7 @@ using dumbname as a library (e.g., writing an interpreter).
 ```rust
 // file: src/main.rs
 use snafu::Whatever;
-use verilog::{verilog, VerilatorRuntime};
-
-#[verilog(src = "sv/main.sv", name = "main")]
-struct Main;
+use verilog::{VerilatorRuntime, PortDirection};
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
