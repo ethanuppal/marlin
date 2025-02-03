@@ -1,4 +1,4 @@
-#[no_mangle]
-entity main(#[no_mangle] out: inv &int<8>) {
+#[no_mangle(all)]
+entity main(out: inv &int<8>) {
     set out = 42;
 }

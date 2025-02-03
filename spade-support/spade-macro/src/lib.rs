@@ -101,19 +101,23 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         .into();
     };
 
-    if !unit_head
+    let Some(unit_mangle_attribute) = unit_head
         .attributes
         .0
         .iter()
-        .any(|attribute| attribute.name() == "no_mangle")
-    {
+        .find(|attribute| attribute.name() == "no_mangle")
+    else {
         return syn::Error::new_spanned(
             &args.name,
             format!("Annotate `{}` with `#[no_mangle]`", args.name.value()),
         )
         .into_compile_error()
         .into();
-    }
+    };
+    let is_no_mangle_all = matches!(
+        unit_mangle_attribute.inner,
+        spade_ast::Attribute::NoMangle { all: true }
+    );
 
     if unit_head.output_type.is_some() {
         return syn::Error::new_spanned(
@@ -133,13 +137,14 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
             .0
             .iter()
             .any(|attribute| attribute.name() == "no_mangle")
+            && !is_no_mangle_all
         {
             return syn::Error::new_spanned(
                 &args.name,
                 format!(
-                    "Annotate the port `{}` on unit `{}` with `#[no_mangle]`",
-                    port_name.inner,
+                    "Annotate the unit `{}` with `#[no_mangle(all)]` or just the port `{}` with `#[no_mangle]`",
                     args.name.value()
+                    port_name.inner,
                 ),
             )
             .into_compile_error()
