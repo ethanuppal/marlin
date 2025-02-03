@@ -48,6 +48,7 @@ Still, a lot of these are less than optimal.
 
 - 🚀 Minimal overhead over directly using `verilator`
 - 🔌 Works completely drop-in in your existing projects
+- 🪙 Declarative API for usability + Dynamic API for programmability
 - 🦀 Rust. Did I say Rust?
 
 ## ⚡️ Requirements
