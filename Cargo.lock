@@ -874,6 +874,7 @@ name = "verilator"
 version = "0.0.0"
 dependencies = [
  "camino",
+ "libc",
  "libloading",
  "log",
  "snafu",

@@ -10,5 +10,8 @@ pub mod __reexports {
     pub use verilator;
 }
 
-pub use verilator::VerilatorRuntime;
+pub use verilator::{
+    dynamic::DynamicVerilatedModel, dynamic::DynamicVerilatedModelError,
+    dynamic::VerilatorValue, PortDirection, VerilatorRuntime,
+};
 pub use verilog_macro::verilog;

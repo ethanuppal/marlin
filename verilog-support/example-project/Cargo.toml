@@ -9,6 +9,10 @@ repository.workspace = true
 readme.workspace = true
 license.workspace = true
 
+[[bin]]
+name = "dynamic_model"
+path = "src/dynamic_model.rs"
+
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
