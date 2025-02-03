@@ -58,6 +58,8 @@ colog = "1.3.0" # optional, whatever version
 
 The only required package is `verilog` from dumbname; everything else is just
 for fun.
+It's a good idea to fix a particular revision at this stage of development (and
+make sure to update it frequently insofar as it doesn't break your code!).
 
 Finally, we'll want to actually write the code that drives our project in `main.rs`:
 

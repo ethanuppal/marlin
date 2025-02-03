@@ -4,8 +4,6 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::path::Path;
-
 use snafu::{ResultExt, Whatever};
 use verilog::{verilog, PortDirection, VerilatorRuntime};
 
@@ -22,13 +20,9 @@ fn main() -> Result<(), Whatever> {
         true,
     )?;
 
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("sv/main.sv")
-        .to_string_lossy()
-        .to_string();
     let mut main = runtime.create_dyn_model(
         "main",
-        &path,
+        "sv/main.sv",
         &[
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
