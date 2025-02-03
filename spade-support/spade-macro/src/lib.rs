@@ -7,8 +7,8 @@
 use std::{env, fs};
 
 use camino::Utf8PathBuf;
-use logos::Logos;
 use proc_macro::TokenStream;
+use spade_parser::Logos;
 use verilator::PortDirection;
 use verilog_macro_builder::{build_verilated_struct, MacroArgs};
 
@@ -65,14 +65,14 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let lexer = spade_parser::lexer::TokenKind::lexer(&source_code);
+    let lexer = <spade_parser::lexer::TokenKind as Logos>::lexer(&source_code);
     let mut parser = spade_parser::Parser::new(lexer, 0);
     let top_level = match parser.top_level_module_body() {
         Ok(body) => body,
-        Err(error) => {
+        Err(_error) => {
             return syn::Error::new_spanned(
                 args.source_path,
-                error.to_string(),
+                "Failed to parse Spade code: run the Spade compiler for more details",
             )
             .into_compile_error()
             .into();
