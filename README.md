@@ -68,6 +68,7 @@ I'll write more documentation once I get further in the development process.
 
 - [Testing a Verilog project](./docs/testing_verilog.md)
 - [Testing a Spade project](./docs/testing_spade.md)
+- [Using dynamic Verilog models](./docs/verilog_dynamic_models.md)
 
 ## 💡 How it works
 

@@ -1,5 +1,5 @@
 
-# Using Dynamic Models
+# Using dynamic Verilog models
 
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
