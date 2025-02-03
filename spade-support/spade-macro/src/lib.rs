@@ -69,7 +69,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     let mut parser = spade_parser::Parser::new(lexer, 0);
     let top_level = match parser.top_level_module_body() {
         Ok(body) => body,
-        Err(error) => {
+        Err(_error) => {
             return syn::Error::new_spanned(
                 args.source_path,
                 "Failed to parse Spade code: run the Spade compiler for more details",
