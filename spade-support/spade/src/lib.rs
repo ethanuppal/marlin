@@ -11,10 +11,10 @@ use std::{env::current_dir, ffi::OsString, process::Command};
 
 use camino::Utf8PathBuf;
 use snafu::{whatever, ResultExt, Whatever};
-use verilog::{
-    VerilatorRuntime, VerilatorRuntimeOptions,
-    __reexports::verilator::VerilatedModel,
-};
+use verilog::{VerilatorRuntime, __reexports::verilator::VerilatedModel};
+
+// TODO: this will all be exposed from the main dumbname crate once it exists
+pub use verilog::VerilatorRuntimeOptions;
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {

@@ -14,8 +14,12 @@ name = "tutorial"
 path = "src/tutorial.rs"
 
 [[bin]]
-name = "dynamic_model"
-path = "src/dynamic_model.rs"
+name = "dynamic_model_tutorial"
+path = "src/dynamic_model_tutorial.rs"
+
+[[bin]]
+name = "dpi_tutorial"
+path = "src/dpi_tutorial.rs"
 
 [dependencies]
 snafu.workspace = true

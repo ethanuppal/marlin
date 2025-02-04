@@ -272,7 +272,7 @@ fn needs_verilator_rebuild(
 ///
 /// First, we set up the artifact directories (let us assume the top-level
 /// directory is called "artifacts"):
-/// ```
+/// ```text
 /// artifacts/
 /// ├─ ffi/
 /// ├─ obj_dir/

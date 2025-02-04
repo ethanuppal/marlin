@@ -5,7 +5,7 @@
 // obtain one at https://mozilla.org/MPL/2.0/.
 
 use snafu::{ResultExt, Whatever};
-use verilog::{PortDirection, VerilatorRuntime};
+use verilog::{PortDirection, VerilatorRuntime, VerilatorRuntimeOptions};
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
@@ -14,6 +14,8 @@ fn main() -> Result<(), Whatever> {
     let mut runtime = VerilatorRuntime::new(
         "artifacts2".into(),
         &["sv/main.sv".as_ref()],
+        [],
+        VerilatorRuntimeOptions::default(),
         true,
     )?;
 

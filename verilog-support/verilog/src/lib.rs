@@ -13,5 +13,6 @@ pub mod __reexports {
 pub use verilator::{
     dynamic::DynamicVerilatedModel, dynamic::DynamicVerilatedModelError,
     dynamic::VerilatorValue, DpiFunction, PortDirection, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
 pub use verilog_macro::{dpi, verilog};
