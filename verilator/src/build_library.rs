@@ -19,12 +19,12 @@ use snafu::{prelude::*, Whatever};
 use crate::{DpiFunction, PortDirection, VerilatorRuntimeOptions};
 
 /// Writes `extern "C"` C++ bindings for a Verilator model with the given name
-/// (`top`) and signature (`ports`) to the given artifact directory
+/// (`top_module`) and signature (`ports`) to the given artifact directory
 /// `artifact_directory`, returning the path to the C++ file containing the FFI
 /// wrappers.
 fn build_ffi(
     artifact_directory: &Utf8Path,
-    top: &str,
+    top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
@@ -34,19 +34,19 @@ fn build_ffi(
         &mut buffer,
         r#"
 #include "verilated.h"
-#include "V{top}.h"
+#include "V{top_module}.h"
 
 extern "C" {{
-    void* ffi_new_V{top}() {{
-        return new V{top}{{}};
+    void* ffi_new_V{top_module}() {{
+        return new V{top_module}{{}};
     }}
 
     
-    void ffi_V{top}_eval(V{top}* top) {{
+    void ffi_V{top_module}_eval(V{top_module}* top) {{
         top->eval();
     }}
 
-    void ffi_delete_V{top}(V{top}* top) {{
+    void ffi_delete_V{top_module}(V{top_module}* top) {{
         delete top;
     }}
 "#
@@ -58,7 +58,7 @@ extern "C" {{
         if width > 64 {
             let underlying = format!(
                 "Port `{}` on top module `{}` was larger than 64 bits wide",
-                port, top
+                port, top_module
             );
             whatever!(Err(underlying), "We don't support larger than 64-bit width on ports yet because weird C linkage things");
         }
@@ -101,7 +101,7 @@ extern "C" {{
             writeln!(
                 &mut buffer,
                 r#"
-    void ffi_V{top}_pin_{port}(V{top}* top, {input_type}) {{
+    void ffi_V{top_module}_pin_{port}(V{top_module}* top, {input_type}) {{
         top->{port} = new_value;
     }}
             "#
@@ -114,7 +114,7 @@ extern "C" {{
             writeln!(
                 &mut buffer,
                 r#"
-    {return_type} ffi_V{top}_read_{port}(V{top}* top) {{
+    {return_type} ffi_V{top_module}_read_{port}(V{top_module}* top) {{
         return top->{port};
     }}
             "#
@@ -140,6 +140,7 @@ extern "C" {{
 ///
 /// This function is a nop if `dpi_functions.is_empty()`.
 fn build_dpi_if_needed(
+    top_module: &str,
     rustc: &OsStr,
     rustc_optimize: bool,
     dpi_functions: &[DpiFunction],
@@ -153,7 +154,7 @@ fn build_dpi_if_needed(
     let dpi_file = dpi_artifact_directory.join("dpi.rs");
     // TODO: hard-coded knowledge
     let dpi_object_file = Utf8PathBuf::from("../dpi/dpi.o"); // dpi_file.with_extension("o");
-    let dpi_c_wrappers = Utf8PathBuf::from("../dpi/wrappers.c"); // dpi_artifact_directory.join("wrappers.cpp");
+    let dpi_c_wrappers = Utf8PathBuf::from("../dpi/wrappers.cpp"); // dpi_artifact_directory.join("wrappers.cpp");
 
     let current_file_code = dpi_functions
         .iter()
@@ -161,9 +162,9 @@ fn build_dpi_if_needed(
         .cloned()
         .collect::<Vec<_>>()
         .join("\n");
-
     let c_file_code = format!(
-        "#include \"verilated.h\"\n#include <stdint.h>\n{}",
+        "#include \"svdpi.h\"\n#include \"V{}__Dpi.h\"\n#include <stdint.h>\n{}",
+       top_module, 
         dpi_functions
             .iter()
             .map(|DpiFunction(_, c_code, _)| c_code)
@@ -187,7 +188,7 @@ fn build_dpi_if_needed(
         log::info!("| Building DPI");
     }
 
-    fs::write(dpi_artifact_directory.join("wrappers.c"), c_file_code)
+    fs::write(dpi_artifact_directory.join("wrappers.cpp"), c_file_code)
         .whatever_context(format!(
             "Failed to write DPI function wrapper code to {}",
             dpi_c_wrappers
@@ -199,7 +200,8 @@ fn build_dpi_if_needed(
 
     let mut rustc_command = Command::new(rustc);
     rustc_command
-        .args(["--emit=obj", "--crate-type=lib"])
+        .args(["--emit=obj", "--crate-type=cdylib"])
+        .args(["--edition", "2021"])
         .arg(
             dpi_file
                 .components()
@@ -209,6 +211,9 @@ fn build_dpi_if_needed(
         .current_dir(dpi_artifact_directory);
     if rustc_optimize {
         rustc_command.arg("-O");
+    }
+    if verbose {
+        log::info!("  | rustc invocation: {:?}", rustc_command);
     }
     let rustc_output = rustc_command
         .output()
@@ -314,11 +319,12 @@ pub fn build_library(
     fs::create_dir_all(&dpi_artifact_directory).whatever_context(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
-    let library_name = format!("V{}_dyn", top_module);
+    let library_name = format!("dumbname_V{}", top_module);
     let library_path =
         verilator_artifact_directory.join(format!("lib{}.so", library_name));
 
     let (dpi_artifacts, dpi_rebuilt) = build_dpi_if_needed(
+        top_module,
         &options.rustc_executable,
         options.rustc_optimization,
         dpi_functions,
@@ -347,21 +353,21 @@ pub fn build_library(
 
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
-        .args(["--cc", "-sv", "--build", "-j", "0"])
+        .args(["--cc", "-sv", "-j", "0"])
         .args(["-CFLAGS", "-shared -fpic"])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
         .args(source_files)
         .arg(ffi_wrappers);
-    if let Some((dpi_c_wrapper, dpi_object_file)) = dpi_artifacts {
-        verilator_command.arg(dpi_c_wrapper).arg(dpi_object_file);
+    if let Some((dpi_object_file, dpi_c_wrapper)) = dpi_artifacts {
+        verilator_command.args(["-CFLAGS", dpi_object_file.as_str()]).arg(dpi_c_wrapper);
     }
     if let Some(level) = options.verilator_optimization {
         if (0..=3).contains(&level) {
             verilator_command.arg(format!("-O{}", level));
         } else {
-            whatever!("Invalid verilator optimization level: {}", level);
+            whatever!("Invalid Verilator optimization level: {}", level);
         }
     }
     if verbose {
@@ -369,7 +375,7 @@ pub fn build_library(
     }
     let verilator_output = verilator_command
         .output()
-        .whatever_context("Invocation of verilator failed")?;
+        .whatever_context("Invocation of Verilator failed")?;
 
     if !verilator_output.status.success() {
         whatever!(
@@ -377,6 +383,30 @@ pub fn build_library(
             verilator_output.status,
             String::from_utf8(verilator_output.stdout).unwrap_or_default(),
             String::from_utf8(verilator_output.stderr).unwrap_or_default()
+        );
+    }
+
+    let verilator_makefile_filename = Utf8PathBuf::from(format!("V{}.mk",top_module));
+    let verilator_makefile_path = verilator_artifact_directory.join(&verilator_makefile_filename);
+    let verilator_makefile_contents = fs::read_to_string(&verilator_makefile_path).whatever_context(format!("Failed to read Verilator-generated Makefile {}", verilator_makefile_path))?;
+    let verilator_makefile_contents = format!("VK_USER_OBJS += ../dpi/dpi.o\n\n{}", verilator_makefile_contents);
+    fs::write(&verilator_makefile_path, verilator_makefile_contents).whatever_context(format!("Failed to update Verilator-generated Makefile {}", verilator_makefile_path))?;
+
+    let mut make_command = Command::new(&options.make_executable);
+        make_command.args(["-f", verilator_makefile_filename.as_str()]).current_dir(verilator_artifact_directory);
+    if verbose {
+        log::info!("| Make invocation: {:?}", make_command);
+    }
+    let make_output = make_command
+        .output()
+        .whatever_context("Invocation of Make failed")?;
+
+    if !make_output.status.success() {
+        whatever!(
+            "Invocation of verilator failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+            make_output.status,
+            String::from_utf8(make_output.stdout).unwrap_or_default(),
+            String::from_utf8(make_output.stderr).unwrap_or_default()
         );
     }
 

@@ -24,15 +24,13 @@ fn main() -> Result<(), Whatever> {
         "artifacts".into(),
         &["sv/dpi.sv".as_ref()],
         [three],
-        VerilatorRuntimeOptions {
-            force_verilator_rebuild: true,
-            ..Default::default()
-        },
+        VerilatorRuntimeOptions::default(),
         true,
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
     main.eval();
+    assert_eq!(main.out, 3);
 
     Ok(())
 }

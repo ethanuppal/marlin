@@ -8,7 +8,7 @@ use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use proc_macro::TokenStream;
-use spade_parser::Logos;
+use spade_parser::logos::Logos;
 use verilator::PortDirection;
 use verilog_macro_builder::{build_verilated_struct, MacroArgs};
 
@@ -233,7 +233,7 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
         spade_ast::TypeSpec::Wire(inner) => {
             spade_simple_type_width(get_type_spec(inner))
         }
-        spade_ast::TypeSpec::Unit(_) | spade_ast::TypeSpec::Wildcard => {
+        spade_ast::TypeSpec::Wildcard => {
             panic!("Invalid type for Verilog-exposed Spade top")
         }
     }

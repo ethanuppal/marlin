@@ -115,6 +115,10 @@ pub struct VerilatorRuntimeOptions {
     /// Whether to enable optimization when calling `rustc`. Enabling will slow
     /// compilation times.
     pub rustc_optimization: bool,
+
+    /// The name of the `make` executable, interpreted in some way by the
+    /// OS/shell.
+    pub make_executable: OsString,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -125,6 +129,7 @@ impl Default for VerilatorRuntimeOptions {
             force_verilator_rebuild: false,
             rustc_executable: "rustc".into(),
             rustc_optimization: false,
+            make_executable: "make".into(),
         }
     }
 }

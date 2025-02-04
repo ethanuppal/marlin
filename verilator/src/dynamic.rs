@@ -71,28 +71,28 @@ impl From<types::QData> for VerilatorValue {
 
 #[derive(Debug, Snafu)]
 pub enum DynamicVerilatedModelError {
-    #[snafu(display("Port {port} not found on verilated module {top}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"))]
+    #[snafu(display("Port {port} not found on verilated module {top_module}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"))]
     NoSuchPort {
-        top: String,
+        top_module: String,
         port: String,
         #[snafu(source(false))]
         source: Option<libloading::Error>,
     },
     #[snafu(display(
-        "Port {port} on verilated module {top} has width {width}, but used as if it was in the {attempted_lower} to {attempted_higher} width range"
+        "Port {port} on verilated module {top_module} has width {width}, but used as if it was in the {attempted_lower} to {attempted_higher} width range"
     ))]
     InvalidPortWidth {
-        top: String,
+        top_module: String,
         port: String,
         width: usize,
         attempted_lower: usize,
         attempted_higher: usize,
     },
     #[snafu(display(
-        "Port {port} on verilated module {top} is an {direction} port, but was used as an {attempted_direction} port"
+        "Port {port} on verilated module {top_module} is an {direction} port, but was used as an {attempted_direction} port"
     ))]
     InvalidPortDirection {
-        top: String,
+        top_module: String,
         port: String,
         direction: PortDirection,
         attempted_direction: PortDirection,
@@ -111,7 +111,7 @@ impl DynamicVerilatedModel<'_> {
         let port: String = port.into();
         let (width, direction) = *self.ports.get(&port).ok_or(
             DynamicVerilatedModelError::NoSuchPort {
-                top: self.name.clone(),
+                top_module: self.name.clone(),
                 port: port.clone(),
                 source: None,
             },
@@ -119,7 +119,7 @@ impl DynamicVerilatedModel<'_> {
 
         if !matches!(direction, PortDirection::Output | PortDirection::Inout,) {
             return Err(DynamicVerilatedModelError::InvalidPortDirection {
-                top: self.name.clone(),
+                top_module: self.name.clone(),
                 port,
                 direction,
                 attempted_direction: PortDirection::Output,
@@ -137,7 +137,7 @@ impl DynamicVerilatedModel<'_> {
                 }
                 .map_err(|source| {
                     DynamicVerilatedModelError::NoSuchPort {
-                        top: $self.name.to_string(),
+                        top_module: $self.name.to_string(),
                         port: $port.clone(),
                         source: Some(source),
                     }
@@ -176,7 +176,7 @@ impl DynamicVerilatedModel<'_> {
                 }
                 .map_err(|source| {
                     DynamicVerilatedModelError::NoSuchPort {
-                        top: $self.name.to_string(),
+                        top_module: $self.name.to_string(),
                         port: $port.clone(),
                         source: Some(source),
                     }
@@ -186,7 +186,7 @@ impl DynamicVerilatedModel<'_> {
                     .ports
                     .get(&$port)
                     .ok_or(DynamicVerilatedModelError::NoSuchPort {
-                        top: $self.name.clone(),
+                        top_module: $self.name.clone(),
                         port: $port.clone(),
                         source: None,
                     })?
@@ -194,7 +194,7 @@ impl DynamicVerilatedModel<'_> {
 
                 if width > $high {
                     return Err(DynamicVerilatedModelError::InvalidPortWidth {
-                        top: $self.name.clone(),
+                        top_module: $self.name.clone(),
                         port: $port.clone(),
                         width,
                         attempted_lower: $low,
@@ -208,7 +208,7 @@ impl DynamicVerilatedModel<'_> {
                 ) {
                     return Err(
                         DynamicVerilatedModelError::InvalidPortDirection {
-                            top: $self.name.clone(),
+                            top_module: $self.name.clone(),
                             port: $port,
                             direction,
                             attempted_direction: PortDirection::Input,

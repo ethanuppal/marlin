@@ -53,8 +53,9 @@ Still, a lot of these are less than optimal.
 
 ## ⚡️ Requirements
 
-- [Rust](https://rustup.rs)
-- [`verilator`](https://verilator.org/guide/latest/install.html)
+- [Rust](https://rustup.rs), 2021 edition
+- [`verilator`](https://verilator.org/guide/latest/install.html), 5.025 or later
+   - `make`, e.g. [GNU Make](https://www.gnu.org/software/make/)
 
 ## 📦 Install
 

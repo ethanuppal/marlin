@@ -116,8 +116,16 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
                 let port_dimensions = match port_type {
                     sv::NetPortType::DataType(net_port_type_data_type) => {
                         match &net_port_type_data_type.nodes.1 {
-                            sv::DataTypeOrImplicit::DataType(_data_type) => {
-                                todo!("a")
+                            sv::DataTypeOrImplicit::DataType(data_type) => {
+                                match &**data_type {
+                                    sv::DataType::Vector(data_type_vector) => {
+                                        &data_type_vector.nodes.2
+                                    }
+                                    other => todo!(
+                                        "Unsupported data type {:?}",
+                                        other
+                                    ),
+                                }
                             }
                             sv::DataTypeOrImplicit::ImplicitDataType(
                                 implicit_data_type,
@@ -215,10 +223,11 @@ impl fmt::Display for DPIPrimitiveType {
 impl DPIPrimitiveType {
     fn as_c(&self) -> &'static str {
         match self {
-            DPIPrimitiveType::U8 => "uint8_t",
-            DPIPrimitiveType::U16 => "uint16_t",
-            DPIPrimitiveType::U32 => "uint32_t",
-            DPIPrimitiveType::U64 => "uint64_t",
+            // verilator uses signed for everything it seems
+            DPIPrimitiveType::U8 => "int8_t",
+            DPIPrimitiveType::U16 => "int16_t",
+            DPIPrimitiveType::U32 => "int32_t",
+            DPIPrimitiveType::U64 => "int64_t",
             DPIPrimitiveType::I8 => "int8_t",
             DPIPrimitiveType::I16 => "int16_t",
             DPIPrimitiveType::I32 => "int32_t",
@@ -466,7 +475,7 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
     let function_name = format_ident!("rust_{}", name);
     let function_to_compile = quote! {
         #(#attributes)*
-        extern "C" fn #function_name(#(#parameters),*) {
+        pub extern "C" fn #function_name(#(#parameters),*) {
             #(#preamble)*
             #body
         }
@@ -496,7 +505,7 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
         .collect::<Vec<_>>()
         .join(", ");
     let c_function = format!(
-        "void rust_{name}({c_signature});\nextern void {name}({c_signature}) {{ rust_{name}({c_arguments}); }}",
+        "extern \"C\" void rust_{name}({c_signature});\nextern \"C\" void {name}({c_signature}) {{ rust_{name}({c_arguments}); }}",
     );
     let c_function_literal =
         syn::LitStr::new(&c_function, cloned_item_fn.span());
