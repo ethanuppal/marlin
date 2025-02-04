@@ -72,7 +72,7 @@ extern "C" fn three(#[output] out: &mut u32) {
     *out = 3;
 }
 
-#[verilog(src = "sv/dpi.sv", name = "main")]
+#[verilog(src = "sv/main.sv", name = "main")]
 struct Main;
 
 #[snafu::report]
@@ -81,7 +81,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/dpi.sv".as_ref()],
+        &["sv/main.sv".as_ref()],
         [three],
         VerilatorRuntimeOptions::default(),
         true,
