@@ -321,10 +321,17 @@ impl VerilatorRuntime {
             let local_artifacts_directory = self.artifact_directory.join(name);
 
             if self.verbose {
-                log::info!("Creating artifacts directory");
+                log::info!(
+                    "Creating artifacts directory {}",
+                    local_artifacts_directory
+                );
             }
-            fs::create_dir_all(&local_artifacts_directory)
-                .whatever_context("Failed to create artifacts directory")?;
+            fs::create_dir_all(&local_artifacts_directory).whatever_context(
+                format!(
+                    "Failed to create artifacts directory {}",
+                    local_artifacts_directory,
+                ),
+            )?;
 
             if self.verbose {
                 log::info!("Building the dynamic library with verilator");
