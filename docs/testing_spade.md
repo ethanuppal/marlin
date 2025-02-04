@@ -78,3 +78,22 @@ fn main() -> Result<(), Whatever> {
 ```
 
 A `cargo run` from the project root lets us test our Spade!
+
+## A note on project structure
+
+While I tried to make this tutorial as easy to follow as possible, I don't
+necessarily believe the file structure presented above is optimal. I recommend
+having a `Cargo.toml` at project root and various `[[bin]]`s for each test in a
+`test/` folder, also at project root.
+
+```
+.
+├── Cargo.lock
+├── Cargo.toml
+├── swim.lock
+├── swim.toml
+├── src
+│   └── fft.spade
+└── test
+    └── unit.rs
+```
