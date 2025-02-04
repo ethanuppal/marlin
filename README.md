@@ -7,7 +7,7 @@
 > I need a better name than `dumbname` --- I'm open to suggestions!
 
 dumbname is a really powerful library (and API) that lets you "import" hardware
-modules into Rust. 
+modules into Rust (or Rust functions into hardware modules!). 
 
 No precompilation step and manual updates with `verilator` harnesses; no 
 Makefiles and quirky decorators with `cocotb`.
@@ -49,6 +49,7 @@ Still, a lot of these are less than optimal.
 - 🚀 Minimal overhead over directly using `verilator`
 - 🔌 Works completely drop-in in your existing projects
 - 🪙 Declarative API for usability + Dynamic API for programmability
+- 🔄 DPI support in Rust: call Rust functions from (System)Verilog
 - 🦀 Rust. Did I say Rust?
 
 ## ⚡️ Requirements
@@ -71,6 +72,7 @@ I'll write more documentation once I get further in the development process.
 - [Testing a Verilog project](./docs/testing_verilog.md)
 - [Testing a Spade project](./docs/testing_spade.md)
 - [Using dynamic Verilog models](./docs/verilog_dynamic_models.md)
+- [Calling Rust from Verilog](./docs/verilog_dpi.md)
 
 ## 💡 How it works
 

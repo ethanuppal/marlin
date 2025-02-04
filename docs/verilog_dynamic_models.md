@@ -6,7 +6,7 @@
 
 In this tutorial, we'll explore how to use dumbname to dynamically create
 bindings to Verilog modules.
-You can find the full source code for this tutorial [here](../verilog-support/example-project/) (in the `dyamic_model.rs` file).
+You can find the full source code for this tutorial [here](../verilog-support/example-project/) (in the `dyamic_model_tutorial.rs` file).
 
 I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
 In particular, I won't be reexplaining things I discussed in that tutorial,
@@ -76,7 +76,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut main = runtime.create_dyn_model(
         "main",
-        "sv/sv.main",
+        "sv/main.sv",
         &[
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
