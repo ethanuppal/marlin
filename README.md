@@ -1,7 +1,8 @@
 # dumbname
 
-![CI Badge](https://github.com/ethanuppal/dumbname/actions/workflows/ci.yaml/badge.svg)
-![Code Style Badge](https://github.com/ethanuppal/dumbname/actions/workflows/lint.yaml/badge.svg)
+[![CI Badge](https://github.com/ethanuppal/dumbname/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/ci.yaml)
+[![Code Style Badge](https://github.com/ethanuppal/dumbname/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/lint.yaml)
+[![Lines of Code Badge](https://tokei.rs/b1/github/ethanuppal/dumbname?category=code)](https://github.com/ethanuppal/dumbname)
 
 > [!IMPORTANT]
 > I need a better name than `dumbname` --- I'm open to suggestions!
@@ -16,6 +17,8 @@ testbenches. You're writing a regular Rust crate here.
 Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 `serde` even.
+
+dumbname works out of the box on macOS and Ubuntu (verified under continuous integration).
 
 ![Early example of using this with Spade](./assets/demo-alpha.png)
 
