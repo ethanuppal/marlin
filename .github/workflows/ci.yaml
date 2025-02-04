@@ -25,9 +25,15 @@ jobs:
       - name: Test
         run: |
           cd verilog-support/example-project
+<<<<<<< HEAD
           cargo run -p example-verilog-project
           cargo run -p example-verilog-project # rerun
           cargo run -p example-verilog-project --examples dpi
+=======
+          cargo run --package example-verilog-project --bin tutorial
+          cargo run --package example-verilog-project --bin tutorial # rerun
+          cargo run --package example-verilog-project --bin dynamic_model
+>>>>>>> origin/main
       
   test_spade:
     strategy:
@@ -41,6 +47,6 @@ jobs:
       - name: Install verilator
         run: make install_verilator
       - name: Install swim
-        run: cargo install --locked --git https://gitlab.com/spade-lang/swim
+        run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
         run: cd spade-support/example-project && cargo run -p example-spade-project

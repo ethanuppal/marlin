@@ -4,7 +4,7 @@
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
 In this tutorial, we'll setup a SystemVerilog project and test our code with
-dumbname. You can find the full source code for this tutorial [here](../verilog-support/example-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
+dumbname. You can find the full source code for this tutorial [here](../verilog-support/example-project/) (in the `tutorial.rs` file). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 ## Part 1: The Basics
 
@@ -58,6 +58,8 @@ colog = "1.3.0" # optional, whatever version
 
 The only required package is `verilog` from dumbname; everything else is just
 for fun.
+It's a good idea to fix a particular revision at this stage of development (and
+make sure to update it frequently insofar as it doesn't break your code!).
 
 Finally, we'll want to actually write the code that drives our project in `main.rs`:
 

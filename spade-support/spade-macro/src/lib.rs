@@ -7,8 +7,8 @@
 use std::{env, fs};
 
 use camino::Utf8PathBuf;
-use logos::Logos;
 use proc_macro::TokenStream;
+use spade_parser::Logos;
 use verilator::PortDirection;
 use verilog_macro_builder::{build_verilated_struct, MacroArgs};
 
@@ -65,14 +65,14 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let lexer = spade_parser::lexer::TokenKind::lexer(&source_code);
+    let lexer = <spade_parser::lexer::TokenKind as Logos>::lexer(&source_code);
     let mut parser = spade_parser::Parser::new(lexer, 0);
     let top_level = match parser.top_level_module_body() {
         Ok(body) => body,
-        Err(error) => {
+        Err(_error) => {
             return syn::Error::new_spanned(
                 args.source_path,
-                error.to_string(),
+                "Failed to parse Spade code: run the Spade compiler for more details",
             )
             .into_compile_error()
             .into();
@@ -92,7 +92,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         return syn::Error::new_spanned(
             &args.name,
             format!(
-                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle]`",
+                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle(all)]`",
                 args.name.value(),
                 args.source_path.value()
             ),
@@ -101,19 +101,26 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
         .into();
     };
 
-    if !unit_head
+    let Some(unit_mangle_attribute) = unit_head
         .attributes
         .0
         .iter()
-        .any(|attribute| attribute.name() == "no_mangle")
-    {
+        .find(|attribute| attribute.name() == "no_mangle")
+    else {
         return syn::Error::new_spanned(
             &args.name,
-            format!("Annotate `{}` with `#[no_mangle]`", args.name.value()),
+            format!(
+                "Annotate `{}` with `#[no_mangle(all)]`",
+                args.name.value()
+            ),
         )
         .into_compile_error()
         .into();
-    }
+    };
+    let is_no_mangle_all = matches!(
+        unit_mangle_attribute.inner,
+        spade_ast::Attribute::NoMangle { all: true }
+    );
 
     if unit_head.output_type.is_some() {
         return syn::Error::new_spanned(
@@ -133,13 +140,14 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
             .0
             .iter()
             .any(|attribute| attribute.name() == "no_mangle")
+            && !is_no_mangle_all
         {
             return syn::Error::new_spanned(
                 &args.name,
                 format!(
-                    "Annotate the port `{}` on unit `{}` with `#[no_mangle]`",
+                    "Annotate the unit `{}` with `#[no_mangle(all)]` or just the port `{}` with `#[no_mangle]`",
+                    args.name.value(),
                     port_name.inner,
-                    args.name.value()
                 ),
             )
             .into_compile_error()

@@ -21,6 +21,5 @@ proc-macro2.workspace = true
 syn.workspace = true
 quote.workspace = true
 
-logos.workspace = true
-spade-parser = { git = "https://gitlab.com/spade-lang/spade" }
-spade-ast = { git = "https://gitlab.com/spade-lang/spade" }
+spade-parser.workspace = true
+spade-ast.workspace = true
