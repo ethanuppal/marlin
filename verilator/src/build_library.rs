@@ -164,7 +164,7 @@ fn build_dpi_if_needed(
         .join("\n");
     let c_file_code = format!(
         "#include \"svdpi.h\"\n#include \"V{}__Dpi.h\"\n#include <stdint.h>\n{}",
-       top_module, 
+        top_module,
         dpi_functions
             .iter()
             .map(|DpiFunction(_, c_code, _)| c_code)
@@ -361,7 +361,9 @@ pub fn build_library(
         .args(source_files)
         .arg(ffi_wrappers);
     if let Some((dpi_object_file, dpi_c_wrapper)) = dpi_artifacts {
-        verilator_command.args(["-CFLAGS", dpi_object_file.as_str()]).arg(dpi_c_wrapper);
+        verilator_command
+            .args(["-CFLAGS", dpi_object_file.as_str()])
+            .arg(dpi_c_wrapper);
     }
     if let Some(level) = options.verilator_optimization {
         if (0..=3).contains(&level) {
@@ -386,14 +388,31 @@ pub fn build_library(
         );
     }
 
-    let verilator_makefile_filename = Utf8PathBuf::from(format!("V{}.mk",top_module));
-    let verilator_makefile_path = verilator_artifact_directory.join(&verilator_makefile_filename);
-    let verilator_makefile_contents = fs::read_to_string(&verilator_makefile_path).whatever_context(format!("Failed to read Verilator-generated Makefile {}", verilator_makefile_path))?;
-    let verilator_makefile_contents = format!("VK_USER_OBJS += ../dpi/dpi.o\n\n{}", verilator_makefile_contents);
-    fs::write(&verilator_makefile_path, verilator_makefile_contents).whatever_context(format!("Failed to update Verilator-generated Makefile {}", verilator_makefile_path))?;
+    let verilator_makefile_filename =
+        Utf8PathBuf::from(format!("V{}.mk", top_module));
+    let verilator_makefile_path =
+        verilator_artifact_directory.join(&verilator_makefile_filename);
+    let verilator_makefile_contents = fs::read_to_string(
+        &verilator_makefile_path,
+    )
+    .whatever_context(format!(
+        "Failed to read Verilator-generated Makefile {}",
+        verilator_makefile_path
+    ))?;
+    let verilator_makefile_contents = format!(
+        "VK_USER_OBJS += ../dpi/dpi.o\n\n{}",
+        verilator_makefile_contents
+    );
+    fs::write(&verilator_makefile_path, verilator_makefile_contents)
+        .whatever_context(format!(
+            "Failed to update Verilator-generated Makefile {}",
+            verilator_makefile_path
+        ))?;
 
     let mut make_command = Command::new(&options.make_executable);
-        make_command.args(["-f", verilator_makefile_filename.as_str()]).current_dir(verilator_artifact_directory);
+    make_command
+        .args(["-f", verilator_makefile_filename.as_str()])
+        .current_dir(verilator_artifact_directory);
     if verbose {
         log::info!("| Make invocation: {:?}", make_command);
     }
