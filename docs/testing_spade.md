@@ -98,3 +98,8 @@ fn main() -> Result<(), Whatever> {
 ```
 
 A `cargo run` from the project root lets us test our Spade!
+
+Note that, unlike the Verilog project tutorial, you don't need to add another
+directory to your `.gitignore`, if you have one, because the `SpadeRuntime`
+reuses the existing `build/` directory managed by Swim. Thus, you should add
+that to your `.gitignore` instead.
