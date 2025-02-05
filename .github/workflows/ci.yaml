@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 0
+  CARGO_INCREMENTAL: 1 # since we cache
 
 jobs:
   test_verilog:
@@ -44,4 +44,4 @@ jobs:
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
-        run: cd spade-support/example-project && cargo run --package example-spade-project
+        run: cd examples/spade-project && cargo run --package example-spade-project
