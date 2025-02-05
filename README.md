@@ -2,6 +2,7 @@
 
 [![CI Badge](https://github.com/ethanuppal/dumbname/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/ci.yaml)
 [![Code Style Badge](https://github.com/ethanuppal/dumbname/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/lint.yaml)
+[![cargo-deny badge](https://github.com/ethanuppal/dumbname/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/cargo-deny.yaml)
 [![Lines of Code Badge](https://tokei.rs/b1/github/ethanuppal/dumbname?category=code)](https://github.com/ethanuppal/dumbname)
 
 > [!IMPORTANT]
