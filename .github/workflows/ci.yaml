@@ -24,7 +24,7 @@ jobs:
         run: make install_verilator
       - name: Test
         run: |
-          cd verilog-support/example-project
+          cd examples/verilog-project
           cargo run --package example-verilog-project --bin tutorial
           cargo run --package example-verilog-project --bin tutorial # rerun
           cargo run --package example-verilog-project --bin dynamic_model_tutorial
