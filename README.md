@@ -89,7 +89,7 @@ The TLDR is procedural macros + `dlopen`.
 that uses a build script to statically link in verilated bindings, but is
 unmaintained for years as of writing this.
 
-## License
+## 🔒 License & Legal
 
 dumbname is licensed under the Mozilla Public License 2.0. This license is
 similar to the Lesser GNU Public License, except that the copyleft applies only
