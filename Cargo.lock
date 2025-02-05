@@ -598,7 +598,7 @@ dependencies = [
 [[package]]
 name = "spade-ast"
 version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=ba4de0855d1d869805f98de05e0f4ad8f7441339#ba4de0855d1d869805f98de05e0f4ad8f7441339"
+source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
 dependencies = [
  "itertools",
  "num",
@@ -629,7 +629,7 @@ dependencies = [
 [[package]]
 name = "spade-common"
 version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=ba4de0855d1d869805f98de05e0f4ad8f7441339#ba4de0855d1d869805f98de05e0f4ad8f7441339"
+source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
 dependencies = [
  "logos",
  "num",
@@ -641,7 +641,7 @@ dependencies = [
 [[package]]
 name = "spade-diagnostics"
 version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=ba4de0855d1d869805f98de05e0f4ad8f7441339#ba4de0855d1d869805f98de05e0f4ad8f7441339"
+source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
 dependencies = [
  "itertools",
  "spade-codespan",
@@ -666,7 +666,7 @@ dependencies = [
 [[package]]
 name = "spade-macros"
 version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=ba4de0855d1d869805f98de05e0f4ad8f7441339#ba4de0855d1d869805f98de05e0f4ad8f7441339"
+source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -676,7 +676,7 @@ dependencies = [
 [[package]]
 name = "spade-parser"
 version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=ba4de0855d1d869805f98de05e0f4ad8f7441339#ba4de0855d1d869805f98de05e0f4ad8f7441339"
+source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
 dependencies = [
  "colored 3.0.0",
  "itertools",

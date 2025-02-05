@@ -30,8 +30,8 @@ proc-macro2 = "1.0.93"
 syn = { version = "2.0.96", features = ["full"] }
 quote = "1.0.38"
 sv-parser = "0.13.3"
-spade-parser = { git = "https://gitlab.com/ethanuppal/spade", rev = "ba4de0855d1d869805f98de05e0f4ad8f7441339" } #, rev = "0c96a2248fe80b550430be86d3efc1dc9cd15c6f" }
-spade-ast = { git = "https://gitlab.com/ethanuppal/spade", rev = "ba4de0855d1d869805f98de05e0f4ad8f7441339" }    #, rev = "0c96a2248fe80b550430be86d3efc1dc9cd15c6f" }
+spade-parser = { git = "https://gitlab.com/ethanuppal/spade", rev = "56c32bcca5662288bcc6de2cad98e203df900dde" } #, rev = "0c96a2248fe80b550430be86d3efc1dc9cd15c6f" }
+spade-ast = { git = "https://gitlab.com/ethanuppal/spade", rev = "56c32bcca5662288bcc6de2cad98e203df900dde" }    #, rev = "0c96a2248fe80b550430be86d3efc1dc9cd15c6f" }
 log = "0.4.25"
 colog = "1.3.0"
 
