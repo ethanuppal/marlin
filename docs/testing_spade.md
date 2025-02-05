@@ -4,7 +4,7 @@
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
 In this tutorial, we'll setup a Spade project and test our code with
-dumbname. You can find the full source code for this tutorial [here](../spade-support/example-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
+dumbname. You can find the full source code for this tutorial [here](../examples/spade-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
 
@@ -15,6 +15,18 @@ You can either integrate dumbname into an existing [Swim](https://docs.spade-lan
 swim init tutorial-project
 cd tutorial-project
 git init # optional, if using git
+```
+
+Here's what our project will look like at the end:
+```
+.
+├── swim.lock
+├── swim.toml
+├── Cargo.toml
+├── src
+│   └── main.spade
+└── test
+    └── simple_test.rs
 ```
 
 In `main.spade` we'll write some simple Spade code:
@@ -35,13 +47,21 @@ we pin to the value `42` (think of `assign`ing to an `output` in Verilog).
 Then, we'll make a new crate to use dumbname:
 
 ```shell
-cargo init --bin --name swim_tests test
+mkdir test
+vi Cargo.toml
 vi test/main.rs
 ```
 
-In the `Cargo.toml`, we'll add the `spade` dependency:
+In the `Cargo.toml`, we'll indicate there's one test called `simple_test.rs` and add the `spade` dependency:
 
 ```toml
+[package]
+name = "tutorial-project"
+
+[[bin]]
+name = "simple_test"
+path = "test/simple_test.rs"
+
 [dependencies]
 # other dependencies...
 spade = { git = "https://github.com/ethanuppal/dumbname" }
@@ -52,7 +72,7 @@ colog = "1.3.0" # optional, whatever version
 Our testing code will be similar to the Verilog code:
 
 ```rust
-// test/src/main.rs
+// test/simple_test.rs
 use snafu::Whatever;
 use spade::{spade, SpadeRuntime, SpadeRuntimeOptions};
 
@@ -63,8 +83,7 @@ struct Main;
 fn main() -> Result<(), Whatever> {
     colog::init();
 
-    // the first `true` says we want to automatically compile the Spade
-    // the second `true` says we want debug logging
+    // the second argument `true` says we want debug logging with the log crate
     let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default(), true)?;
 
     let mut main = runtime.create_model::<Main>()?;
@@ -78,22 +97,3 @@ fn main() -> Result<(), Whatever> {
 ```
 
 A `cargo run` from the project root lets us test our Spade!
-
-## A note on project structure
-
-While I tried to make this tutorial as easy to follow as possible, I don't
-necessarily believe the file structure presented above is optimal. I recommend
-having a `Cargo.toml` at project root and various `[[bin]]`s for each test in a
-`test/` folder, also at project root.
-
-```
-.
-├── Cargo.lock
-├── Cargo.toml
-├── swim.lock
-├── swim.toml
-├── src
-│   └── fft.spade
-└── test
-    └── unit.rs
-```

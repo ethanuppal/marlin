@@ -1,5 +1,5 @@
 [package]
-name = "example-verilog-project"
+name = "example-spade-project"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -10,18 +10,10 @@ readme.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "tutorial"
-path = "src/tutorial.rs"
-
-[[bin]]
-name = "dynamic_model_tutorial"
-path = "src/dynamic_model_tutorial.rs"
-
-[[bin]]
-name = "dpi_tutorial"
-path = "src/dpi_tutorial.rs"
+name = "simple_test"
+path = "test/simple_test.rs"
 
 [dependencies]
-snafu.workspace = true
 colog.workspace = true
-verilog.workspace = true
+snafu.workspace = true
+spade.workspace = true

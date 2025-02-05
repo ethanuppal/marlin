@@ -3,8 +3,9 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-In this tutorial, we'll setup a SystemVerilog project and test our code with
-dumbname. You can find the full source code for this tutorial [here](../verilog-support/example-project/) (in the `tutorial.rs` file). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
+In this tutorial, we'll setup a SystemVerilog project and test our code with dumbname.
+You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `tutorial.rs` file).
+We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 ## Part 1: The Basics
 

@@ -15,7 +15,7 @@
 use snafu::Whatever;
 use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
 
-#[verilog(src = "sv/main.sv", name = "main")]
+#[verilog(src = "src/main.sv", name = "main")]
 struct Main;
 
 #[snafu::report]

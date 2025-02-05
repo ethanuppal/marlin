@@ -1,13 +1,13 @@
 [workspace]
 members = [
     "verilator",
-    "spade-support/spade",
-    "spade-support/spade-macro",
-    "spade-support/example-project/test",
-    "verilog-support/verilog",
-    "verilog-support/verilog-macro",
-    "verilog-support/verilog-macro-builder",
-    "verilog-support/example-project",
+    "language-support/verilog",
+    "language-support/verilog-macro",
+    "language-support/verilog-macro-builder",
+    "language-support/spade",
+    "language-support/spade-macro",
+    "examples/verilog-project",
+    "examples/spade-project",
 ]
 resolver = "2"
 
@@ -36,5 +36,5 @@ log = "0.4.25"
 colog = "1.3.0"
 
 verilator = { path = "verilator" }
-verilog = { path = "verilog-support/verilog" }
-spade = { path = "spade-support/spade" }
+verilog = { path = "language-support/verilog" }
+spade = { path = "language-support/spade" }

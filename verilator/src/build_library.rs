@@ -422,7 +422,7 @@ pub fn build_library(
 
     if !make_output.status.success() {
         whatever!(
-            "Invocation of verilator failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+            "Invocation of make failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
             make_output.status,
             String::from_utf8(make_output.stdout).unwrap_or_default(),
             String::from_utf8(make_output.stderr).unwrap_or_default()

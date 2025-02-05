@@ -5,7 +5,7 @@
 
 In this tutorial, we'll explore how to use dumbname to call Rust functions from
 Verilog. Learn more about [DPI in general here](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi).
-You can find the full source code for this tutorial [here](../verilog-support/example-project/) (in the `dpi_tutorial.rs` file).
+You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `dpi_tutorial.rs` file).
 
 I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
 In particular, I won't be reexplaining things I discussed in that tutorial, although I will still walk through the entire setup.

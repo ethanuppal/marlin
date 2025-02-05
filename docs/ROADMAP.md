@@ -3,8 +3,8 @@
 elegant
 
 - [x] verilator bindings for one top
-    - [ ] ffi code
-    - [ ] ffi types
+    - [x] ffi code
+    - [x] ffi types
 - [x] verilator bindings for multiple tops
 - [ ] proc macro builder library for custom HDLs
     - [ ] create custom HDL interface with proc macro builder library

@@ -1,0 +1,27 @@
+[package]
+name = "example-verilog-project"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "tutorial"
+path = "test/tutorial.rs"
+
+[[bin]]
+name = "dynamic_model_tutorial"
+path = "test/dynamic_model_tutorial.rs"
+
+[[bin]]
+name = "dpi_tutorial"
+path = "test/dpi_tutorial.rs"
+
+[dependencies]
+snafu.workspace = true
+colog.workspace = true
+verilog.workspace = true

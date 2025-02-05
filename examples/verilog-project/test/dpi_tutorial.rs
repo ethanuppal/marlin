@@ -21,7 +21,7 @@ extern "C" fn three(#[output] out: &mut u32) {
     *out = 3;
 }
 
-#[verilog(src = "sv/dpi.sv", name = "main")]
+#[verilog(src = "src/dpi.sv", name = "main")]
 struct Main;
 
 #[snafu::report]
