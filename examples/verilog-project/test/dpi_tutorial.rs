@@ -30,7 +30,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/dpi.sv".as_ref()],
+        &["src/dpi.sv".as_ref()],
         [three],
         VerilatorRuntimeOptions::default(),
         true,

@@ -21,7 +21,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts2".into(),
-        &["sv/main.sv".as_ref()],
+        &["src/main.sv".as_ref()],
         [],
         VerilatorRuntimeOptions::default(),
         true,
@@ -29,7 +29,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut main = runtime.create_dyn_model(
         "main",
-        "sv/main.sv",
+        "src/main.sv",
         &[
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
