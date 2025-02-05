@@ -1,0 +1,9 @@
+[licenses]
+allow = ["MIT", "Apache-2.0", "MPL-2.0", "EUPL-1.2", "ISC", "Unicode-3.0"]
+exceptions = [
+    # we allow colog's LGPL because it is only used in GPL code
+    { allow = ["LGPL-3.0"], crate = "colog" },
+    { allow = ["GPL-3.0"], crate = "example-verilog-project" },
+    { allow = ["GPL-3.0"], crate = "example-spade-project" },
+]
+confidence-threshold = 1.0

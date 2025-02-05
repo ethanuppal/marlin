@@ -95,3 +95,8 @@ similar to the Lesser GNU Public License, except that the copyleft applies only
 to the source code of this library, not any library that uses it. That means you
 can statically or dynamically link with unfree code (see
 <https://www.mozilla.org/en-US/MPL/2.0/FAQ/#virality>).
+
+I use [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) (see the
+[`deny.toml`](./deny.toml) to ensure no licensing violations occur. I also check
+this on CI to prevent merging any new dependencies or dependency updates that
+introduce incompatible licenses.

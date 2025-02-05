@@ -7,13 +7,13 @@ rust-version.workspace = true
 description.workspace = true
 repository.workspace = true
 readme.workspace = true
-license.workspace = true
+license = "GPL-3.0"
 
 [[bin]]
 name = "simple_test"
 path = "test/simple_test.rs"
 
 [dependencies]
-colog.workspace = true
 snafu.workspace = true
+colog.workspace = true
 spade.workspace = true
