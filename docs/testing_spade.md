@@ -55,6 +55,7 @@ vi test/main.rs
 In the `Cargo.toml`, we'll indicate there's one test called `simple_test.rs` and add the `spade` dependency:
 
 ```toml
+# file: Cargo.toml
 [package]
 name = "tutorial-project"
 
@@ -72,7 +73,7 @@ colog = "1.3.0" # optional, whatever version
 Our testing code will be similar to the Verilog code:
 
 ```rust
-// test/simple_test.rs
+// file: test/simple_test.rs
 use snafu::Whatever;
 use spade::{spade, SpadeRuntime, SpadeRuntimeOptions};
 

@@ -12,23 +12,34 @@ In particular, I won't be reexplaining things I discussed in that tutorial, alth
 
 ## Part 1: The Basics
 
-Let's call our project "tutorial-project-dpi" (you are free to call it however you
+Let's call our project "tutorial-project" (you are free to call it however you
 like):
 ```shell
-mkdir tutorial-project-dpi
-cd tutorial-project-dpi
+mkdir tutorial-project
+cd tutorial-project
 git init # optional, if using git
+```
+
+Here's what our project will look like in the end:
+
+```
+.
+├── Cargo.toml
+├── src
+│   └── dpi.sv
+└── test
+    └── dpi_test.rs
 ```
 
 We'll have a simple SystemVerilog module that writes the result of `three`, a
 DPI function with a single integer output.
 ```shell
-mkdir sv
-vi sv/main.sv
+mkdir src
+vi src/dpi.sv
 ```
 
 ```systemverilog
-// file: sv/main.sv
+// file: src/dpi.sv
 import "DPI-C" function void three(output int out);
 
 module main(output logic[31:0] out);
@@ -45,12 +56,21 @@ endmodule
 
 We'll create a new Rust project:
 ```shell
-cargo init --bin .
+mkdir test
+vi Cargo.toml
+vi test/dpi_test.rs
 ```
 
 Next, we'll add dumbname and other desired dependencies.
 ```toml
 # file: Cargo.toml
+[package]
+name = "tutorial-project"
+
+[[bin]]
+name = "dpi_test"
+path = "test/dpi_test.rs"
+
 [dependencies]
 # other dependencies...
 verilog = { git = "https://github.com/ethanuppal/dumbname" }
@@ -62,7 +82,7 @@ Finally, we need the Rust file where we define the DPI function and drive the
 model.
 
 ```rust
-// file: src/main.rs
+// file: test/dpi_test.rs
 use snafu::Whatever;
 use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
 
@@ -72,7 +92,7 @@ extern "C" fn three(#[output] out: &mut u32) {
     *out = 3;
 }
 
-#[verilog(src = "sv/main.sv", name = "main")]
+#[verilog(src = "src/dpi.sv", name = "main")]
 struct Main;
 
 #[snafu::report]
@@ -81,7 +101,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/main.sv".as_ref()],
+        &["src/dpi.sv".as_ref()],
         [three],
         VerilatorRuntimeOptions::default(),
         true,
@@ -118,7 +138,7 @@ Then, we told the runtime about this function:
 ```diff
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/dpi.sv".as_ref()],
+        &["src/dpi.sv".as_ref()],
 -       [],
 +       [three],
         VerilatorRuntimeOptions::default(),

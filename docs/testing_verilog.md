@@ -17,18 +17,29 @@ cd tutorial-project
 git init # optional, if using git
 ```
 
+Here's what our project will look like in the end:
+
+```
+.
+├── Cargo.toml
+├── src
+│   └── main.sv
+└── test
+    └── simple_test.rs
+```
+
 We'll write a very simple SystemVerilog module: one that forwards its inputs to
 its outputs.
 ```shell
-mkdir sv
-vi sv/main.sv
+mkdir src
+vi src/main.sv
 ```
 I'm using the `vi` editor here, but you can use whichever editor you prefer.
 
 For our forwarding module, we'll just pass a medium-sized input to a
 corresponding output:
 ```systemverilog
-// file: sv/main.sv
+// file: src/main.sv
 module main(
     input[31:0] medium_input,
     output[31:0] medium_output
@@ -43,13 +54,22 @@ Now that we have the setup out of the way, we can start testing our code from Ru
 We'll initialize a Rust project:
 
 ```shell
-cargo init --bin .
+mkdir test
+vi Cargo.toml
+vi test/simple_test.rs
 ```
 
 In the `Cargo.toml` generated, we'll want to add some dependencies:
 
 ```toml
 # file: Cargo.toml
+[package]
+name = "tutorial-project"
+
+[[bin]]
+name = "simple_test"
+path = "test/simple_test.rs"
+
 [dependencies]
 # other dependencies...
 verilog = { git = "https://github.com/ethanuppal/dumbname" }
@@ -62,14 +82,14 @@ for fun.
 It's a good idea to fix a particular revision at this stage of development (and
 make sure to update it frequently insofar as it doesn't break your code!).
 
-Finally, we'll want to actually write the code that drives our project in `main.rs`:
+Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
 
 ```rust
-// file: src/main.rs
+// file: test/simple_test.rs
 use snafu::Whatever;
 use verilog::{verilog, VerilatorRuntime};
 
-#[verilog(src = "sv/main.sv", name = "main")]
+#[verilog(src = "src/main.sv", name = "main")]
 struct Main;
 
 #[snafu::report]
@@ -78,7 +98,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/main.sv".as_ref()],
+        &["src/main.sv".as_ref()],
         [],
         VerilatorRuntimeOptions::default(),
         true,
@@ -101,18 +121,18 @@ Let's break down the relevant parts of what's going on here:
 
 1. Binding at compile time:
     ```rust
-    #[verilog(src = "sv/main.sv", name = "main")]
+    #[verilog(src = "src/main.sv", name = "main")]
     struct Main;
     ``` 
 
     This snippet declares that the Rust `struct Main` binds to the Verilog module `main` as
-    defined in `sv/main.sv` (this path is relative to the `Cargo.toml` parent directory).
+    defined in `src/main.sv` (this path is relative to the `Cargo.toml` parent directory).
 
 2. Binding at runtime:
     ```rust
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
-        &["sv/main.sv".as_ref()],
+        &["src/main.sv".as_ref()],
         true,
     )?;
     ``` 

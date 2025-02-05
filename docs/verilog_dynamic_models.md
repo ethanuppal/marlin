@@ -14,22 +14,33 @@ although I will still walk through the entire setup.
 
 ## Part 1: The Basics
 
-Let's call our project "tutorial-project-2" (you are free to call it however you
+Let's call our project "tutorial-project" (you are free to call it however you
 like):
 ```shell
-mkdir tutorial-project-2
-cd tutorial-project-2
+mkdir tutorial-project
+cd tutorial-project
 git init # optional, if using git
+```
+
+Here's what our project will look like in the end:
+
+```
+.
+├── Cargo.toml
+├── src
+│   └── main.sv
+└── test
+    └── simple_test.rs
 ```
 
 Let's use the same SystemVerilog module from the [Verilog tutorial](./testing_verilog.md).
 ```shell
-mkdir sv
-vi sv/main.sv
+mkdir src
+vi src/main.sv
 ```
 
 ```systemverilog
-// file: sv/main.sv
+// file: src/main.sv
 module main(
     input[31:0] medium_input,
     output[31:0] medium_output
@@ -42,12 +53,21 @@ endmodule
 
 We'll create a new Rust project:
 ```shell
-cargo init --bin .
+mkdir test
+vi Cargo.toml
+vi test/dpi_test.rs
 ```
 
 Next, we'll add dumbname and other desired dependencies.
 ```toml
 # file: Cargo.toml
+[package]
+name = "tutorial-project"
+
+[[bin]]
+name = "simple_test"
+path = "test/simple_test.rs"
+
 [dependencies]
 # other dependencies...
 verilog = { git = "https://github.com/ethanuppal/dumbname" }
@@ -60,7 +80,7 @@ It's not necessarily meant for human usage, though; this API is better suited fo
 using dumbname as a library (e.g., writing an interpreter).
 
 ```rust
-// file: src/main.rs
+// file: test/simple_test.rs
 use snafu::Whatever;
 use verilog::{VerilatorRuntime, PortDirection};
 
@@ -69,14 +89,14 @@ fn main() -> Result<(), Whatever> {
     colog::init();
 
     let mut runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["sv/main.sv".as_ref()],
+        "artifacts".into(),
+        &["src/main.sv".as_ref()],
         true,
     )?;
 
     let mut main = runtime.create_dyn_model(
         "main",
-        "sv/main.sv",
+        "src/main.sv",
         &[
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
