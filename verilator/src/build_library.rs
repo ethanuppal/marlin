@@ -16,7 +16,7 @@ use std::{ffi::OsStr, fmt::Write, fs, process::Command};
 use camino::{Utf8Path, Utf8PathBuf};
 use snafu::{prelude::*, Whatever};
 
-use crate::{DpiFunction, PortDirection, VerilatorRuntimeOptions};
+use crate::{dpi::DpiFunction, PortDirection, VerilatorRuntimeOptions};
 
 /// Writes `extern "C"` C++ bindings for a Verilator model with the given name
 /// (`top_module`) and signature (`ports`) to the given artifact directory
@@ -143,92 +143,95 @@ fn build_dpi_if_needed(
     top_module: &str,
     rustc: &OsStr,
     rustc_optimize: bool,
-    dpi_functions: &[DpiFunction],
+    dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
     verbose: bool,
 ) -> Result<(Option<(Utf8PathBuf, Utf8PathBuf)>, bool), Whatever> {
-    if dpi_functions.is_empty() {
-        return Ok((None, false));
-    }
-
-    let dpi_file = dpi_artifact_directory.join("dpi.rs");
-    // TODO: hard-coded knowledge
-    let dpi_object_file = Utf8PathBuf::from("../dpi/dpi.o"); // dpi_file.with_extension("o");
-    let dpi_c_wrappers = Utf8PathBuf::from("../dpi/wrappers.cpp"); // dpi_artifact_directory.join("wrappers.cpp");
-
-    let current_file_code = dpi_functions
-        .iter()
-        .map(|DpiFunction(_, _, rust_code)| rust_code)
-        .cloned()
-        .collect::<Vec<_>>()
-        .join("\n");
-    let c_file_code = format!(
-        "#include \"svdpi.h\"\n#include \"V{}__Dpi.h\"\n#include <stdint.h>\n{}",
-        top_module,
-        dpi_functions
-            .iter()
-            .map(|DpiFunction(_, c_code, _)| c_code)
-            .cloned()
-            .collect::<Vec<_>>()
-            .join("\n")
-    );
-
-    // only rebuild if there's been a change
-    if fs::read_to_string(&dpi_file)
-        .map(|file_code| file_code == current_file_code)
-        .unwrap_or(false)
-    {
-        if verbose {
-            log::info!("| Skipping rebuild of DPI due to no changes");
-        }
-        return Ok((Some((dpi_object_file, dpi_c_wrappers)), false));
-    }
-
-    if verbose {
-        log::info!("| Building DPI");
-    }
-
-    fs::write(dpi_artifact_directory.join("wrappers.cpp"), c_file_code)
-        .whatever_context(format!(
-            "Failed to write DPI function wrapper code to {}",
-            dpi_c_wrappers
-        ))?;
-    fs::write(&dpi_file, current_file_code).whatever_context(format!(
-        "Failed to write DPI function code to {}",
-        dpi_file
-    ))?;
-
-    let mut rustc_command = Command::new(rustc);
-    rustc_command
-        .args(["--emit=obj", "--crate-type=cdylib"])
-        .args(["--edition", "2021"])
-        .arg(
-            dpi_file
-                .components()
-                .last()
-                .expect("We just added dpi.rs to the end..."),
-        )
-        .current_dir(dpi_artifact_directory);
-    if rustc_optimize {
-        rustc_command.arg("-O");
-    }
-    if verbose {
-        log::info!("  | rustc invocation: {:?}", rustc_command);
-    }
-    let rustc_output = rustc_command
-        .output()
-        .whatever_context("Invocation of verilator failed")?;
-
-    if !rustc_output.status.success() {
-        whatever!(
-            "Invocation of rustc failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-            rustc_output.status,
-            String::from_utf8(rustc_output.stdout).unwrap_or_default(),
-            String::from_utf8(rustc_output.stderr).unwrap_or_default()
-        );
-    }
-
-    Ok((Some((dpi_object_file, dpi_c_wrappers)), true))
+    todo!()
+    //if dpi_functions.is_empty() {
+    //    return Ok((None, false));
+    //}
+    //
+    //let dpi_file = dpi_artifact_directory.join("dpi.rs");
+    //// TODO: hard-coded knowledge
+    //let dpi_object_file = Utf8PathBuf::from("../dpi/dpi.o"); //
+    // dpi_file.with_extension("o"); let dpi_c_wrappers =
+    // Utf8PathBuf::from("../dpi/wrappers.cpp"); //
+    // dpi_artifact_directory.join("wrappers.cpp");
+    //
+    //let current_file_code = dpi_functions
+    //    .iter()
+    //    .map(|DpiFunction(_, _, rust_code)| rust_code)
+    //    .cloned()
+    //    .collect::<Vec<_>>()
+    //    .join("\n");
+    //let c_file_code = format!(
+    //    "#include \"svdpi.h\"\n#include \"V{}__Dpi.h\"\n#include
+    // <stdint.h>\n{}",    top_module,
+    //    dpi_functions
+    //        .iter()
+    //        .map(|DpiFunction(_, c_code, _)| c_code)
+    //        .cloned()
+    //        .collect::<Vec<_>>()
+    //        .join("\n")
+    //);
+    //
+    //// only rebuild if there's been a change
+    //if fs::read_to_string(&dpi_file)
+    //    .map(|file_code| file_code == current_file_code)
+    //    .unwrap_or(false)
+    //{
+    //    if verbose {
+    //        log::info!("| Skipping rebuild of DPI due to no changes");
+    //    }
+    //    return Ok((Some((dpi_object_file, dpi_c_wrappers)), false));
+    //}
+    //
+    //if verbose {
+    //    log::info!("| Building DPI");
+    //}
+    //
+    //fs::write(dpi_artifact_directory.join("wrappers.cpp"), c_file_code)
+    //    .whatever_context(format!(
+    //        "Failed to write DPI function wrapper code to {}",
+    //        dpi_c_wrappers
+    //    ))?;
+    //fs::write(&dpi_file, current_file_code).whatever_context(format!(
+    //    "Failed to write DPI function code to {}",
+    //    dpi_file
+    //))?;
+    //
+    //let mut rustc_command = Command::new(rustc);
+    //rustc_command
+    //    .args(["--emit=obj", "--crate-type=cdylib"])
+    //    .args(["--edition", "2021"])
+    //    .arg(
+    //        dpi_file
+    //            .components()
+    //            .last()
+    //            .expect("We just added dpi.rs to the end..."),
+    //    )
+    //    .current_dir(dpi_artifact_directory);
+    //if rustc_optimize {
+    //    rustc_command.arg("-O");
+    //}
+    //if verbose {
+    //    log::info!("  | rustc invocation: {:?}", rustc_command);
+    //}
+    //let rustc_output = rustc_command
+    //    .output()
+    //    .whatever_context("Invocation of verilator failed")?;
+    //
+    //if !rustc_output.status.success() {
+    //    whatever!(
+    //        "Invocation of rustc failed with nonzero exit code {}\n\n---
+    // STDOUT ---\n{}\n\n--- STDERR ---\n{}",        rustc_output.status,
+    //        String::from_utf8(rustc_output.stdout).unwrap_or_default(),
+    //        String::from_utf8(rustc_output.stderr).unwrap_or_default()
+    //    );
+    //}
+    //
+    //Ok((Some((dpi_object_file, dpi_c_wrappers)), true))
 }
 
 /// Returns `Ok(true)` when the library doesn't exist or if any Verilog source
@@ -299,7 +302,7 @@ fn needs_verilator_rebuild(
 /// Finally, we invoke `verilator` and return the library path.
 pub fn build_library(
     source_files: &[&str],
-    dpi_functions: &[DpiFunction],
+    dpi_functions: &[&'static dyn DpiFunction],
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
     artifact_directory: &Utf8Path,

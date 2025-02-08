@@ -19,11 +19,13 @@ use std::{
 
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
+use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use snafu::{prelude::*, Whatever};
 
 mod build_library;
+pub mod dpi;
 pub mod dynamic;
 
 /// Verilator-defined types for C FFI.
@@ -89,9 +91,6 @@ pub trait VerilatedModel {
     fn init_from(library: &Library) -> Self;
 }
 
-/// `DpiFunction(c_name, c_function_code, rust_function_code)`.
-pub struct DpiFunction(pub &'static str, pub &'static str, pub &'static str);
-
 /// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can
 /// just use [`VerilatorRuntimeOptions::default()`].
 pub struct VerilatorRuntimeOptions {
@@ -138,7 +137,7 @@ impl Default for VerilatorRuntimeOptions {
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
     source_files: Vec<Utf8PathBuf>,
-    dpi_functions: Vec<DpiFunction>,
+    dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and Verilator implementations
     libraries: HashMap<(String, String), Library>,
@@ -148,7 +147,7 @@ pub struct VerilatorRuntime {
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
-    pub fn new<I: IntoIterator<Item = DpiFunction>>(
+    pub fn new<I: IntoIterator<Item = &'static dyn DpiFunction>>(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
         dpi_functions: I,

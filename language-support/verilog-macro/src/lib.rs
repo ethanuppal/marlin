@@ -273,19 +273,13 @@ fn parse_dpi_primitive_type(
 
 enum DPIType {
     Input(DPIPrimitiveType),
-    Output(DPIPrimitiveType),
+    /// Veriltor handles output and inout types the same
     Inout(DPIPrimitiveType),
 }
 
-fn parse_dpi_type(
-    direction: (PortDirection, &syn::Attribute),
-    ty: &syn::Type,
-) -> Result<DPIType, syn::Error> {
+fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
     match ty {
         syn::Type::Path(type_path) => {
-            if matches!(direction.0, PortDirection::Output | PortDirection::Inout) {
-                return Err(syn::Error::new_spanned(direction.1, "DPI output or inout type must use a lifetime-free mutable reference"));
-            }
             Ok(DPIType::Input(parse_dpi_primitive_type(type_path)?))
         },
         syn::Type::Reference(syn::TypeReference {
@@ -294,9 +288,6 @@ fn parse_dpi_type(
             mutability,
             elem,
         }) => {
-            if matches!(direction.0, PortDirection::Input) {
-                return Err(syn::Error::new_spanned(direction.1, "DPI input type must use a bare primitive integer"));
-            }
             if mutability.is_none() {
                 return Err(syn::Error::new_spanned(and_token, "DPI output or inout type must be represented with a mutable reference"));
             }
@@ -307,13 +298,8 @@ fn parse_dpi_type(
             let syn::Type::Path(type_path) = elem.as_ref() else {
 
                 return Err(syn::Error::new_spanned(elem, "DPI output or inout type must be a mutable reference to a primitive integer type"));
-};
-            let inner = parse_dpi_primitive_type(type_path)?;
-match direction.0 {
-                PortDirection::Output => Ok(DPIType::Output(inner)),
-                PortDirection::Inout => Ok(DPIType::Inout(inner)),
-                _ => unreachable!()
-            }
+            };
+                Ok(DPIType::Inout(parse_dpi_primitive_type(type_path)?))
         },
         other => Err(syn::Error::new_spanned(other, "This type is not supported in DPI. Please use primitive integers or mutable references to them")),
     }
@@ -322,6 +308,15 @@ match direction.0 {
 #[proc_macro_attribute]
 pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
     let item_fn = parse_macro_input!(item as syn::ItemFn);
+
+    if !matches!(item_fn.vis, syn::Visibility::Public(_)) {
+        return syn::Error::new_spanned(
+            item_fn.vis,
+            "Marking the function `pub` is required to expose this Rust function to C",
+        )
+        .into_compile_error()
+        .into();
+    }
 
     let Some(abi) = &item_fn.sig.abi else {
         return syn::Error::new_spanned(
@@ -341,22 +336,6 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
         return syn::Error::new_spanned(
             item_fn,
             "You must specify the C ABI for the `extern` marking",
-        )
-        .into_compile_error()
-        .into();
-    }
-
-    if !item_fn.attrs.iter().any(|attribute| {
-        attribute
-            .path()
-            .segments
-            .first()
-            .map(|segment| segment.ident.to_string().as_str() == "no_mangle")
-            .unwrap_or(false)
-    }) {
-        return syn::Error::new_spanned(
-            item_fn,
-            "`#[no_mangle]` is required to expose this Rust function to C",
         )
         .into_compile_error()
         .into();
@@ -389,136 +368,121 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
         .into();
     }
 
-    let ports = match item_fn.sig.inputs.iter().try_fold(vec![], |mut ports, input| {
-        let syn::FnArg::Typed(parameter) = input else {
-            return Err(syn::Error::new_spanned(input, "Invalid parameter on DPI function"));
-        };
+    let ports =
+        match item_fn
+            .sig
+            .inputs
+            .iter()
+            .try_fold(vec![], |mut ports, input| {
+                let syn::FnArg::Typed(parameter) = input else {
+                    return Err(syn::Error::new_spanned(
+                        input,
+                        "Invalid parameter on DPI function",
+                    ));
+                };
 
-        let syn::Pat::Ident(name) = &*parameter.pat else {
-            return Err(syn::Error::new_spanned(parameter, "Function argument must be an identifier"));
-    };
+                let syn::Pat::Ident(name) = &*parameter.pat else {
+                    return Err(syn::Error::new_spanned(
+                        parameter,
+                        "Function argument must be an identifier",
+                    ));
+                };
 
-        let Some(direction)  = parameter.attrs.iter().find_map(|attr| {
-            match attr.path().require_ident().ok()?.to_string().as_str() {
-                "input" => Some((PortDirection::Input, attr)),
-                "output" => Some((PortDirection::Output, attr)),
-                "inout" => Some((PortDirection::Inout, attr)),
-                _ => None
+                let attrs = parameter.attrs.clone();
+                ports.push((name, attrs, parse_dpi_type(&parameter.ty)?));
+                Ok(ports)
+            }) {
+            Ok(ports) => ports,
+            Err(error) => {
+                return error.into_compile_error().into();
             }
-        }) else {
-            return Err(syn::Error::new_spanned(parameter, "Specify `#[input]`, `#[output]`, or `#[inout]` on the parameter"));
         };
-
-        let attrs = parameter.attrs.iter().filter(|&attribute| {
-            attribute.path().require_ident().ok().map(|ident|
-                !matches!(ident.to_string().as_str(), "input" | "output" | "inout")).unwrap_or(false)
-        }).cloned().collect::<Vec<_>>();
-
-        ports.push((name, attrs, parse_dpi_type(direction, &parameter.ty)?));
-        Ok(ports)
-    }) {
-        Ok(ports) => ports,
-        Err(error) => {
-            return error.into_compile_error().into();
-        }
-    };
-
-    let mut cloned_item_fn = item_fn.clone();
-    for input in &mut cloned_item_fn.sig.inputs {
-        if let syn::FnArg::Typed(parameter) = input {
-            parameter.attrs.retain(|attribute| {
-                !attribute
-                    .path()
-                    .require_ident()
-                    .ok()
-                    .map(|ident| {
-                        matches!(
-                            ident.to_string().as_str(),
-                            "input" | "output" | "inout"
-                        )
-                    })
-                    .unwrap_or(false)
-            });
-        }
-    }
 
     let attributes = item_fn.attrs;
-    let name = item_fn.sig.ident;
+    let function_name = item_fn.sig.ident;
     let body = item_fn.block;
 
-    let parameters = ports.iter().map(|(name, attributes, dpi_type)| {
+    let struct_name = format_ident!("__DPI_{}", function_name);
+
+    let mut parameter_types = vec![];
+    let mut parameters = vec![];
+
+    for (name, attributes, dpi_type) in &ports {
         let parameter_type = match dpi_type {
             DPIType::Input(inner) => {
                 let type_ident = format_ident!("{}", inner.to_string());
                 quote! { #type_ident }
             }
-            DPIType::Output(inner) | DPIType::Inout(inner) => {
+            DPIType::Inout(inner) => {
                 let type_ident = format_ident!("{}", inner.to_string());
                 quote! { *mut #type_ident }
             }
         };
-        quote! {
+        parameter_types.push(parameter_type.clone());
+        parameters.push(quote! {
             #(#attributes)* #name: #parameter_type
-        }
-    });
+        });
+    }
 
     let preamble =
         ports
             .iter()
             .filter_map(|(name, _, dpi_type)| match dpi_type {
-                DPIType::Output(_) | DPIType::Inout(_) => Some(quote! {
+                DPIType::Inout(_) => Some(quote! {
                     let #name = unsafe { &mut *#name };
                 }),
                 _ => None,
             });
 
-    let function_name = format_ident!("rust_{}", name);
-    let function_to_compile = quote! {
-        #(#attributes)*
-        pub extern "C" fn #function_name(#(#parameters),*) {
-            #(#preamble)*
-            #body
-        }
-    }
-    .to_string();
-
-    let name_literal = syn::LitStr::new(name.to_string().as_str(), name.span());
-    let function_to_compile_literal =
-        syn::LitStr::new(&function_to_compile, cloned_item_fn.span());
+    let function_name_literal = syn::LitStr::new(
+        function_name.to_string().as_str(),
+        function_name.span(),
+    );
 
     let c_signature = ports
         .iter()
         .map(|(name, _, dpi_type)| {
             let c_type = match dpi_type {
                 DPIType::Input(inner) => inner.as_c().to_string(),
-                DPIType::Output(inner) | DPIType::Inout(inner) => {
-                    format!("{}*", inner.as_c())
-                }
+                DPIType::Inout(inner) => format!("{}*", inner.as_c()),
             };
-            format!("{} {}", c_type, name.ident)
+            let name_literal =
+                syn::LitStr::new(name.ident.to_string().as_str(), name.span());
+            let type_literal = syn::LitStr::new(&c_type, name.span());
+            quote! {
+                (#name_literal, #type_literal)
+            }
         })
-        .collect::<Vec<_>>()
-        .join(", ");
-    let c_arguments = ports
-        .iter()
-        .map(|(name, _, _)| name.ident.to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-    let c_function = format!(
-        "extern \"C\" void rust_{name}({c_signature});\nextern \"C\" void {name}({c_signature}) {{ rust_{name}({c_arguments}); }}",
-    );
-    let c_function_literal =
-        syn::LitStr::new(&c_function, cloned_item_fn.span());
+        .collect::<Vec<_>>();
+
     quote! {
+        #[allow(non_camel_case_types)]
+        struct #struct_name;
+
+        impl #struct_name {
+            #(#attributes)*
+            pub extern "C" fn call(#(#parameters),*) {
+                #(#preamble)*
+                #body
+            }
+        }
+
+        impl verilog::__reexports::verilator::dpi::DpiFunction for #struct_name {
+            fn name(&self) -> &'static str {
+                #function_name_literal
+            }
+
+            fn signature(&self) -> &'static [(&'static str, &'static str)] {
+                &[#(#c_signature),*]
+            }
+
+            fn pointer(&self) -> *const verilog::__reexports::libc::c_void {
+                #struct_name::call as extern "C" fn(#(#parameter_types),*) as *const verilog::__reexports::libc::c_void
+            }
+        }
+
         #[allow(non_upper_case_globals)]
-        const #name: verilog::__reexports::verilator::DpiFunction = {
-            #cloned_item_fn
-            verilog::__reexports::verilator::DpiFunction(
-                #name_literal,
-                #c_function_literal,
-                #function_to_compile_literal
-            )
-        };
+        pub static #function_name: &'static dyn verilog::__reexports::verilator::dpi::DpiFunction = &#struct_name;
     }
     .into()
 }

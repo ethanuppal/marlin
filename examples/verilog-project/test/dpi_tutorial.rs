@@ -16,8 +16,7 @@ use snafu::Whatever;
 use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
 
 #[verilog::dpi]
-#[no_mangle]
-extern "C" fn three(#[output] out: &mut u32) {
+pub extern "C" fn three(out: &mut u32) {
     *out = 3;
 }
 
