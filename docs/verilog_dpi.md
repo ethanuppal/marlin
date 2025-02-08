@@ -3,7 +3,7 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-In this tutorial, we'll explore how to use dumbname to call Rust functions from
+In this tutorial, we'll explore how to use Marlin to call Rust functions from
 Verilog. Learn more about [DPI in general here](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi).
 You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `dpi_tutorial.rs` file).
 
@@ -61,7 +61,7 @@ vi Cargo.toml
 vi test/dpi_test.rs
 ```
 
-Next, we'll add dumbname and other desired dependencies.
+Next, we'll add Marlin and other desired dependencies.
 ```toml
 # file: Cargo.toml
 [package]
@@ -73,7 +73,7 @@ path = "test/dpi_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/dumbname" }
+verilog = { git = "https://github.com/ethanuppal/marlin" }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```

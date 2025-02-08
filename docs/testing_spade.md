@@ -4,12 +4,12 @@
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
 In this tutorial, we'll setup a Spade project and test our code with
-dumbname. You can find the full source code for this tutorial [here](../examples/spade-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
+Marlin. You can find the full source code for this tutorial [here](../examples/spade-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
 
 If you don't already have Spade installed, [make sure to do that](https://docs.spade-lang.org/installation.html).
-You can either integrate dumbname into an existing [Swim](https://docs.spade-lang.org/swim/index.html) project at no effort or (in this case) make a new Swim project from scratch with an eye to dumbname.
+You can either integrate Marlin into an existing [Swim](https://docs.spade-lang.org/swim/index.html) project at no effort or (in this case) make a new Swim project from scratch with an eye to Marlin.
 
 ```shell
 swim init tutorial-project
@@ -44,7 +44,7 @@ introduction to Spade; this tutorial will not focus on teaching the language.
 Nonetheless, the essence of the above code is to expose an inverted wire which
 we pin to the value `42` (think of `assign`ing to an `output` in Verilog).
 
-Then, we'll make a new crate to use dumbname:
+Then, we'll make a new crate to use Marlin:
 
 ```shell
 mkdir test
@@ -65,7 +65,7 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-spade = { git = "https://github.com/ethanuppal/dumbname" }
+spade = { git = "https://github.com/ethanuppal/marlin" }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```

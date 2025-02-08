@@ -1,14 +1,11 @@
-# dumbname
+# marlin
 
-[![CI Badge](https://github.com/ethanuppal/dumbname/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/ci.yaml)
-[![Code Style Badge](https://github.com/ethanuppal/dumbname/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/lint.yaml)
-[![cargo-deny badge](https://github.com/ethanuppal/dumbname/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/dumbname/blob/main/.github/workflows/cargo-deny.yaml)
-[![Lines of Code Badge](https://tokei.rs/b1/github/ethanuppal/dumbname?category=code)](https://github.com/ethanuppal/dumbname)
+[![CI Badge](https://github.com/ethanuppal/marlin/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/ci.yaml)
+[![Code Style Badge](https://github.com/ethanuppal/marlin/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/lint.yaml)
+[![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
+[![Lines of Code Badge](https://tokei.rs/b1/github/ethanuppal/marlin?category=code)](https://github.com/ethanuppal/marlin)
 
-> [!IMPORTANT]
-> I need a better name than `dumbname` --- I'm open to suggestions!
-
-dumbname is a really powerful library (and API) that lets you "import" hardware
+Marlin is a really powerful library (and API) that lets you "import" hardware
 modules into Rust (or Rust functions into hardware modules!). 
 
 No precompilation step and manual updates with `verilator` harnesses; no 
@@ -19,7 +16,7 @@ Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 `serde` even.
 
-dumbname works out of the box on macOS and Ubuntu (verified under continuous integration).
+Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
 ![Early example of using this with Spade](./assets/demo-alpha.png)
 
@@ -64,7 +61,7 @@ Still, a lot of these are less than optimal.
 
 ## 📦 Install
 
-dumbname is currently in development.
+Marlin is currently under development.
 You can currently install the crates via `git` specifications.
 (I'm aware that this is not explained well.)
 Look at the tutorials in the Usage section for detailed instructions.
@@ -91,7 +88,7 @@ unmaintained for years as of writing this.
 
 ## 🔒 License & Legal
 
-dumbname is licensed under the Mozilla Public License 2.0. This license is
+Marlin is licensed under the Mozilla Public License 2.0. This license is
 similar to the Lesser GNU Public License, except that the copyleft applies only
 to the source code of this library, not any library that uses it. That means you
 can statically or dynamically link with unfree code (see

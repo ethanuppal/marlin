@@ -4,7 +4,7 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-In this tutorial, we'll explore how to use dumbname to dynamically create
+In this tutorial, we'll explore how to use Marlin to dynamically create
 bindings to Verilog modules.
 You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `dyamic_model_tutorial.rs` file).
 
@@ -58,7 +58,7 @@ vi Cargo.toml
 vi test/dpi_test.rs
 ```
 
-Next, we'll add dumbname and other desired dependencies.
+Next, we'll add Marlin and other desired dependencies.
 ```toml
 # file: Cargo.toml
 [package]
@@ -70,14 +70,14 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/dumbname" }
+verilog = { git = "https://github.com/ethanuppal/marlin" }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
 
 The code for dynamic models is slightly more verbose.
 It's not necessarily meant for human usage, though; this API is better suited for
-using dumbname as a library (e.g., writing an interpreter).
+using Marlin as a library (e.g., writing an interpreter).
 
 ```rust
 // file: test/simple_test.rs

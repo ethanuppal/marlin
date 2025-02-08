@@ -321,7 +321,7 @@ pub fn build_library(
     fs::create_dir_all(&dpi_artifact_directory).whatever_context(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
-    let library_name = format!("dumbname_V{}", top_module);
+    let library_name = format!("marlin_V{}", top_module);
     let library_path =
         verilator_artifact_directory.join(format!("lib{}.so", library_name));
 

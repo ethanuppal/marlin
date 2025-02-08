@@ -3,7 +3,8 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-In this tutorial, we'll setup a SystemVerilog project and test our code with dumbname.
+In this tutorial, we'll setup a SystemVerilog project and test our code with
+Marlin.
 You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `tutorial.rs` file).
 We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
@@ -72,15 +73,21 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/dumbname" }
+verilog = { git = "https://github.com/ethanuppal/marlin" }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
 
-The only required package is `verilog` from dumbname; everything else is just
+The only required package is `verilog` from Marlin; everything else is just
 for fun.
 It's a good idea to fix a particular revision at this stage of development (and
 make sure to update it frequently insofar as it doesn't break your code!).
+
+> [!NOTE]
+> We're including the `colog` package as a backend for the well-known `log`
+> crate. That's because, if you enable verbose mode on Marlin runtimes, it will
+> use the `log` API to print out information. You can use whatever logging
+> backend you want; I believe the most popular is `env_logger`.
 
 Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
 
