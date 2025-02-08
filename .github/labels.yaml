@@ -4,11 +4,14 @@
 
 "Code: Verilog Support":
   - changed-files:
-      - any-glob-to-any-file: "verilog-support/**"
+      - any-glob-to-any-file: "language-support/verilog/**"
+      - any-glob-to-any-file: "language-support/verilog-macro/**"
+      - any-glob-to-any-file: "language-support/verilog-macro-builder/**"
 
 "Code: Spade Support":
   - changed-files:
-      - any-glob-to-any-file: "spade-support/**"
+      - any-glob-to-any-file: "language-support/spade/"
+      - any-glob-to-any-file: "language-support/spade-macro/**"
 
 "Infra: CI":
   - changed-files:
