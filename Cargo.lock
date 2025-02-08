@@ -237,7 +237,7 @@ checksum = "5e36d656622c9ac5c84be07696931c71e483d27daf86914d7011d0fa6370418b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -268,7 +268,7 @@ dependencies = [
  "quote",
  "regex-syntax",
  "rustc_version",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -462,9 +462,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.20.2"
+version = "1.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+checksum = "945462a4b81e43c4e3ba96bd7b49d834c6f61198356aa858733bc4acf3cbe62e"
 
 [[package]]
 name = "pin-project-lite"
@@ -560,7 +560,7 @@ checksum = "5a9bf7cf98d04a2b28aead066b7496853d4779c9cc183c440dbac457641e19a0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -581,7 +581,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -597,8 +597,9 @@ dependencies = [
 
 [[package]]
 name = "spade-ast"
-version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d81a033cd94984203011a7eaf6a89be943bf21550220edce37dd2fdaa4cd760"
 dependencies = [
  "itertools",
  "num",
@@ -628,8 +629,9 @@ dependencies = [
 
 [[package]]
 name = "spade-common"
-version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cda34edab5c989d8cff5208b6c9eb18f0f00a3869809d48374be80051a60883e"
 dependencies = [
  "logos",
  "num",
@@ -640,8 +642,9 @@ dependencies = [
 
 [[package]]
 name = "spade-diagnostics"
-version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8021492a048e7b3c1d00f8d8e7c8fd25675416ad664c978b614fca6fe886ed5"
 dependencies = [
  "itertools",
  "spade-codespan",
@@ -658,25 +661,27 @@ dependencies = [
  "quote",
  "spade-ast",
  "spade-parser",
- "syn 2.0.96",
+ "syn 2.0.98",
  "verilator",
  "verilog-macro-builder",
 ]
 
 [[package]]
 name = "spade-macros"
-version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea117a2e79c73c15f53191fa88ee83fab2db741a05d84bff2b40130951f81e25"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
 name = "spade-parser"
-version = "0.12.1"
-source = "git+https://gitlab.com/ethanuppal/spade?rev=56c32bcca5662288bcc6de2cad98e203df900dde#56c32bcca5662288bcc6de2cad98e203df900dde"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24732280292503c16118389b25bcbe8e87d90a5edbae6a0e4fa27a4ff4541517"
 dependencies = [
  "colored 3.0.0",
  "itertools",
@@ -727,7 +732,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a2eba85c18b26226dee76a6f07a1cb189130012a32109474ae182666b4e9b00"
 dependencies = [
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -784,9 +789,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.96"
+version = "2.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d0adab1ae378d7f53bdebc67a39f1f151407ef230f0ce2883572f5d8985c80"
+checksum = "36147f1a48ae0ec2b5b3bc5b537d267457555a10dc06f3dbc8cb11ba3006d3b1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -819,7 +824,7 @@ checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -841,7 +846,7 @@ checksum = "395ae124c09f9e6918a2310af6038fba074bcf474ac352496d5910dd59a2226d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -855,9 +860,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.14"
+version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+checksum = "a210d160f08b701c8721ba1c726c11662f877ea6b7094007e1ca9a1041945034"
 
 [[package]]
 name = "unicode-width"
@@ -898,7 +903,7 @@ version = "0.0.0"
 dependencies = [
  "quote",
  "sv-parser",
- "syn 2.0.96",
+ "syn 2.0.98",
  "verilator",
  "verilog-macro-builder",
 ]
@@ -909,7 +914,7 @@ version = "0.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.96",
+ "syn 2.0.98",
  "verilator",
 ]
 
