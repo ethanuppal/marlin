@@ -27,7 +27,7 @@ fn main() -> Result<(), Whatever> {
     colog::init();
 
     let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
+        "artifacts3".into(),
         &["src/main.sv".as_ref()],
         [],
         VerilatorRuntimeOptions::default(),
