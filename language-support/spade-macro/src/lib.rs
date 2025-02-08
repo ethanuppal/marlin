@@ -80,11 +80,11 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     let Some(unit_head) =
-        top_level.members.into_iter().find_map(|item| match item {
+        top_level.members.iter().find_map(|item| match item {
             spade_ast::Item::Unit(unit)
                 if unit.head.name.0.as_str() == args.name.value().as_str() =>
             {
-                Some(unit.head.clone()) // why clone?
+                Some(unit.head.clone())
             }
             _ => None,
         })
