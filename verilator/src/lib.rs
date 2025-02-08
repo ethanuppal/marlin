@@ -106,10 +106,6 @@ pub struct VerilatorRuntimeOptions {
     /// Whether verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
-
-    /// The name of the `make` executable, interpreted in some way by the
-    /// OS/shell.
-    pub make_executable: OsString,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -118,7 +114,6 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             verilator_optimization: None,
             force_verilator_rebuild: false,
-            make_executable: "make".into(),
         }
     }
 }

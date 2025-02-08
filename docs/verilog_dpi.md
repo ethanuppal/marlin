@@ -87,8 +87,7 @@ use snafu::Whatever;
 use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
 
 #[verilog::dpi]
-#[no_mangle]
-extern "C" fn three(#[output] out: &mut u32) {
+pub extern "C" fn three(out: &mut u32) {
     *out = 3;
 }
 
@@ -127,12 +126,12 @@ extern "C" fn three(#[output] out: &mut u32) {
 }
 ```
 By applying `#[verilog::dpi]`, we turn our normal Rust function into a DPI one.
-We need to apply `#[no_mangle]` and `extern` (or `extern "C"`) so that Rust
+We need to apply `pub` and `extern` (or `extern "C"`) so that Rust
 exposes the function correctly to C. 
 
 DPI functions cannot have a return value and only take primitive integers or mutable references to primitive integers as
-arguments. Each parameter must be annotated with `#[input]`, `#[output]`, or
-`#[inout]`. Moreover, their bodies can only access the standard library.
+arguments. Beside that, there are no restrictions on the content --- write
+whatever Rust code you want!
 
 Then, we told the runtime about this function:
 ```diff

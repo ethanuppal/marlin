@@ -181,7 +181,7 @@ extern \"C\" void dpi_init_callback(void** callbacks) {{
                 format!(
                     "static void (*rust_{})({});
 extern \"C\" void {}({}) {{
-    rust_{}({})
+    rust_{}({});
 }}",
                     name, signature, name, signature, name, arguments
                 )
@@ -192,7 +192,18 @@ extern \"C\" void {}({}) {{
             .iter()
             .enumerate()
             .map(|(i, dpi_function)| {
-                format!("   rust_{} = callbacks[{}];", dpi_function.name(), i)
+                let signature = dpi_function
+                    .signature()
+                    .iter()
+                    .map(|(name, ty)| format!("{} {}", ty, name))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!(
+                    "   rust_{} = ( void(*)({}) ) callbacks[{}];",
+                    dpi_function.name(),
+                    signature,
+                    i
+                )
             })
             .collect::<Vec<_>>()
             .join("\n"),
@@ -342,7 +353,7 @@ pub fn build_library(
 
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
-        .args(["--cc", "-sv", "-j", "0"])
+        .args(["--cc", "-sv", "-j", "0", "--build"])
         .args(["-CFLAGS", "-shared -fpic"])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
@@ -372,47 +383,6 @@ pub fn build_library(
             verilator_output.status,
             String::from_utf8(verilator_output.stdout).unwrap_or_default(),
             String::from_utf8(verilator_output.stderr).unwrap_or_default()
-        );
-    }
-
-    let verilator_makefile_filename =
-        Utf8PathBuf::from(format!("V{}.mk", top_module));
-    //let verilator_makefile_path =
-    //    verilator_artifact_directory.join(&verilator_makefile_filename);
-    //let verilator_makefile_contents = fs::read_to_string(
-    //    &verilator_makefile_path,
-    //)
-    //.whatever_context(format!(
-    //    "Failed to read Verilator-generated Makefile {}",
-    //    verilator_makefile_path
-    //))?;
-    //let verilator_makefile_contents = format!(
-    //    "VK_USER_OBJS += ../dpi/dpi.o\n\n{}",
-    //    verilator_makefile_contents
-    //);
-    //fs::write(&verilator_makefile_path, verilator_makefile_contents)
-    //    .whatever_context(format!(
-    //        "Failed to update Verilator-generated Makefile {}",
-    //        verilator_makefile_path
-    //    ))?;
-
-    let mut make_command = Command::new(&options.make_executable);
-    make_command
-        .args(["-f", verilator_makefile_filename.as_str()])
-        .current_dir(verilator_artifact_directory);
-    if verbose {
-        log::info!("| Make invocation: {:?}", make_command);
-    }
-    let make_output = make_command
-        .output()
-        .whatever_context("Invocation of Make failed")?;
-
-    if !make_output.status.success() {
-        whatever!(
-            "Invocation of make failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-            make_output.status,
-            String::from_utf8(make_output.stdout).unwrap_or_default(),
-            String::from_utf8(make_output.stderr).unwrap_or_default()
         );
     }
 
