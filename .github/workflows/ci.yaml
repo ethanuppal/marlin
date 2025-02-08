@@ -29,6 +29,7 @@ jobs:
           cargo run --package example-verilog-project --bin tutorial # rerun
           cargo run --package example-verilog-project --bin dynamic_model_tutorial
           cargo run --package example-verilog-project --bin dpi_tutorial
+          cargo run --package example-verilog-project --bin visibility_works
       
   test_spade:
     strategy:

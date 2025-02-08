@@ -21,6 +21,11 @@ path = "test/dynamic_model_tutorial.rs"
 name = "dpi_tutorial"
 path = "test/dpi_tutorial.rs"
 
+
+[[bin]]
+name = "visibility_works"
+path = "test/visibility_works.rs"
+
 [dependencies]
 snafu.workspace = true
 colog.workspace = true

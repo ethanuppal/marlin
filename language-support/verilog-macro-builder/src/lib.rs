@@ -223,9 +223,10 @@ pub fn build_verilated_struct(
     });
 
     let struct_name = item.ident;
+    let vis = item.vis;
     let port_count = verilated_model_ports_impl.len();
     quote! {
-        struct #struct_name<'ctx> {
+        #vis struct #struct_name<'ctx> {
             #(#struct_members),*,
             #[doc = "# Safety\nThe Rust binding to the model will not outlive the dynamic library context (with lifetime `'ctx`) and is dropped when this struct is."]
             model: *mut #crate_name::__reexports::libc::c_void,
