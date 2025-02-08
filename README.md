@@ -75,6 +75,27 @@ I'll write more documentation once I get further in the development process.
 - [Using dynamic Verilog models](./docs/verilog_dynamic_models.md)
 - [Calling Rust from Verilog](./docs/verilog_dpi.md)
 
+## 😡 Why is it slow?
+
+Welcome, dear software developer, into the world of hardware design!
+
+Simulation tools take an _absurd_ amount of time to run.
+It's important to realize that Marlin _itself_ is not slow, but the tools it calls out to are.
+
+For example, when you use Marlin in a Spade project, it calls out to:
+
+- `swim build`, which recompiles the entire Spade compiler from source
+- `verilator`, which compiles and links C++ code
+
+However, whether or not you use Marlin, you will have to use these tools. You
+will have to call `swim build`, then call the appropriate `verilator` command
+with all the right files and flags. Marlin automatically handles this all for
+you --- if you enable verbose mode in the runtime, you'll see that 99% of the
+time is spent just invoking these tools, **which you would have done anyway**.
+
+So yes, Marlin is slow. But that's just because hardware simulation tools
+themselves are slow. :(
+
 ## 💡 How it works
 
 I'll write more on this once I get further in the development process.
