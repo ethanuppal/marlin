@@ -11,7 +11,7 @@
 // - location of verilated.h
 // - verilator library is obj_dir/libverilated.a
 
-use std::{ffi::OsStr, fmt::Write, fs, process::Command};
+use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use snafu::{prelude::*, Whatever};
@@ -132,106 +132,94 @@ extern "C" {{
     Ok(ffi_wrappers)
 }
 
-/// Sets up the DPI artifacts directory and builds DPI function bindings if
+/// Sets up the DPI artifacts directory and generates DPI function bindings if
 /// needed, returning:
-/// 1. `Some` tuple of the DPI artifact files to link in (or `None` if there are
-///    no DPI functions in the first place)
-/// 2. Whether there was a rebuild of any kind
+/// 1. `Some` DPI bindings file to compile in (or `None` if there are no DPI
+///    functions in the first place)
+/// 2. Whether there was a regeneration of any kind
 ///
 /// This function is a nop if `dpi_functions.is_empty()`.
-fn build_dpi_if_needed(
+fn bind_dpi_if_needed(
     top_module: &str,
-    rustc: &OsStr,
-    rustc_optimize: bool,
     dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
     verbose: bool,
-) -> Result<(Option<(Utf8PathBuf, Utf8PathBuf)>, bool), Whatever> {
-    todo!()
-    //if dpi_functions.is_empty() {
-    //    return Ok((None, false));
-    //}
-    //
-    //let dpi_file = dpi_artifact_directory.join("dpi.rs");
-    //// TODO: hard-coded knowledge
-    //let dpi_object_file = Utf8PathBuf::from("../dpi/dpi.o"); //
-    // dpi_file.with_extension("o"); let dpi_c_wrappers =
-    // Utf8PathBuf::from("../dpi/wrappers.cpp"); //
-    // dpi_artifact_directory.join("wrappers.cpp");
-    //
-    //let current_file_code = dpi_functions
-    //    .iter()
-    //    .map(|DpiFunction(_, _, rust_code)| rust_code)
-    //    .cloned()
-    //    .collect::<Vec<_>>()
-    //    .join("\n");
-    //let c_file_code = format!(
-    //    "#include \"svdpi.h\"\n#include \"V{}__Dpi.h\"\n#include
-    // <stdint.h>\n{}",    top_module,
-    //    dpi_functions
-    //        .iter()
-    //        .map(|DpiFunction(_, c_code, _)| c_code)
-    //        .cloned()
-    //        .collect::<Vec<_>>()
-    //        .join("\n")
-    //);
-    //
-    //// only rebuild if there's been a change
-    //if fs::read_to_string(&dpi_file)
-    //    .map(|file_code| file_code == current_file_code)
-    //    .unwrap_or(false)
-    //{
-    //    if verbose {
-    //        log::info!("| Skipping rebuild of DPI due to no changes");
-    //    }
-    //    return Ok((Some((dpi_object_file, dpi_c_wrappers)), false));
-    //}
-    //
-    //if verbose {
-    //    log::info!("| Building DPI");
-    //}
-    //
-    //fs::write(dpi_artifact_directory.join("wrappers.cpp"), c_file_code)
-    //    .whatever_context(format!(
-    //        "Failed to write DPI function wrapper code to {}",
-    //        dpi_c_wrappers
-    //    ))?;
-    //fs::write(&dpi_file, current_file_code).whatever_context(format!(
-    //    "Failed to write DPI function code to {}",
-    //    dpi_file
-    //))?;
-    //
-    //let mut rustc_command = Command::new(rustc);
-    //rustc_command
-    //    .args(["--emit=obj", "--crate-type=cdylib"])
-    //    .args(["--edition", "2021"])
-    //    .arg(
-    //        dpi_file
-    //            .components()
-    //            .last()
-    //            .expect("We just added dpi.rs to the end..."),
-    //    )
-    //    .current_dir(dpi_artifact_directory);
-    //if rustc_optimize {
-    //    rustc_command.arg("-O");
-    //}
-    //if verbose {
-    //    log::info!("  | rustc invocation: {:?}", rustc_command);
-    //}
-    //let rustc_output = rustc_command
-    //    .output()
-    //    .whatever_context("Invocation of verilator failed")?;
-    //
-    //if !rustc_output.status.success() {
-    //    whatever!(
-    //        "Invocation of rustc failed with nonzero exit code {}\n\n---
-    // STDOUT ---\n{}\n\n--- STDERR ---\n{}",        rustc_output.status,
-    //        String::from_utf8(rustc_output.stdout).unwrap_or_default(),
-    //        String::from_utf8(rustc_output.stderr).unwrap_or_default()
-    //    );
-    //}
-    //
-    //Ok((Some((dpi_object_file, dpi_c_wrappers)), true))
+) -> Result<(Option<Utf8PathBuf>, bool), Whatever> {
+    if dpi_functions.is_empty() {
+        return Ok((None, false));
+    }
+
+    let _dpi_file = dpi_artifact_directory.join("dpi.cpp");
+    // TODO: hard-coded knowledge, same verilator bug
+    let dpi_file = Utf8PathBuf::from("../dpi/dpi.cpp");
+
+    let file_code = format!(
+        "#include \"svdpi.h\"
+#include \"V{}__Dpi.h\"
+#include <stdint.h>
+{}
+extern \"C\" void dpi_init_callback(void** callbacks) {{
+{}
+}}",
+        top_module,
+        dpi_functions
+            .iter()
+            .map(|dpi_function| {
+                let name = dpi_function.name();
+                let signature = dpi_function
+                    .signature()
+                    .iter()
+                    .map(|(name, ty)| format!("{} {}", ty, name))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let arguments = dpi_function
+                    .signature()
+                    .iter()
+                    .map(|(name, _)| name.to_owned())
+                    .collect::<Vec<_>>()
+                    .join(",");
+                format!(
+                    "static void (*rust_{})({});
+extern \"C\" void {}({}) {{
+    rust_{}({})
+}}",
+                    name, signature, name, signature, name, arguments
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+        dpi_functions
+            .iter()
+            .enumerate()
+            .map(|(i, dpi_function)| {
+                format!("   rust_{} = callbacks[{}];", dpi_function.name(), i)
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+    );
+
+    // only rebuild if there's been a change
+    if fs::read_to_string(&dpi_file)
+        .map(|current_file_code| current_file_code == file_code)
+        .unwrap_or(false)
+    {
+        if verbose {
+            log::info!("| Skipping regeneration of DPI due to no changes");
+        }
+        return Ok((Some(dpi_file), false));
+    }
+
+    if verbose {
+        log::info!("| Generating DPI bindings");
+    }
+
+    fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
+        .whatever_context(format!(
+            "Failed to write DPI function wrapper code to {}",
+            dpi_file
+        ))?;
+
+    Ok((Some(dpi_file), true))
 }
 
 /// Returns `Ok(true)` when the library doesn't exist or if any Verilog source
@@ -326,10 +314,8 @@ pub fn build_library(
     let library_path =
         verilator_artifact_directory.join(format!("lib{}.so", library_name));
 
-    let (dpi_artifacts, dpi_rebuilt) = build_dpi_if_needed(
+    let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
         top_module,
-        &options.rustc_executable,
-        options.rustc_optimization,
         dpi_functions,
         &dpi_artifact_directory,
         verbose,
@@ -363,10 +349,8 @@ pub fn build_library(
         .args(["--top-module", top_module])
         .args(source_files)
         .arg(ffi_wrappers);
-    if let Some((dpi_object_file, dpi_c_wrapper)) = dpi_artifacts {
-        verilator_command
-            .args(["-CFLAGS", dpi_object_file.as_str()])
-            .arg(dpi_c_wrapper);
+    if let Some(dpi_file) = dpi_file {
+        verilator_command.arg(dpi_file);
     }
     if let Some(level) = options.verilator_optimization {
         if (0..=3).contains(&level) {
@@ -393,24 +377,24 @@ pub fn build_library(
 
     let verilator_makefile_filename =
         Utf8PathBuf::from(format!("V{}.mk", top_module));
-    let verilator_makefile_path =
-        verilator_artifact_directory.join(&verilator_makefile_filename);
-    let verilator_makefile_contents = fs::read_to_string(
-        &verilator_makefile_path,
-    )
-    .whatever_context(format!(
-        "Failed to read Verilator-generated Makefile {}",
-        verilator_makefile_path
-    ))?;
-    let verilator_makefile_contents = format!(
-        "VK_USER_OBJS += ../dpi/dpi.o\n\n{}",
-        verilator_makefile_contents
-    );
-    fs::write(&verilator_makefile_path, verilator_makefile_contents)
-        .whatever_context(format!(
-            "Failed to update Verilator-generated Makefile {}",
-            verilator_makefile_path
-        ))?;
+    //let verilator_makefile_path =
+    //    verilator_artifact_directory.join(&verilator_makefile_filename);
+    //let verilator_makefile_contents = fs::read_to_string(
+    //    &verilator_makefile_path,
+    //)
+    //.whatever_context(format!(
+    //    "Failed to read Verilator-generated Makefile {}",
+    //    verilator_makefile_path
+    //))?;
+    //let verilator_makefile_contents = format!(
+    //    "VK_USER_OBJS += ../dpi/dpi.o\n\n{}",
+    //    verilator_makefile_contents
+    //);
+    //fs::write(&verilator_makefile_path, verilator_makefile_contents)
+    //    .whatever_context(format!(
+    //        "Failed to update Verilator-generated Makefile {}",
+    //        verilator_makefile_path
+    //    ))?;
 
     let mut make_command = Command::new(&options.make_executable);
     make_command

@@ -107,14 +107,6 @@ pub struct VerilatorRuntimeOptions {
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
 
-    /// The name of the `rustc` executable, interpreted in some way by the
-    /// OS/shell.
-    pub rustc_executable: OsString,
-
-    /// Whether to enable optimization when calling `rustc`. Enabling will slow
-    /// compilation times.
-    pub rustc_optimization: bool,
-
     /// The name of the `make` executable, interpreted in some way by the
     /// OS/shell.
     pub make_executable: OsString,
@@ -126,8 +118,6 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             verilator_optimization: None,
             force_verilator_rebuild: false,
-            rustc_executable: "rustc".into(),
-            rustc_optimization: false,
             make_executable: "make".into(),
         }
     }
@@ -273,6 +263,9 @@ impl VerilatorRuntime {
     /// - Edits to Verilog source code
     /// - Edits to DPI functions
     ///
+    /// Then, if this is the first time building the library, and there are DPI
+    /// functions, the library will be initialized with the DPI functions.
+    ///
     /// See [`build_library::build_library`] for more information.
     fn build_or_retrieve_library(
         &mut self,
@@ -361,6 +354,30 @@ impl VerilatorRuntime {
             }
             let library = unsafe { Library::new(library_path) }
                 .whatever_context("Failed to load verilator dynamic library")?;
+
+            if !self.dpi_functions.is_empty() {
+                let dpi_init_callback: extern "C" fn(
+                    *const *const libc::c_void,
+                ) = *unsafe { library.get(b"dpi_init_callback") }
+                    .whatever_context("Failed to load DPI initializer")?;
+
+                // order is important here. the function pointers will be
+                // initialized in the same order that they
+                // appear in the DPI array --- this is to match how the C
+                // initialization code was constructed in `build_library`.
+                let function_pointers = self
+                    .dpi_functions
+                    .iter()
+                    .map(|dpi_function| dpi_function.pointer())
+                    .collect::<Vec<_>>();
+
+                (dpi_init_callback)(function_pointers.as_ptr_range().start);
+
+                if self.verbose {
+                    log::info!("Initialized DPI functions");
+                }
+            }
+
             entry.insert(library);
         }
 
