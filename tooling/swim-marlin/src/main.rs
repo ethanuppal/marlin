@@ -44,6 +44,7 @@ enum Subcommand {
     Init(InitSubcommand),
     Add(AddSubcommand),
     Test(TestSubcommand),
+    Check(CheckSubcommand),
 }
 
 /// Initialize Marlin in an existing Swim project
@@ -77,6 +78,11 @@ struct TestSubcommand {
     #[argh(positional, default = "String::new()")]
     test_pattern: String,
 }
+
+/// Check the well-formedness of the Marlin project
+#[derive(FromArgs)]
+#[argh(subcommand, name = "check")]
+struct CheckSubcommand {}
 
 fn run_shell_command(
     command: &mut Command,
@@ -161,6 +167,12 @@ fn add_test(
 
     let binary_path =
         Utf8Path::new(&test_directory).join(format!("{}.rs", test_name));
+    if binary_path.is_file() {
+        whatever!(
+            "File {} already exists, cannot overwrite to create test file",
+            binary_path
+        );
+    }
     binaries.push(
         toml! {
             name = test_name
@@ -172,6 +184,39 @@ fn add_test(
     fs::write(binary_path, include_str!("../resources/test_template.rs"))
         .whatever_context("Failed to initialize test code file")?;
 
+    Ok(())
+}
+
+fn check(cargo_toml: toml::Value) -> Result<(), Whatever> {
+    let Some(marlin_metadata) = cargo_toml
+        .get("package")
+        .and_then(|package| package.get("metadata"))
+        .and_then(|metadata| metadata.get("marlin"))
+    else {
+        whatever!("Missing [package.metadata.marlin] section from Cargo.toml");
+    };
+
+    if !cargo_toml
+        .get("dependencies")
+        .and_then(|dependencies| dependencies.as_table())
+        .map(|dependencies| dependencies.contains_key("marlin"))
+        .unwrap_or(false)
+    {
+        whatever!("Missing Marlin dependency from [dependencies] section in Cargo.toml");
+    }
+
+    let Some(test_directory) = marlin_metadata
+        .get("test_directory")
+        .and_then(|test_directory| test_directory.as_str())
+    else {
+        whatever!("Missing test_directory string under [package.metadata.marlin] in Cargo.toml");
+    };
+
+    if !Utf8Path::new(test_directory).is_dir() {
+        whatever!("Test directory under [package.metadata.marlin] in Cargo.toml either does not exist or is not a directory");
+    }
+
+    println!("Everything looks good!");
     Ok(())
 }
 
@@ -472,6 +517,18 @@ fn main() -> Result<(), Whatever> {
             }
 
             Ok(())
+        }
+        Subcommand::Check(_check_subcommand) => {
+            let cargo_toml_path = current_directory.join("Cargo.toml");
+            let cargo_toml_contents = fs::read_to_string(&cargo_toml_path)
+                .whatever_context("Run `swim marlin init` first")?;
+            let cargo_toml: toml::Value = toml::from_str(&cargo_toml_contents)
+                .whatever_context(format!(
+                    "Failed to parse Cargo.toml at {}",
+                    cargo_toml_path
+                ))?;
+
+            check(cargo_toml)
         }
     }
 }

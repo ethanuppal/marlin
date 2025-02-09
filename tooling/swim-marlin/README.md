@@ -10,3 +10,4 @@ Overview:
 - `swim marlin add <testname>` creates a new empty test in your tests directory
 - `swim marlin test <pattern>` runs all tests containing `<pattern>` in their
    name on multiple threads
+- `swim marlin check` checks for an invalid configuration
