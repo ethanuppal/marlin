@@ -11,6 +11,14 @@ I'll be assuming you've read the [tutorial on testing Verilog projects](./testin
 If you don't already have Spade installed, [make sure to do that](https://docs.spade-lang.org/installation.html).
 You can either integrate Marlin into an existing [Swim](https://docs.spade-lang.org/swim/index.html) project at no effort or (in this case) make a new Swim project from scratch with an eye to Marlin.
 
+First, install `swim-marlin` from [crates.io](crates.io):
+
+```
+cargo install swim-marlin
+```
+
+Then, setup the project:
+
 ```shell
 swim init tutorial-project
 cd tutorial-project
@@ -47,27 +55,28 @@ we pin to the value `42` (think of `assign`ing to an `output` in Verilog).
 Then, we'll make a new crate to use Marlin:
 
 ```shell
-mkdir test
-vi Cargo.toml
-vi test/main.rs
+swim marlin init -d test
 ```
 
-In the `Cargo.toml`, we'll indicate there's one test called `simple_test.rs` and add the `spade` dependency:
+This creates by default a `test.rs` test in the `test/` directory. The `-d`
+option is optional; without it, `swim-marlin` will figure it out from your
+`swim.toml` or default to `tests/`.
 
-```toml
-# file: Cargo.toml
-[package]
-name = "tutorial-project"
+In the `Cargo.toml`, we'll rename the test `simple_test`:
 
-[[bin]]
-name = "simple_test"
-path = "test/simple_test.rs"
+```diff
+ # file: Cargo.toml
+ [[bin]]
+-name = "test"
++name = "simple_test"
+-path = "test/test.rs"
++path = "test/simple_test.rs"
+```
 
-[dependencies]
-# other dependencies...
-marlin = { version = "0.1.0", features = ["spade"] }
-snafu = "0.8.5" # optional, whatever version
-colog = "1.3.0" # optional, whatever version
+Let's also rename the file to reflect this:
+
+```shell
+mv test/test.rs test/simple_test.rs
 ```
 
 Our testing code will be similar to the Verilog code:
@@ -97,9 +106,10 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-A `cargo run` from the project root lets us test our Spade!
+A `swim marlin test` from the project root lets us test our Spade!
 
 Note that, unlike the Verilog project tutorial, you don't need to add another
 directory to your `.gitignore`, if you have one, because the `SpadeRuntime`
 reuses the existing `build/` directory managed by Swim. Thus, you should add
-that to your `.gitignore` instead.
+that to your `.gitignore` instead. `swim init` should do that automatically,
+though.
