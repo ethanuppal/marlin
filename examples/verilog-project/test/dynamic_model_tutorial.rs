@@ -12,8 +12,10 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use marlin::verilator::{
+    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
+};
 use snafu::{ResultExt, Whatever};
-use verilog::{PortDirection, VerilatorRuntime, VerilatorRuntimeOptions};
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {

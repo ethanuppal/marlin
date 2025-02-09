@@ -6,12 +6,12 @@
 
 use std::{collections::HashMap, env, fmt, path::PathBuf};
 
+use marlin_verilator::PortDirection;
+use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 use syn::{parse_macro_input, spanned::Spanned};
-use verilator::PortDirection;
-use verilog_macro_builder::{build_verilated_struct, MacroArgs};
 
 mod util;
 

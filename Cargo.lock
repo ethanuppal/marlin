@@ -161,7 +161,7 @@ name = "example-spade-project"
 version = "0.0.0"
 dependencies = [
  "colog",
- "marlin-spade",
+ "marlin",
  "snafu",
 ]
 
@@ -170,7 +170,7 @@ name = "example-verilog-project"
 version = "0.0.0"
 dependencies = [
  "colog",
- "marlin-verilog",
+ "marlin",
  "snafu",
 ]
 

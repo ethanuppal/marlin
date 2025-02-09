@@ -4,17 +4,21 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-pub use spade_macro::spade;
-pub use verilog::__reexports;
-
 use std::{env::current_dir, ffi::OsString, process::Command};
 
 use camino::Utf8PathBuf;
+use marlin_verilog::__reexports::verilator::{
+    VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+};
 use snafu::{whatever, ResultExt, Whatever};
-use verilog::{VerilatorRuntime, __reexports::verilator::VerilatedModel};
 
-// TODO: this will all be exposed from the main Marlin crate once it exists
-pub use verilog::VerilatorRuntimeOptions;
+pub use marlin_verilog::__reexports;
+
+pub mod prelude {
+    pub use crate as spade;
+    pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
+    pub use marlin_spade_macro::spade;
+}
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {

@@ -7,10 +7,10 @@
 use std::{env, fs};
 
 use camino::Utf8PathBuf;
+use marlin_verilator::PortDirection;
+use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
 use proc_macro::TokenStream;
 use spade_parser::logos::Logos;
-use verilator::PortDirection;
-use verilog_macro_builder::{build_verilated_struct, MacroArgs};
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {

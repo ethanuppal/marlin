@@ -4,9 +4,9 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
+use marlin_verilator::PortDirection;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use verilator::PortDirection;
 
 pub struct MacroArgs {
     pub source_path: syn::LitStr,

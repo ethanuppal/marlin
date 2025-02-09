@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
-use verilog::{VerilatorRuntime, VerilatorRuntimeOptions};
 
 mod enclosed {
-    use verilog::verilog;
+    use marlin::verilog::prelude::*;
 
     #[verilog(src = "src/main.sv", name = "main")]
     pub struct Main;

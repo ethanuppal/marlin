@@ -12,8 +12,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use marlin::{
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilog::prelude::*,
+};
 use snafu::Whatever;
-use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
 
 #[verilog::dpi]
 pub extern "C" fn three(out: &mut u32) {

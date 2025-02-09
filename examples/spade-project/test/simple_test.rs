@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use marlin::spade::prelude::*;
 use snafu::Whatever;
-use spade::{spade, SpadeRuntime, SpadeRuntimeOptions};
 
 #[spade(src = "src/main.spade", name = "main")]
 struct Main;

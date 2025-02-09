@@ -7,12 +7,12 @@
 pub mod __reexports {
     pub use libc;
     pub use libloading;
-    pub use verilator;
+    pub use marlin_verilator as verilator;
 }
 
-pub use verilator::{
-    dpi::DpiFunction, dynamic::DynamicVerilatedModel,
-    dynamic::DynamicVerilatedModelError, dynamic::VerilatorValue,
-    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
-};
-pub use verilog_macro::{dpi, verilog};
+pub use marlin_verilog_macro::dpi;
+
+pub mod prelude {
+    pub use crate as verilog;
+    pub use marlin_verilog_macro::verilog;
+}

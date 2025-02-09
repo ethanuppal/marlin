@@ -29,4 +29,4 @@ path = "test/visibility_works.rs"
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
-marlin-verilog.workspace = true
+marlin = { path = "../../marlin", features = ["verilog"] }
