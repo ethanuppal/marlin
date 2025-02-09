@@ -1,5 +1,5 @@
 [package]
-name = "verilog-macro"
+name = "marlin-verilog-macro"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -15,6 +15,6 @@ proc-macro = true
 [dependencies]
 syn.workspace = true
 quote.workspace = true
-verilog-macro-builder = { path = "../verilog-macro-builder/" }
-verilator.workspace = true
+marlin-verilog-macro-builder.workspace = true
+marlin-verilator.workspace = true
 sv-parser.workspace = true

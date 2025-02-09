@@ -1,5 +1,5 @@
 [package]
-name = "marlin-verilog-macro-builder"
+name = "marlin"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -9,8 +9,14 @@ repository.workspace = true
 readme.workspace = true
 license.workspace = true
 
+[features]
+verilog = []
+spade = []
+
 [dependencies]
-proc-macro2.workspace = true
-syn.workspace = true
-quote.workspace = true
 marlin-verilator.workspace = true
+marlin-verilog.workspace = true
+marlin-verilog-macro.workspace = true
+marlin-verilog-macro-builder.workspace = true
+marlin-spade.workspace = true
+marlin-spade-macro.workspace = true

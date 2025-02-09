@@ -8,6 +8,7 @@ members = [
     "language-support/spade-macro",
     "examples/verilog-project",
     "examples/spade-project",
+    "marlin",
 ]
 resolver = "2"
 
@@ -35,6 +36,9 @@ spade-ast = "0.12.1"
 log = "0.4.25"
 colog = "1.3.0"
 
-verilator = { path = "verilator" }
-verilog = { path = "language-support/verilog" }
-spade = { path = "language-support/spade" }
+marlin-verilator = { path = "verilator", version = "0.0.0" }
+marlin-verilog = { path = "language-support/verilog", version = "0.0.0" }
+marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.0.0" }
+marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.0.0" }
+marlin-spade = { path = "language-support/spade", version = "0.0.0" }
+marlin-spade-macro = { path = "language-support/spade-macro", version = "0.0.0" }

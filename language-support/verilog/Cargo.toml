@@ -1,5 +1,5 @@
 [package]
-name = "verilog"
+name = "marlin-verilog"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -10,7 +10,7 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
-verilog-macro = { path = "../verilog-macro" }
-verilator.workspace = true
+marlin-verilog-macro.workspace = true
+marlin-verilator.workspace = true
 libc.workspace = true
 libloading.workspace = true

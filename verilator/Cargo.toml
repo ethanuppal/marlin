@@ -1,5 +1,5 @@
 [package]
-name = "verilator"
+name = "marlin-verilator"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true

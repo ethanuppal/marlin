@@ -1,4 +1,4 @@
-# marlin
+# marlin 🐟
 
 [![CI Badge](https://github.com/ethanuppal/marlin/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/ci.yaml)
 [![Code Style Badge](https://github.com/ethanuppal/marlin/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/lint.yaml)

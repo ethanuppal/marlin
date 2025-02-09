@@ -1,5 +1,5 @@
 [package]
-name = "spade"
+name = "marlin-spade"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -10,8 +10,8 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
-verilog.workspace = true
-spade-macro = { path = "../spade-macro/" }
+marlin-verilog.workspace = true
+marlin-spade-macro.workspace = true
 camino.workspace = true
 snafu.workspace = true
 log.workspace = true

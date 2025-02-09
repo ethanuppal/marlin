@@ -16,4 +16,4 @@ path = "test/simple_test.rs"
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
-spade.workspace = true
+marlin-spade.workspace = true

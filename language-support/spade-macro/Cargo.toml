@@ -1,5 +1,5 @@
 [package]
-name = "spade-macro"
+name = "marlin-spade-macro"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -13,8 +13,8 @@ license.workspace = true
 proc-macro = true
 
 [dependencies]
-verilog-macro-builder = { path = "../verilog-macro-builder/" }
-verilator.workspace = true
+marlin-verilog-macro-builder.workspace = true
+marlin-verilator.workspace = true
 camino.workspace = true
 
 proc-macro2.workspace = true
