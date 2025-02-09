@@ -13,8 +13,9 @@ license.workspace = true
 proc-macro = true
 
 [dependencies]
+marlin-verilator.workspace = true
+
 syn.workspace = true
 quote.workspace = true
+
 marlin-verilog-macro-builder.workspace = true
-marlin-verilator.workspace = true
-sv-parser.workspace = true

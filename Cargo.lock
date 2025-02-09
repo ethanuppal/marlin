@@ -398,6 +398,8 @@ dependencies = [
  "marlin-verilog",
  "marlin-verilog-macro",
  "marlin-verilog-macro-builder",
+ "marlin-veryl",
+ "marlin-veryl-macro",
 ]
 
 [[package]]
@@ -453,7 +455,6 @@ dependencies = [
  "marlin-verilator",
  "marlin-verilog-macro-builder",
  "quote",
- "sv-parser",
  "syn 2.0.98",
 ]
 
@@ -462,6 +463,31 @@ name = "marlin-verilog-macro-builder"
 version = "0.1.0"
 dependencies = [
  "marlin-verilator",
+ "proc-macro2",
+ "quote",
+ "sv-parser",
+ "syn 2.0.98",
+]
+
+[[package]]
+name = "marlin-veryl"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "log",
+ "marlin-verilog",
+ "marlin-veryl-macro",
+ "snafu",
+]
+
+[[package]]
+name = "marlin-veryl-macro"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "marlin-verilator",
+ "marlin-verilog-macro",
+ "marlin-verilog-macro-builder",
  "proc-macro2",
  "quote",
  "syn 2.0.98",

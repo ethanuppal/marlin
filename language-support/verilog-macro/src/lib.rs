@@ -4,16 +4,14 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashMap, env, fmt, path::PathBuf};
+use std::{env, fmt, path::PathBuf};
 
-use marlin_verilator::PortDirection;
-use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
+use marlin_verilog_macro_builder::{
+    build_verilated_struct, parse_verilog_ports, MacroArgs,
+};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 use syn::{parse_macro_input, spanned::Spanned};
-
-mod util;
 
 #[proc_macro_attribute]
 pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
@@ -22,161 +20,16 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
     let manifest_directory = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Please compile using `cargo` or set the `CARGO_MANIFEST_DIR` environment variable"));
     let source_path = manifest_directory.join(args.source_path.value());
 
-    let defines = HashMap::new();
-    let (ast, _) =
-        match sv::parse_sv(&source_path, &defines, &["."], false, false) {
-            Ok(result) => result,
-            Err(error) => {
-                return syn::Error::new_spanned(
-                    args.source_path,
-                    error.to_string(),
-                )
-                .into_compile_error()
-                .into();
-            }
-        };
-
-    let Some(module) = (&ast).into_iter().find_map(|node| match node {
-        RefNode::ModuleDeclarationAnsi(module) => {
-            // taken from https://github.com/dalance/sv-parser/blob/master/README.md
-            fn get_identifier(node: RefNode) -> Option<Locate> {
-                match unwrap_node!(node, SimpleIdentifier, EscapedIdentifier) {
-                    Some(RefNode::SimpleIdentifier(x)) => Some(x.nodes.0),
-                    Some(RefNode::EscapedIdentifier(x)) => Some(x.nodes.0),
-                    _ => None,
-                }
-            }
-
-            let id = unwrap_node!(module, ModuleIdentifier).unwrap();
-            let id = get_identifier(id).unwrap();
-            let id = ast.get_str_trim(&id).unwrap();
-            if id == args.name.value().as_str() {
-                Some(module)
-            } else {
-                None
-            }
+    let ports = match parse_verilog_ports(
+        &args.name,
+        &args.source_path,
+        &source_path,
+    ) {
+        Ok(ports) => ports,
+        Err(error) => {
+            return error.into();
         }
-        _ => None,
-    }) else {
-        return syn::Error::new_spanned(
-            &args.name,
-            format!(
-                "Could not find module declaration for `{}` in {}",
-                args.name.value(),
-                args.source_path.value()
-            ),
-        )
-        .into_compile_error()
-        .into();
     };
-
-    let port_declarations_list = module
-        .nodes
-        .0
-        .nodes
-        .6
-        .as_ref()
-        .and_then(|list| list.nodes.0.nodes.1.as_ref())
-        .map(|list| list.contents())
-        .unwrap_or(vec![]);
-
-    let mut ports = vec![];
-    for (_, port) in port_declarations_list {
-        match port {
-            sv::AnsiPortDeclaration::Net(net) => {
-                let port_name = ast.get_str_trim(&net.nodes.1.nodes.0).expect(
-                    "Port identifier could not be traced back to source code",
-                );
-
-                if port_name.chars().any(|c| c == '\\' || c == ' ') {
-                    return syn::Error::new_spanned(
-                        args.name,
-                        "Escaped module names are not supported",
-                    )
-                    .into_compile_error()
-                    .into();
-                }
-
-                let Some((port_direction, port_type ))= net.nodes.0.as_ref().and_then(|maybe_net_header| match maybe_net_header {
-                    sv::NetPortHeaderOrInterfacePortHeader::NetPortHeader(net_port_header) => {
-                        net_port_header.nodes.0.as_ref().map(|port_direction| (port_direction, &net_port_header.nodes.1))
-                    },
-                    _ => todo!("Other port header")
-                }) else {
-                    return syn::Error::new_spanned(
-                        args.source_path,
-                        format!(
-                            "Port `{}` has no supported direction (`input` or `output`)",
-                            port_name
-                        ),
-                    )
-                    .into_compile_error().into();
-                };
-
-                let port_dimensions = match port_type {
-                    sv::NetPortType::DataType(net_port_type_data_type) => {
-                        match &net_port_type_data_type.nodes.1 {
-                            sv::DataTypeOrImplicit::DataType(data_type) => {
-                                match &**data_type {
-                                    sv::DataType::Vector(data_type_vector) => {
-                                        &data_type_vector.nodes.2
-                                    }
-                                    other => todo!(
-                                        "Unsupported data type {:?}",
-                                        other
-                                    ),
-                                }
-                            }
-                            sv::DataTypeOrImplicit::ImplicitDataType(
-                                implicit_data_type,
-                            ) => &implicit_data_type.nodes.1,
-                        }
-                    }
-                    sv::NetPortType::NetTypeIdentifier(
-                        _net_type_identifier,
-                    ) => todo!("bklk"),
-                    sv::NetPortType::Interconnect(
-                        _net_port_type_interconnect,
-                    ) => todo!("ckl"),
-                };
-
-                let (port_msb, port_lsb) = match port_dimensions.len() {
-                    0 => (0, 0),
-                    1 => match &port_dimensions[0] {
-                        sv::PackedDimension::Range(packed_dimension_range) => {
-                            let range =
-                                &packed_dimension_range.nodes.0.nodes.1.nodes;
-                            (
-                                util::evaluate_numeric_constant_expression(
-                                    &ast, &range.0,
-                                ),
-                                util::evaluate_numeric_constant_expression(
-                                    &ast, &range.2,
-                                ),
-                            )
-                        }
-                        _ => todo!(),
-                    },
-                    _ => todo!("Don't support multidimensional ports yet"),
-                };
-
-                let port_direction = match port_direction {
-                    sv::PortDirection::Input(_) => PortDirection::Input,
-                    sv::PortDirection::Output(_) => PortDirection::Output,
-                    sv::PortDirection::Inout(_) => PortDirection::Inout,
-                    sv::PortDirection::Ref(_) => todo!(),
-                };
-
-                ports.push((
-                    port_name.to_string(),
-                    port_msb,
-                    port_lsb,
-                    port_direction,
-                ));
-            }
-            _ => todo!("Other types of ports"),
-        }
-    }
 
     build_verilated_struct(
         "verilog",

@@ -7,10 +7,13 @@ members = [
     "language-support/verilog-macro-builder",
     "language-support/spade",
     "language-support/spade-macro",
+    "language-support/veryl",
+    "language-support/veryl-macro",
     "tooling/swim-marlin",
     "examples/verilog-project",
     "examples/spade-project",
     "marlin",
+    "language-support/veryl-macro",
 ]
 
 [workspace.package]
@@ -48,3 +51,5 @@ marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.1
 marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.1.0" }
 marlin-spade = { path = "language-support/spade", version = "0.1.0" }
 marlin-spade-macro = { path = "language-support/spade-macro", version = "0.1.0" }
+marlin-veryl = { path = "language-support/veryl", version = "0.1.0" }
+marlin-veryl-macro = { path = "language-support/veryl-macro", version = "0.1.0" }
