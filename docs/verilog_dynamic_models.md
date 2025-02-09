@@ -70,7 +70,7 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/marlin" }
+marlin = "0.1.0" # no language features needed
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
@@ -82,7 +82,9 @@ using Marlin as a library (e.g., writing an interpreter).
 ```rust
 // file: test/simple_test.rs
 use snafu::Whatever;
-use verilog::{VerilatorRuntime, PortDirection};
+use marlin::verilator::{
+    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
+};
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {

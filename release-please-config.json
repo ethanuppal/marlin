@@ -16,37 +16,32 @@
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-verilator.version"
         },
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-verilog.version"
         },
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-verilog-macro.version"
         },
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-verilog-macro-builder.version"
         },
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-spade.version"
         },
         {
           "type": "toml",
           "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
-        },
-        {
-          "type": "toml",
-          "path": "Cargo.toml",
-          "jsonpath": "workspace.package.version"
+          "jsonpath": "workspace.dependencies.marlin-spade-macro.version"
         }
       ]
     }

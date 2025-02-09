@@ -73,7 +73,7 @@ path = "test/dpi_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/marlin" }
+marlin = { version = "0.1.0", features = ["verilog"] }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
@@ -84,7 +84,10 @@ model.
 ```rust
 // file: test/dpi_test.rs
 use snafu::Whatever;
-use verilog::{verilog, VerilatorRuntime, VerilatorRuntimeOptions};
+use marlin::{
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilog::prelude::*,
+};
 
 #[verilog::dpi]
 pub extern "C" fn three(out: &mut u32) {

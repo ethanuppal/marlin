@@ -65,7 +65,7 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-spade = { git = "https://github.com/ethanuppal/marlin" }
+marlin = { version = "0.1.0", features = ["spade"] }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
@@ -75,7 +75,7 @@ Our testing code will be similar to the Verilog code:
 ```rust
 // file: test/simple_test.rs
 use snafu::Whatever;
-use spade::{spade, SpadeRuntime, SpadeRuntimeOptions};
+use marlin::spade::prelude::*;
 
 #[spade(src = "src/main.spade", name = "main")]
 struct Main;

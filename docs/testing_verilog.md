@@ -73,7 +73,7 @@ path = "test/simple_test.rs"
 
 [dependencies]
 # other dependencies...
-verilog = { git = "https://github.com/ethanuppal/marlin" }
+marlin = { version = "0.1.0", features = ["verilog"] }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
@@ -94,7 +94,10 @@ Finally, we'll want to actually write the code that drives our project in `simpl
 ```rust
 // file: test/simple_test.rs
 use snafu::Whatever;
-use verilog::{verilog, VerilatorRuntime};
+use marlin::{
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilog::prelude::*,
+};
 
 #[verilog(src = "src/main.sv", name = "main")]
 struct Main;
