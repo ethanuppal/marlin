@@ -305,6 +305,8 @@ fn init(
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
+    let command: SwimMarlinCommand = argh::from_env();
+
     let current_directory = Utf8PathBuf::from_path_buf(
         current_dir()
             .whatever_context("Failed to determine current directory")?,
@@ -319,8 +321,6 @@ fn main() -> Result<(), Whatever> {
 
     let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
         .whatever_context("Failed to parse swim.toml in current directory")?;
-
-    let command: SwimMarlinCommand = argh::from_env();
 
     match command.subcommand {
         Subcommand::Init(init_subcommand) => {
