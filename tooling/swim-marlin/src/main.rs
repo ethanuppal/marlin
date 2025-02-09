@@ -187,7 +187,7 @@ fn add_test(
     Ok(())
 }
 
-fn check(cargo_toml: toml::Value) -> Result<(), Whatever> {
+fn check(cargo_toml: &toml::Value) -> Result<(), Whatever> {
     let Some(marlin_metadata) = cargo_toml
         .get("package")
         .and_then(|package| package.get("metadata"))
@@ -216,7 +216,6 @@ fn check(cargo_toml: toml::Value) -> Result<(), Whatever> {
         whatever!("Test directory under [package.metadata.marlin] in Cargo.toml either does not exist or is not a directory");
     }
 
-    println!("Everything looks good!");
     Ok(())
 }
 
@@ -383,6 +382,8 @@ fn main() -> Result<(), Whatever> {
                 cargo_toml_path
             ))?;
 
+            check(&cargo_toml)?;
+
             add_test(&mut cargo_toml, &add_subcommand.test_name)
                 .whatever_context(format!(
                     "Failed to add test {}",
@@ -398,6 +399,8 @@ fn main() -> Result<(), Whatever> {
                     "Failed to parse Cargo.toml at {}",
                     cargo_toml_path
                 ))?;
+
+            check(&cargo_toml)?;
 
             let test_directory  = cargo_toml
             .get("package")
@@ -528,7 +531,9 @@ fn main() -> Result<(), Whatever> {
                     cargo_toml_path
                 ))?;
 
-            check(cargo_toml)
+            check(&cargo_toml)?;
+            println!("Everything looks good!");
+            Ok(())
         }
     }
 }
