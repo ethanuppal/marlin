@@ -4,6 +4,8 @@
 makes it easy to manage Marlin tests in a Swim project. See `swim marlin --help`
 for more information.
 
+Install with `cargo install swim-marlin`.
+
 Overview:
 
 - `swim marlin init` inside a Swim project sets up Marlin
