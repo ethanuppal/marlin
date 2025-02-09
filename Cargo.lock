@@ -158,7 +158,7 @@ dependencies = [
 
 [[package]]
 name = "example-spade-project"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "colog",
  "marlin",
@@ -167,7 +167,7 @@ dependencies = [
 
 [[package]]
 name = "example-verilog-project"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "colog",
  "marlin",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "marlin"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "marlin-spade",
  "marlin-spade-macro",
@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-spade"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "camino",
  "log",
@@ -305,7 +305,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-spade-macro"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "camino",
  "marlin-verilator",
@@ -319,7 +319,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-verilator"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "camino",
  "libc",
@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-verilog"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "libc",
  "libloading",
@@ -340,7 +340,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-verilog-macro"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "marlin-verilator",
  "marlin-verilog-macro-builder",
@@ -351,7 +351,7 @@ dependencies = [
 
 [[package]]
 name = "marlin-verilog-macro-builder"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "marlin-verilator",
  "proc-macro2",
