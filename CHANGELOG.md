@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/ethanuppal/marlin/compare/v0.1.0...v0.2.0) (2025-02-09)
+
+
+### Features
+
+* **tooling:** Add `swim-marlin` Swim subcommand ([#55](https://github.com/ethanuppal/marlin/issues/55)) ([7f6cb94](https://github.com/ethanuppal/marlin/commit/7f6cb94d69aa9ebc2247f8ae8b75d1b6eae67576))
+
 ## [0.1.0](https://github.com/ethanuppal/marlin/compare/v0.1.0...v0.1.0) (2025-02-09)
 
 
