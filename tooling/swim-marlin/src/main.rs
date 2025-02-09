@@ -47,7 +47,7 @@ enum Subcommand {
     Check(CheckSubcommand),
 }
 
-/// Initialize Marlin in an existing Swim project
+/// initialize Marlin in an existing Swim project
 #[derive(FromArgs)]
 #[argh(subcommand, name = "init")]
 struct InitSubcommand {
@@ -61,7 +61,7 @@ struct InitSubcommand {
     crate_name: Option<String>,
 }
 
-/// Add a new Marlin test
+/// add a new Marlin test
 #[derive(FromArgs)]
 #[argh(subcommand, name = "add")]
 struct AddSubcommand {
@@ -70,7 +70,7 @@ struct AddSubcommand {
     test_name: String,
 }
 
-/// Run Marlin tests
+/// run Marlin tests
 #[derive(FromArgs)]
 #[argh(subcommand, name = "test")]
 struct TestSubcommand {
@@ -79,7 +79,7 @@ struct TestSubcommand {
     test_pattern: String,
 }
 
-/// Check the well-formedness of the Marlin project
+/// check the well-formedness of the Marlin project
 #[derive(FromArgs)]
 #[argh(subcommand, name = "check")]
 struct CheckSubcommand {}
