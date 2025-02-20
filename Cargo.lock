@@ -816,9 +816,9 @@ dependencies = [
 
 [[package]]
 name = "spade-ast"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d81a033cd94984203011a7eaf6a89be943bf21550220edce37dd2fdaa4cd760"
+checksum = "4c3a013e852d7a80e2d9061f528ae44be8e7475694c6126a046c9709205cc9ea"
 dependencies = [
  "itertools",
  "num",
@@ -848,9 +848,9 @@ dependencies = [
 
 [[package]]
 name = "spade-common"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cda34edab5c989d8cff5208b6c9eb18f0f00a3869809d48374be80051a60883e"
+checksum = "fddf14d33a13132e53a121a98ff306fe93668f04b02bb53fce530bdc38a1036e"
 dependencies = [
  "logos",
  "num",
@@ -861,9 +861,9 @@ dependencies = [
 
 [[package]]
 name = "spade-diagnostics"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8021492a048e7b3c1d00f8d8e7c8fd25675416ad664c978b614fca6fe886ed5"
+checksum = "85c44d6e085d0ea35a9a76d1f0adaf7a01faf59831d92cd8d15d62ea0acb25eb"
 dependencies = [
  "itertools",
  "spade-codespan",
@@ -873,9 +873,9 @@ dependencies = [
 
 [[package]]
 name = "spade-macros"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea117a2e79c73c15f53191fa88ee83fab2db741a05d84bff2b40130951f81e25"
+checksum = "0f9c78c6f8773e72288c5de33f2315f87559dc2b3aed6a830c225c92defb309a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -884,9 +884,9 @@ dependencies = [
 
 [[package]]
 name = "spade-parser"
-version = "0.12.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24732280292503c16118389b25bcbe8e87d90a5edbae6a0e4fa27a4ff4541517"
+checksum = "f78a59f0e553460fbd6a5aa8f239f6e6b8facca12903bca7054e658ffc9b3663"
 dependencies = [
  "colored 3.0.0",
  "itertools",

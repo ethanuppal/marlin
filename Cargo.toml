@@ -1,16 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
-    "verilator",
-    "language-support/verilog",
-    "language-support/verilog-macro",
-    "language-support/verilog-macro-builder",
-    "language-support/spade",
-    "language-support/spade-macro",
-    "tooling/swim-marlin",
-    "examples/verilog-project",
-    "examples/spade-project",
-    "marlin",
+  "verilator",
+  "language-support/verilog",
+  "language-support/verilog-macro",
+  "language-support/verilog-macro-builder",
+  "language-support/spade",
+  "language-support/spade-macro",
+  "tooling/swim-marlin",
+  "examples/verilog-project",
+  "examples/spade-project",
+  "marlin",
 ]
 
 [workspace.package]
@@ -32,8 +32,8 @@ proc-macro2 = "1.0.93"
 syn = { version = "2.0.96", features = ["full"] }
 quote = "1.0.38"
 sv-parser = "0.13.3"
-spade-parser = "0.12.1"
-spade-ast = "0.12.1"
+spade-parser = "0.13.0"
+spade-ast = "0.13.0"
 log = "0.4.25"
 colog = "1.3.0"
 argh = "0.1.13"
