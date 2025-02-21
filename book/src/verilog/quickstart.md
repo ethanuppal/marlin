@@ -5,7 +5,7 @@
 
 
 In this tutorial, we'll setup a SystemVerilog project and test our code with
-Marlin. You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `tutorial.rs` file).
+Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project) (in the `simple_test.rs` file).
 We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 ## Part 1: The Basics

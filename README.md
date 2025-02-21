@@ -7,7 +7,7 @@
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
 
-## [Link to documentation](https://ethanuppal.com/marlin)
+**[Read the documentation](https://ethanuppal.com/marlin)**
 
 Marlin is a really powerful library (and API) that lets you "import" hardware
 modules into Rust (or Rust functions into hardware modules!). 
@@ -23,6 +23,10 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
 ![Early example of using this with Spade](./assets/demo-alpha.png)
+
+> [!NOTE]
+> The above screenshot is pre-0.1.0, so it's a bit out of date -- Marlin has
+> improved a lot since then!
 
 ## 🔥 Motivation
 
