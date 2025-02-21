@@ -6,6 +6,6 @@ src = "src"
 title = "Marlin Handbook"
 
 [output.html]
-additional-js = ["src/js/verilog-highlight.js"]
+additional-js = ["src/js/verilog-highlight.js", "src/js/spade-highlight.js"]
 
 [preprocessor.callouts] # https://github.com/ToolmanP/rs-mdbook-callouts

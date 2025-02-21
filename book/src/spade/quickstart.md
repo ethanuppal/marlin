@@ -1,47 +1,48 @@
 # Spade Quickstart
 
-# Testing a Spade project
-
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
 In this tutorial, we'll setup a Spade project and test our code with
-Marlin. You can find the full source code for this tutorial [here](../examples/spade-project/). We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
+Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/spade-project).
 
-I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
+I'll be assuming you've read the [tutorial on testing Verilog projects](../verilog/quickstart.md); if not, read that first and come back.
 
-If you don't already have Spade installed, [make sure to do that](https://docs.spade-lang.org/installation.html).
-You can either integrate Marlin into an existing [Swim](https://docs.spade-lang.org/swim/index.html) project at no effort or (in this case) make a new Swim project from scratch with an eye to Marlin.
+Also, make sure you have a Spade toolchain installed, although we'll only be using the Swim build tool
+(follow the instructions [here](https://docs.spade-lang.org/swim/install.html)
+to install it).
 
-First, install `swim-marlin` from [crates.io](crates.io):
+> [!NOTE]
+> If you already have a Swim project and are looking to integrate Marlin into
+> it, you don't need to read Part 1 too carefully.
 
-```
-cargo install swim-marlin
-```
+## Part 1: Making a Swim Project
 
-Then, setup the project:
-
+Let's call our project "tutorial-project" (you are free to call it however you
+like):
 ```shell
 swim init tutorial-project
 cd tutorial-project
 git init # optional, if using git
 ```
 
-Here's what our project will look like at the end:
+Here's what our project will look like in the end:
+
 ```
 .
-├── swim.lock
 ├── swim.toml
+├── swim.lock
 ├── Cargo.toml
 ├── src
-│   └── main.spade
-└── test
+│   ├── lib.rs
+│   └── main.spade
+└── tests
     └── simple_test.rs
 ```
 
-In `main.spade` we'll write some simple Spade code:
+In `main.spade` (which should already exist after running `swim init`), we'll write some simple Spade code:
 
-```rust
+```spade
 // file: src/main.spade
 #[no_mangle(all)]
 entity main(out: inv &int<8>) {
@@ -53,50 +54,59 @@ You can read the [Spade book](https://docs.spade-lang.org/introduction.html) for
 introduction to Spade; this tutorial will not focus on teaching the language.
 Nonetheless, the essence of the above code is to expose an inverted wire which
 we pin to the value `42` (think of `assign`ing to an `output` in Verilog).
+We'll write a very simple SystemVerilog module: one that forwards its inputs to
+its outputs.
 
-Then, we'll make a new crate to use Marlin:
-
-```shell
-swim marlin init -d test
-```
-
-This creates by default a `test.rs` test in the `test/` directory. The `-d`
-option is optional; without it, `swim-marlin` will figure it out from your
-`swim.toml` or default to `tests/`.
-
-In the `Cargo.toml`, we'll rename the test `simple_test`:
-
-```diff
- # file: Cargo.toml
- [[bin]]
--name = "test"
-+name = "simple_test"
--path = "test/test.rs"
-+path = "test/simple_test.rs"
-```
-
-Let's also rename the file to reflect this:
+## Part 2: Setting up Marlin
 
 ```shell
-mv test/test.rs test/simple_test.rs
+cargo init --lib
+vi lib.rs
+mkdir tests
+vi tests/simple_test.rs
 ```
 
-Our testing code will be similar to the Verilog code:
+In the `Cargo.toml` generated, we'll want to add some dependencies:
+
+```toml
+# file: Cargo.toml
+[dependencies]
+# other dependencies...
+marlin = { version = "0.1.0", features = ["spade"] }
+snafu = "0.8.5"
+colog = "1.3.0"
+```
+
+In the `lib.rs`, we'll create the binding to our Spade module:
 
 ```rust
-// file: test/simple_test.rs
-use snafu::Whatever;
+// file: src/lib.rs
 use marlin::spade::prelude::*;
 
 #[spade(src = "src/main.spade", name = "main")]
-struct Main;
+pub struct Main;
+```
 
+This tells Marlin that the `struct Main` should be linked to the `main` entity
+in our Spade file.
+
+Finally, we'll want to actually write the code that drives our hardware in `simple_test.rs`:
+
+```rust
+// file: tests/simple_test.rs
+use tutorial_project::Main;
+use marlin::spade::prelude::*;
+use snafu::Whatever;
+
+#[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
     colog::init();
 
-    // the second argument `true` says we want debug logging with the log crate
-    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default(), true)?;
+    let mut runtime = SpadeRuntime::new(
+        SpadeRuntimeOptions::default(), // configuration 
+        true                            // enable logging with the log crate
+    )?;
 
     let mut main = runtime.create_model::<Main>()?;
 
@@ -108,7 +118,7 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-A `swim marlin test` from the project root lets us test our Spade!
+Finally, we can simply use `cargo test` to drive our design!
 
 Note that, unlike the Verilog project tutorial, you don't need to add another
 directory to your `.gitignore`, if you have one, because the `SpadeRuntime`
