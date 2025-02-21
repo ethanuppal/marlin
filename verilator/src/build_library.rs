@@ -299,6 +299,8 @@ fn needs_verilator_rebuild(
 /// about this and only rebuild if the module's source file was edited).
 ///
 /// Finally, we invoke `verilator` and return the library path.
+///
+/// This function is not thread-safe; the `artifact_directory` must be guarded.
 #[allow(clippy::too_many_arguments)]
 pub fn build_library(
     source_files: &[Utf8PathBuf],

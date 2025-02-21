@@ -15,3 +15,4 @@ camino.workspace = true
 libloading.workspace = true
 log.workspace = true
 libc.workspace = true
+file-guard.workspace = true
