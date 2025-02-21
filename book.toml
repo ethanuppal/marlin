@@ -2,10 +2,13 @@
 authors = ["Ethan Uppal"]
 language = "en"
 multilingual = false
-src = "src"
+src = "book"
 title = "Marlin Handbook"
 
+[build]
+build-dir = "docs"
+
 [output.html]
-additional-js = ["src/js/verilog-highlight.js", "src/js/spade-highlight.js"]
+additional-js = ["book/js/verilog-highlight.js", "book/js/spade-highlight.js"]
 
 [preprocessor.callouts] # https://github.com/ToolmanP/rs-mdbook-callouts
