@@ -37,8 +37,8 @@ Why does hardware testing suck? Consider the ways we have to test
   tests *in* Verilog is really annoying.
 - **Use verilator harnesses**: You have to first run Verilator to get the right
   headers, recompile manually every time, deal with raw pointers and C++, etc.
-- **Use cocotb**: You have to use Makefiles, performance isn't the
-  greatest, you get no LSP support, etc.
+- **Use cocotb**: You have to use Makefiles or write your own Python runner, 
+  performance isn't the greatest, you get no LSP support for ports, etc.
 
 The problem gets worse with custom HDLs, so they've come up with some creative
 solutions:
