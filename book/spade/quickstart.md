@@ -72,7 +72,7 @@ In the `Cargo.toml` generated, we'll want to add some dependencies:
 # file: Cargo.toml
 [dependencies]
 # other dependencies...
-marlin = { version = "0.1.0", features = ["spade"] }
+marlin = { version = "0.2.0", features = ["spade"] }
 snafu = "0.8.5"
 ```
 

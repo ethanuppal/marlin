@@ -67,7 +67,7 @@ In the `Cargo.toml` generated, we'll want to add some dependencies:
 # file: Cargo.toml
 [dependencies]
 # other dependencies...
-marlin = { version = "0.1.0", features = ["verilog"] }
+marlin = { version = "0.2.0", features = ["verilog"] }
 snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```

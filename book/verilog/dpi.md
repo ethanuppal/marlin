@@ -70,7 +70,7 @@ Next, we'll add Marlin and other desired dependencies.
 # file: Cargo.toml
 [dependencies]
 # other dependencies...
-marlin = "0.1.0" # no language features needed
+marlin = "0.2.0" # no language features needed
 snafu = "0.8.5"
 ```
 
