@@ -10,10 +10,12 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
-marlin-verilog.workspace = true
+marlin-verilator.workspace = true
 marlin-spade-macro.workspace = true
 camino.workspace = true
 snafu.workspace = true
 log.workspace = true
 toml.workspace = true
 glob.workspace = true
+libc.workspace = true
+libloading.workspace = true

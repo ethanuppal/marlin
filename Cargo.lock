@@ -384,9 +384,11 @@ version = "0.1.0"
 dependencies = [
  "camino",
  "glob",
+ "libc",
+ "libloading",
  "log",
  "marlin-spade-macro",
- "marlin-verilog",
+ "marlin-verilator",
  "snafu",
  "toml",
 ]

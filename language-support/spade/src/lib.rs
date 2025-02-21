@@ -9,12 +9,16 @@
 use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use marlin_verilog::__reexports::verilator::{
+use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use snafu::{whatever, ResultExt, Whatever};
 
-pub use marlin_verilog::__reexports;
+pub mod __reexports {
+    pub use libc;
+    pub use libloading;
+    pub use marlin_verilator as verilator;
+}
 
 pub mod prelude {
     pub use crate as spade;
