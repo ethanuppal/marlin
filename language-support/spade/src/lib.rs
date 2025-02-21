@@ -58,6 +58,17 @@ impl Default for SpadeRuntimeOptions {
     }
 }
 
+impl SpadeRuntimeOptions {
+    /// The same as the [`Default`] implementation except that the log crate is
+    /// used.
+    pub fn default_logging() -> Self {
+        Self {
+            verilator_options: VerilatorRuntimeOptions::default_logging(),
+            ..Default::default()
+        }
+    }
+}
+
 /// Runtime for Spade code.
 pub struct SpadeRuntime {
     verilator_runtime: VerilatorRuntime,

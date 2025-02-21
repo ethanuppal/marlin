@@ -101,7 +101,7 @@ fn main() -> Result<(), Whatever> {
         &["src/dpi.sv".as_ref()],
         &[],
         [three],
-        VerilatorRuntimeOptions::default(),
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::<Main>()?;

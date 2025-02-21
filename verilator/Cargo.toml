@@ -16,3 +16,5 @@ libloading.workspace = true
 log.workspace = true
 libc.workspace = true
 file-guard.workspace = true
+indicatif.workspace = true
+owo-colors.workspace = true

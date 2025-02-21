@@ -133,14 +133,11 @@ We first setup the Verilator runtime configuration. We'll use a build directory
 called "build" in the local directory.
 ```rust
 let mut runtime = VerilatorRuntime::new(
-    "build".into(),                     // build directory (relative path)
-    &["src/main.sv".as_ref()],          // source files
-    &[],                                // include search paths
-    [],                                 // DPI functions
-    VerilatorRuntimeOptions {
-        log: true,
-        ..Default::default()
-    }, // configuration
+    "build".into(),                             // build directory (relative)
+    &["src/main.sv".as_ref()],                  // source files
+    &[],                                        // include search paths
+    [],                                         // DPI functions
+    VerilatorRuntimeOptions::default_logging(), // configuration
 )?;
 ```
 

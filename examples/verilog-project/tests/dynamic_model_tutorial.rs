@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::env;
+
 use marlin::verilator::{
     PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
 };
@@ -20,14 +22,16 @@ use snafu::{ResultExt, Whatever};
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
+    if env::var("COLOG").is_ok() {
+        colog::init();
+    }
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts2".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default(),
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_dyn_model(

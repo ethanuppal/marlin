@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::env;
+
 use example_verilog_project::DpiMain;
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
@@ -27,14 +29,16 @@ pub extern "C" fn three(out: &mut u32) {
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
+    if env::var("COLOG").is_ok() {
+        colog::init();
+    }
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
         [three],
-        VerilatorRuntimeOptions::default(),
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::<DpiMain>()?;

@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::env;
+
 use example_verilog_project::enclosed;
 use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
@@ -19,14 +21,16 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
+    if env::var("COLOG").is_ok() {
+        colog::init();
+    }
 
     let mut runtime = VerilatorRuntime::new(
         "artifacts3".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default(),
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::<enclosed::Main2>()?;

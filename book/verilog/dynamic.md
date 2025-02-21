@@ -91,6 +91,7 @@ fn main() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_dyn_model(

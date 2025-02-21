@@ -345,7 +345,11 @@ pub fn build_library(
         .whatever_context("Failed to check if artifacts need rebuilding")?
             && !dpi_rebuilt)
     {
-        log::info!("| Skipping rebuild of verilated model due to no changes");
+        if verbose {
+            log::info!(
+                "| Skipping rebuild of verilated model due to no changes"
+            );
+        }
         return Ok(library_path);
     }
 

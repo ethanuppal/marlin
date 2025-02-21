@@ -15,6 +15,10 @@ use std::{
     collections::{hash_map::Entry, HashMap},
     ffi::OsString,
     fmt, fs,
+    io::Write,
+    os::fd::FromRawFd,
+    sync::{LazyLock, Mutex},
+    time::Instant,
 };
 
 use build_library::build_library;
@@ -22,6 +26,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
+use owo_colors::OwoColorize;
 use snafu::{prelude::*, Whatever};
 
 mod build_library;
@@ -122,6 +127,17 @@ impl Default for VerilatorRuntimeOptions {
             force_verilator_rebuild: false,
             ignored_warnings: vec![],
             log: false,
+        }
+    }
+}
+
+impl VerilatorRuntimeOptions {
+    /// The same as the [`Default`] implementation except that the log crate is
+    /// used.
+    pub fn default_logging() -> Self {
+        Self {
+            log: true,
+            ..Default::default()
         }
     }
 }
@@ -367,6 +383,16 @@ impl VerilatorRuntime {
                         "Failed to acquire file lock for artifacts directory",
                     )?;
 
+            writeln!(
+                &mut STDERR.lock().expect("poisoned"),
+                "{} {} ({})",
+                "   Compiling".bold().green(),
+                name,
+                source_path
+            )
+            .whatever_context("Failed to write to non-captured stderr")?;
+            let start = Instant::now();
+
             if self.options.log {
                 log::info!("Building the dynamic library with verilator");
             }
@@ -412,6 +438,17 @@ impl VerilatorRuntime {
             }
 
             entry.insert(library);
+
+            let end = Instant::now();
+            let duration = end - start;
+            writeln!(
+                &mut STDERR.lock().expect("poisoned"),
+                "{} Marlin dynamic compilation in {}.{:02}s",
+                "    Finished".bold().green(),
+                duration.as_secs(),
+                duration.subsec_millis() / 10
+            )
+            .whatever_context("Failed to write to non-captured stderr")?;
         }
 
         Ok(self
@@ -422,3 +459,7 @@ impl VerilatorRuntime {
             ))
     }
 }
+
+// TODO: make cross-platform
+static STDERR: LazyLock<Mutex<fs::File>> =
+    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));

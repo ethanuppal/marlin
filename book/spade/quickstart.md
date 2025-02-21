@@ -103,7 +103,7 @@ fn main() -> Result<(), Whatever> {
     colog::init();
 
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default() // configuration 
+        SpadeRuntimeOptions::default_logging() // configuration 
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
