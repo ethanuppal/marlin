@@ -5,7 +5,7 @@
 
 In this tutorial, we'll setup a SystemVerilog project and test our code with
 Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project) (see in particular the `simple_test.rs` file).
-We won't touch on the advanced aspects or features; the goal is just to provide a simple overview sufficient to get started.
+We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
 
 ## Part 1: The Basics
 
@@ -58,7 +58,6 @@ We'll initialize a Rust project:
 ```shell
 cargo init --lib
 vi src/lib.rs
-mkdir tests
 vi test/simple_test.rs
 ```
 
@@ -95,7 +94,7 @@ pub struct Main;
 This tells Marlin that the `struct Main` should be linked to the `main` module
 in our Verilog file.
 
-Finally, we'll want to actually write the code that drives our hardware in `simple_test.rs`:
+Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
 
 ```rust
 // file: tests/simple_test.rs
