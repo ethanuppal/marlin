@@ -479,7 +479,6 @@ vi tests/dpi_test.rs
 # other dependencies...
 marlin = "0.1.0" # no language features needed
 snafu = "0.8.5"
-colog = "1.3.0"
 </code></pre>
 <p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
 <pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
@@ -506,8 +505,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
         [three],
-        VerilatorRuntimeOptions::default(),
-        true,
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;

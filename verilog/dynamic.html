@@ -475,7 +475,6 @@ vi tests/dynamic_test.rs
 # other dependencies...
 marlin = { version = "0.1.0", features = ["verilog"] }
 snafu = "0.8.5"
-colog = "1.3.0"
 </code></pre>
 <p>We will illustrate using dynamic models by implementing the exact same test as
 we did in the <a href="./quickstart.html">Verilog quickstart</a>.</p>
@@ -497,7 +496,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         &amp;["src/main.sv".as_ref()],
         &amp;[],
         [],
-        true,
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_dyn_model(

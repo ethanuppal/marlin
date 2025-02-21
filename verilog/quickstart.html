@@ -541,12 +541,11 @@ called "build" in the local directory.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let mut runtime = VerilatorRuntime::new(
-    "build".into(),                     // build directory (relative path)
-    &amp;["src/main.sv".as_ref()],          // source files
-    &amp;[],                                // include search paths
-    [],                                 // DPI functions
-    VerilatorRuntimeOptions::default(), // configuration
-    true,                               // enable logging with the log crate
+    "build".into(),                             // build directory (relative)
+    &amp;["src/main.sv".as_ref()],                  // source files
+    &amp;[],                                        // include search paths
+    [],                                         // DPI functions
+    VerilatorRuntimeOptions::default_logging(), // configuration
 )?;
 <span class="boring">}</span></code></pre></pre>
 <div class="mdbook-callouts mdbook-callouts-tip">

@@ -1134,12 +1134,11 @@ called "build" in the local directory.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let mut runtime = VerilatorRuntime::new(
-    "build".into(),                     // build directory (relative path)
-    &amp;["src/main.sv".as_ref()],          // source files
-    &amp;[],                                // include search paths
-    [],                                 // DPI functions
-    VerilatorRuntimeOptions::default(), // configuration
-    true,                               // enable logging with the log crate
+    "build".into(),                             // build directory (relative)
+    &amp;["src/main.sv".as_ref()],                  // source files
+    &amp;[],                                        // include search paths
+    [],                                         // DPI functions
+    VerilatorRuntimeOptions::default_logging(), // configuration
 )?;
 <span class="boring">}</span></code></pre></pre>
 <div class="mdbook-callouts mdbook-callouts-tip">
@@ -1484,7 +1483,6 @@ vi tests/dynamic_test.rs
 # other dependencies...
 marlin = { version = "0.1.0", features = ["verilog"] }
 snafu = "0.8.5"
-colog = "1.3.0"
 </code></pre>
 <p>We will illustrate using dynamic models by implementing the exact same test as
 we did in the <a href="verilog/./quickstart.html">Verilog quickstart</a>.</p>
@@ -1506,7 +1504,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         &amp;["src/main.sv".as_ref()],
         &amp;[],
         [],
-        true,
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_dyn_model(
@@ -1873,7 +1871,6 @@ vi tests/dpi_test.rs
 # other dependencies...
 marlin = "0.1.0" # no language features needed
 snafu = "0.8.5"
-colog = "1.3.0"
 </code></pre>
 <p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
 <pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
@@ -1900,8 +1897,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
         [three],
-        VerilatorRuntimeOptions::default(),
-        true,
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;
@@ -2271,7 +2267,6 @@ vi tests/simple_test.rs
 # other dependencies...
 marlin = { version = "0.1.0", features = ["spade"] }
 snafu = "0.8.5"
-colog = "1.3.0"
 </code></pre>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Spade module:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -2296,8 +2291,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
     colog::init();
 
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default(), // configuration 
-        true                            // enable logging with the log crate
+        SpadeRuntimeOptions::default_logging() // configuration 
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;
@@ -2309,6 +2303,16 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
     Ok(())
 }</code></pre></pre>
 <p>Finally, we can simply use <code>cargo test</code> to drive our design!</p>
+<div class="mdbook-callouts mdbook-callouts-warning">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  warning
+</p>
+<p>By default, <code>SpadeRuntime</code> invokes <code>swim build</code>, which is not thread-safe. If
+you have multiple tests, run <code>swim build</code> beforehand and then run <code>cargo test</code>
+after disabling the automatic <code>swim build</code> via
+<code>SpadeRuntimeOptions::call_swim_build</code>.</p>
+</div>
 <p>Note that, unlike the Verilog project tutorial, you don't need to add another
 directory to your <code>.gitignore</code>, if you have one, because the <code>SpadeRuntime</code>
 reuses the existing <code>build/</code> directory managed by Swim. Thus, you should add
