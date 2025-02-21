@@ -25,7 +25,7 @@ jobs:
           mdbook-version: "latest"
       - name: Install callouts preprocessor
         run: cargo install --locked --git https://github.com/ToolmanP/rs-mdbook-callouts --rev 83898e352a961fc65044e04c864141c8b5481722
-      - name: mdbook
+      - name: Build docs
         run: mdbook build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
