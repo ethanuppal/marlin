@@ -353,6 +353,7 @@ impl VerilatorRuntime {
                 .read(true)
                 .write(true)
                 .create(true)
+                .truncate(true)
                 .open(self.artifact_directory.join(format!("{local_directory_name}.lock")))
                 .whatever_context(
                     "Failed to open file lock file for artifacts directory (this is not the actual lock itself, it is an I/O error)",

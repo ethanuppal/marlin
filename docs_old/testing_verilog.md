@@ -25,7 +25,7 @@ Here's what our project will look like in the end:
 ├── Cargo.toml
 ├── src
 │   └── main.sv
-└── test
+└── tests
     └── simple_test.rs
 ```
 
