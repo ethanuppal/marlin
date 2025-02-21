@@ -7,7 +7,6 @@ members = [
   "language-support/verilog-macro-builder",
   "language-support/spade",
   "language-support/spade-macro",
-  "tooling/swim-marlin",
   "examples/verilog-project",
   "examples/spade-project",
   "marlin",
