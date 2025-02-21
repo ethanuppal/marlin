@@ -1,7 +1,11 @@
 name: Docs
 
 permissions:
-  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 on:
   push:
@@ -10,7 +14,7 @@ on:
 
 jobs:
   playground:
-    name: Build and deploy
+    name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,8 +27,9 @@ jobs:
         run: cargo install --locked --git https://github.com/ToolmanP/rs-mdbook-callouts --rev 83898e352a961fc65044e04c864141c8b5481722
       - name: mdbook
         run: mdbook build
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          path: "docs"
+      - id: deployment
+        uses: actions/deploy-pages@v4
