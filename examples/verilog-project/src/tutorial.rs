@@ -28,6 +28,7 @@ fn main() -> Result<(), Whatever> {
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/main.sv".as_ref()],
+        &[],
         [],
         VerilatorRuntimeOptions::default(),
         true,

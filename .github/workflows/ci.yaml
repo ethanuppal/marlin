@@ -22,14 +22,16 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install verilator
         run: make install_verilator
-      - name: Test
+      - name: Manual test
         run: |
           cd examples/verilog-project
           cargo run --package example-verilog-project --bin tutorial
           cargo run --package example-verilog-project --bin tutorial # rerun
-          cargo run --package example-verilog-project --bin dynamic_model_tutorial
-          cargo run --package example-verilog-project --bin dpi_tutorial
-          cargo run --package example-verilog-project --bin visibility_works
+          cargo test --package example-verilog-project --test dynamic_model_tutorial -- --exact main
+          cargo test --package example-verilog-project --test dpi_tutorial -- --exact main
+          cargo test --package example-verilog-project --test visibility_works -- --exact main
+      - name: Cargo test
+        run: cargo test -- --test-threads 1
       
   test_spade:
     strategy:
@@ -45,7 +47,7 @@ jobs:
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
-        run: cd examples/spade-project && cargo run --package example-spade-project
+        run: cargo test --package example-spade-project --test simple_test -- --exact main
 
   test_swim_marlin:
     strategy:

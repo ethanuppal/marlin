@@ -4,9 +4,9 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{env::current_dir, ffi::OsString, process::Command};
+use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilog::__reexports::verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
@@ -82,7 +82,7 @@ impl SpadeRuntime {
                 "Failed to find swim.toml searching from current directory"
             );
         };
-        let mut swim_project_path = swim_toml_path;
+        let mut swim_project_path = swim_toml_path.clone();
         swim_project_path.pop();
 
         if options.call_swim_build {
@@ -107,11 +107,76 @@ impl SpadeRuntime {
 
         let spade_sv_path = swim_project_path.join("build/spade.sv");
 
+        let swim_toml_contents = fs::read_to_string(&swim_toml_path)
+            .whatever_context(format!(
+                "Failed to read contents of swim.toml at {}",
+                swim_toml_path
+            ))?;
+        let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
+            .whatever_context(
+                "Failed to parse swim.toml as a valid TOML file",
+            )?;
+
+        let extra_verilog = swim_toml.get("verilog").map(|verilog| {
+            (
+                verilog
+                    .get("sources")
+                    .and_then(|sources| sources.as_array())
+                    .map(|sources| {
+                        let mut result = vec![];
+                        for source in
+                            sources.iter().flat_map(|source| source.as_str())
+                        {
+                            if let Ok(paths) = glob::glob(
+                                swim_project_path.join(source).as_str(),
+                            ) {
+                                for path in paths.flatten() {
+                                    if let Ok(path) =
+                                        Utf8PathBuf::try_from(path)
+                                    {
+                                        result.push(path);
+                                    }
+                                }
+                            }
+                        }
+                        result
+                    }),
+                verilog
+                    .get("include")
+                    .and_then(|include| include.as_array())
+                    .map(|sources| {
+                        sources
+                            .iter()
+                            .flat_map(|source| source.as_str())
+                            .flat_map(|source| {
+                                Utf8Path::new(source).canonicalize_utf8()
+                            })
+                            .collect::<Vec<_>>()
+                    }),
+            )
+        });
+
+        let mut source_files = vec![spade_sv_path.as_path()];
+        let mut include_files = vec![];
+
+        if let Some(extra_verilog) = &extra_verilog {
+            if let Some(sources) = &extra_verilog.0 {
+                source_files
+                    .extend(sources.iter().map(|source| source.as_path()));
+            }
+            if let Some(include) = &extra_verilog.1 {
+                include_files.extend(
+                    include.iter().map(|directory| directory.as_path()),
+                );
+            }
+        }
+
         Ok(Self {
             verilator_runtime: VerilatorRuntime::new(
                 // https://discord.com/channels/962274366043873301/962296357018828822/1332274022280466503
-                &swim_project_path.join("build/thirdparty"),
-                &[&spade_sv_path],
+                &swim_project_path.join("build/thirdparty/marlin"),
+                &source_files,
+                &include_files,
                 [],
                 options.verilator_options,
                 verbose,

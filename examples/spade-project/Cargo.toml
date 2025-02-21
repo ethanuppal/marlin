@@ -9,10 +9,6 @@ repository.workspace = true
 readme.workspace = true
 license = "GPL-3.0"
 
-[[bin]]
-name = "simple_test"
-path = "test/simple_test.rs"
-
 [dependencies]
 snafu.workspace = true
 colog.workspace = true

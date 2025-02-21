@@ -12,16 +12,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use example_verilog_project::enclosed;
 use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
 
-mod enclosed {
-    use marlin::verilog::prelude::*;
-
-    #[verilog(src = "src/main.sv", name = "main")]
-    pub struct Main;
-}
-
+#[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
     colog::init();
@@ -29,12 +24,13 @@ fn main() -> Result<(), Whatever> {
     let mut runtime = VerilatorRuntime::new(
         "artifacts3".into(),
         &["src/main.sv".as_ref()],
+        &[],
         [],
         VerilatorRuntimeOptions::default(),
         true,
     )?;
 
-    let mut main = runtime.create_model::<enclosed::Main>()?;
+    let mut main = runtime.create_model::<enclosed::Main2>()?;
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);

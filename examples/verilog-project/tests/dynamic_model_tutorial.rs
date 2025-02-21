@@ -17,6 +17,7 @@ use marlin::verilator::{
 };
 use snafu::{ResultExt, Whatever};
 
+#[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
     colog::init();
@@ -24,6 +25,7 @@ fn main() -> Result<(), Whatever> {
     let mut runtime = VerilatorRuntime::new(
         "artifacts2".into(),
         &["src/main.sv".as_ref()],
+        &[],
         [],
         VerilatorRuntimeOptions::default(),
         true,

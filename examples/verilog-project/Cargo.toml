@@ -11,20 +11,7 @@ license = "GPL-3.0"
 
 [[bin]]
 name = "tutorial"
-path = "test/tutorial.rs"
-
-[[bin]]
-name = "dynamic_model_tutorial"
-path = "test/dynamic_model_tutorial.rs"
-
-[[bin]]
-name = "dpi_tutorial"
-path = "test/dpi_tutorial.rs"
-
-
-[[bin]]
-name = "visibility_works"
-path = "test/visibility_works.rs"
+path = "src/tutorial.rs"
 
 [dependencies]
 snafu.workspace = true

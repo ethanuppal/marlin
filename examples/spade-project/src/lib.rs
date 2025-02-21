@@ -12,35 +12,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    verilog::prelude::*,
-};
-use snafu::Whatever;
+use marlin::spade::prelude::*;
 
-#[verilog::dpi]
-pub extern "C" fn three(out: &mut u32) {
-    *out = 3;
-}
-
-#[verilog(src = "src/dpi.sv", name = "main")]
-struct Main;
-
-#[snafu::report]
-fn main() -> Result<(), Whatever> {
-    colog::init();
-
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &["src/dpi.sv".as_ref()],
-        [three],
-        VerilatorRuntimeOptions::default(),
-        true,
-    )?;
-
-    let mut main = runtime.create_model::<Main>()?;
-    main.eval();
-    assert_eq!(main.out, 3);
-
-    Ok(())
-}
+#[spade(src = "src/main.spade", name = "main")]
+pub struct Main;

@@ -122,6 +122,7 @@ impl Default for VerilatorRuntimeOptions {
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
     source_files: Vec<Utf8PathBuf>,
+    include_directories: Vec<Utf8PathBuf>,
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and Verilator implementations
@@ -135,6 +136,7 @@ impl VerilatorRuntime {
     pub fn new<I: IntoIterator<Item = &'static dyn DpiFunction>>(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
+        include_directories: &[&Utf8Path],
         dpi_functions: I,
         options: VerilatorRuntimeOptions,
         verbose: bool,
@@ -154,6 +156,10 @@ impl VerilatorRuntime {
         Ok(Self {
             artifact_directory: artifact_directory.to_owned(),
             source_files: source_files
+                .iter()
+                .map(|path| path.to_path_buf())
+                .collect(),
+            include_directories: include_directories
                 .iter()
                 .map(|path| path.to_path_buf())
                 .collect(),
@@ -328,13 +334,9 @@ impl VerilatorRuntime {
             if self.verbose {
                 log::info!("Building the dynamic library with verilator");
             }
-            let source_files = self
-                .source_files
-                .iter()
-                .map(|path_buf| path_buf.as_str())
-                .collect::<Vec<_>>();
             let library_path = build_library(
-                &source_files,
+                &self.source_files,
+                &self.include_directories,
                 &self.dpi_functions,
                 name,
                 ports,
