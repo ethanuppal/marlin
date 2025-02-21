@@ -74,7 +74,6 @@ In the `Cargo.toml` generated, we'll want to add some dependencies:
 # other dependencies...
 marlin = { version = "0.1.0", features = ["spade"] }
 snafu = "0.8.5"
-colog = "1.3.0"
 ```
 
 In the `lib.rs`, we'll create the binding to our Spade module:
@@ -104,8 +103,7 @@ fn main() -> Result<(), Whatever> {
     colog::init();
 
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default(), // configuration 
-        true                            // enable logging with the log crate
+        SpadeRuntimeOptions::default() // configuration 
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
@@ -119,6 +117,12 @@ fn main() -> Result<(), Whatever> {
 ```
 
 Finally, we can simply use `cargo test` to drive our design!
+
+> [!WARNING]
+> By default, `SpadeRuntime` invokes `swim build`, which is not thread-safe. If
+> you have multiple tests, run `swim build` beforehand and then run `cargo test`
+> after disabling the automatic `swim build` via
+> `SpadeRuntimeOptions::call_swim_build`.
 
 Note that, unlike the Verilog project tutorial, you don't need to add another
 directory to your `.gitignore`, if you have one, because the `SpadeRuntime`

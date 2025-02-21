@@ -137,8 +137,10 @@ let mut runtime = VerilatorRuntime::new(
     &["src/main.sv".as_ref()],          // source files
     &[],                                // include search paths
     [],                                 // DPI functions
-    VerilatorRuntimeOptions::default(), // configuration
-    true,                               // enable logging with the log crate
+    VerilatorRuntimeOptions {
+        log: true,
+        ..Default::default()
+    }, // configuration
 )?;
 ```
 

@@ -66,7 +66,6 @@ Next, we'll add Marlin and other desired dependencies.
 # other dependencies...
 marlin = { version = "0.1.0", features = ["verilog"] }
 snafu = "0.8.5"
-colog = "1.3.0"
 ```
 
 We will illustrate using dynamic models by implementing the exact same test as
@@ -92,7 +91,6 @@ fn main() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
-        true,
     )?;
 
     let mut main = runtime.create_dyn_model(

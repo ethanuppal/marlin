@@ -25,7 +25,6 @@ fn first_test() -> Result<(), Whatever> {
         &[],
         [],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
@@ -49,7 +48,6 @@ fn second_test() -> Result<(), Whatever> {
         &[],
         [],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model::<Main>()?;

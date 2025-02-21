@@ -65,11 +65,8 @@ pub struct SpadeRuntime {
 
 impl SpadeRuntime {
     /// Creates a new runtime for instantiating Spade units as Rust objects.
-    pub fn new(
-        options: SpadeRuntimeOptions,
-        verbose: bool,
-    ) -> Result<Self, Whatever> {
-        if verbose {
+    pub fn new(options: SpadeRuntimeOptions) -> Result<Self, Whatever> {
+        if options.verilator_options.log {
             log::info!("Searching for swim project root");
         }
         let Some(swim_toml_path) = search_for_swim_toml(
@@ -88,7 +85,7 @@ impl SpadeRuntime {
         swim_project_path.pop();
 
         if options.call_swim_build {
-            if verbose {
+            if options.verilator_options.log {
                 log::info!("Invoking `swim build` (this may take a while)");
             }
             let swim_output = Command::new(options.swim_executable)
@@ -181,7 +178,6 @@ impl SpadeRuntime {
                 &include_files,
                 [],
                 options.verilator_options,
-                verbose,
             )?,
         })
     }

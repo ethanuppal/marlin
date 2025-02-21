@@ -27,7 +27,6 @@ fn main() -> Result<(), Whatever> {
         &[],
         [],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model::<enclosed::Main2>()?;

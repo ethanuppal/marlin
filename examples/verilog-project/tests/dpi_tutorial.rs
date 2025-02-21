@@ -35,7 +35,6 @@ fn main() -> Result<(), Whatever> {
         &[],
         [three],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model::<DpiMain>()?;

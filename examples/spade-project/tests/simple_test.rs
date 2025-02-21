@@ -21,7 +21,7 @@ use snafu::Whatever;
 fn main() -> Result<(), Whatever> {
     colog::init();
 
-    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default(), true)?;
+    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default())?;
 
     let mut main = runtime.create_model::<Main>()?;
 
