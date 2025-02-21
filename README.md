@@ -7,6 +7,8 @@
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
 
+## [Link to documentation](https://ethanuppal.com/marlin)
+
 Marlin is a really powerful library (and API) that lets you "import" hardware
 modules into Rust (or Rust functions into hardware modules!). 
 
@@ -63,21 +65,10 @@ Still, a lot of these are less than optimal.
 
 ## 📦 Install
 
-Marlin is currently under development.
-You can currently install the crates via `git` specifications.
-(I'm aware that this is not explained well.)
-Look at the tutorials in the Usage section for detailed instructions.
+Marlin is on crates.io, so just use `cargo add --dev marlin` to add Marlin as a
+dependency for your tests (`dev-dependencies`).
 
-## ❓ Usage
-
-I'll write more documentation once I get further in the development process.
-
-- [Testing a Verilog project](./docs/testing_verilog.md)
-- [Testing a Spade project](./docs/testing_spade.md)
-- [Using dynamic Verilog models](./docs/verilog_dynamic_models.md)
-- [Calling Rust from Verilog](./docs/verilog_dpi.md)
-
-## 💡 How it works
+## ❓ How it works
 
 I'll write more on this once I get further in the development process.
 The TLDR is procedural macros + `dlopen`.
