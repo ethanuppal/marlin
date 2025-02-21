@@ -13,12 +13,11 @@ Marlin is a really powerful library (and API) that lets you "import" hardware
 modules into Rust (or Rust functions into hardware modules!). 
 
 No precompilation step and manual updates with `verilator` harnesses; no 
-Makefiles and quirky decorators with `cocotb`.
-testbenches. You're writing a regular Rust crate here.
+Makefiles and quirky decorators with `cocotb` testbenches. You're writing a regular Rust crate here.
 
 Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
-`serde` even.
+`serde` even. `cargo test` as hard as you want.
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 

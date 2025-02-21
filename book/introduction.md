@@ -18,6 +18,10 @@ That means:
   code, use fancy decorators on the tests, and lose LSP information for hardware
   model ports.
 
+Moreover, Marlin core is thread-safe, meaning you can use `cargo test`/`#[test]`
+for your tests! It integrates perfectly and completely noninvasively into the 
+existing Rust ecosystem.
+
 ## Features
 
 Marlin comes with prebuilt integration for (System)Verilog and [Spade][spade], and offers:
