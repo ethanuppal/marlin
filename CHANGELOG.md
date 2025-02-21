@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/ethanuppal/marlin/compare/v0.1.0...v0.2.0) (2025-02-21)
+
+
+### Features
+
+* **spade:** Parse `swim.toml` to determine location of simulation Verilog ([#62](https://github.com/ethanuppal/marlin/issues/62)) ([06a9f8f](https://github.com/ethanuppal/marlin/commit/06a9f8f190ec06919ba20747e5bb38da377d1f03))
+* **tooling:** Add `swim-marlin` Swim subcommand ([#55](https://github.com/ethanuppal/marlin/issues/55)) ([7f6cb94](https://github.com/ethanuppal/marlin/commit/7f6cb94d69aa9ebc2247f8ae8b75d1b6eae67576))
+* **verilator:** Allow disabling Verilator warnings ([#63](https://github.com/ethanuppal/marlin/issues/63)) ([eb14e98](https://github.com/ethanuppal/marlin/commit/eb14e988d8844a8da739c6771a9895d4517cad44))
+* **verilator:** Enable multithreading via file locks ([#64](https://github.com/ethanuppal/marlin/issues/64)) ([909516e](https://github.com/ethanuppal/marlin/commit/909516e04057ca99b4c0279a0fe1d00f5e11cadc))
+* **verilator:** Show compilation messages during tests ([#67](https://github.com/ethanuppal/marlin/issues/67)) ([4c90169](https://github.com/ethanuppal/marlin/commit/4c9016969fa70ee077d8c3b730f0eed2dbf777a3))
+* **verilator:** Support Verilog search paths ([#62](https://github.com/ethanuppal/marlin/issues/62)) ([06a9f8f](https://github.com/ethanuppal/marlin/commit/06a9f8f190ec06919ba20747e5bb38da377d1f03))
+
 ## [0.1.0](https://github.com/ethanuppal/marlin/compare/v0.1.0...v0.1.0) (2025-02-09)
 
 
