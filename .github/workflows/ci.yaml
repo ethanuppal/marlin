@@ -31,7 +31,7 @@ jobs:
           cargo test --package example-verilog-project --test dpi_tutorial -- --exact main
           cargo test --package example-verilog-project --test visibility_works -- --exact main
       - name: Cargo test
-        run: cargo test -- --test-threads 1
+        run: cargo test --package example-verilog-project -- --test-threads 1
       
   test_spade:
     strategy:
