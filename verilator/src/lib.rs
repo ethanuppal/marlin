@@ -103,9 +103,12 @@ pub struct VerilatorRuntimeOptions {
     /// compilation times.
     pub verilator_optimization: Option<usize>,
 
-    /// Whether verilator should always be invoked instead of only when the
+    /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
+
+    /// A list of warnings to disable.
+    pub ignored_warnings: Vec<String>,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -114,6 +117,7 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             verilator_optimization: None,
             force_verilator_rebuild: false,
+            ignored_warnings: vec![],
         }
     }
 }

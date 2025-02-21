@@ -375,6 +375,9 @@ pub fn build_library(
             whatever!("Invalid Verilator optimization level: {}", level);
         }
     }
+    for ignored_warning in &options.ignored_warnings {
+        verilator_command.arg(format!("-Wno-{}", ignored_warning));
+    }
     if verbose {
         log::info!("| Verilator invocation: {:?}", verilator_command);
     }
