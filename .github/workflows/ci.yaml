@@ -18,8 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Rust Caching
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install verilator
         run: make install_verilator
       - name: Manual test
@@ -56,8 +55,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Rust Caching
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
       - name: Install verilator
         run: make install_verilator
       - name: Install swim
