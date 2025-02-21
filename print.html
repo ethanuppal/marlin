@@ -440,6 +440,9 @@ Ninja, or other build system.</li>
 code, use fancy decorators on the tests, and lose LSP information for hardware
 model ports.</li>
 </ul>
+<p>Moreover, Marlin core is thread-safe, meaning you can use <code>cargo test</code>/<code>#[test]</code>
+for your tests! It integrates perfectly and completely noninvasively into the
+existing Rust ecosystem.</p>
 <h2 id="features"><a class="header" href="#features">Features</a></h2>
 <p>Marlin comes with prebuilt integration for (System)Verilog and <a href="https://spade-lang.org">Spade</a>, and offers:</p>
 <ul>
