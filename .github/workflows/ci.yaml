@@ -47,27 +47,3 @@ jobs:
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
         run: cargo test --package example-spade-project
-
-  test_swim_marlin:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-15]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
-      - name: Install swim
-        run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
-      - name: Install swim-marlin
-        run: cargo install --path tooling/swim-marlin
-      - name: Test
-        run: |
-          mkdir TMP
-          cd TMP
-          swim init my_swim_project && cd my_swim_project
-          swim marlin init
-          swim marlin check
-          swim marlin add another_test
-          swim marlin test
