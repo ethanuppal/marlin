@@ -328,7 +328,8 @@ impl VerilatorRuntime {
                 "{name}_{}",
                 source_path.replace("_", "__").replace("/", "_")
             );
-            let local_artifacts_directory = self.artifact_directory.join(name);
+            let local_artifacts_directory =
+                self.artifact_directory.join(&local_directory_name);
 
             if self.verbose {
                 log::info!(
