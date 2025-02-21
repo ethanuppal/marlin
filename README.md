@@ -91,8 +91,8 @@ Marlin automatically running them with all the right flags and arguments
 ## 🌎 Related
 
 - [verilated-rs](https://github.com/djg/verilated-rs) is a super cool library
-that uses a build script to statically link in verilated bindings, but is
-unmaintained for years as of writing this.
+  that uses a build script to statically link in verilated bindings, but is
+  unmaintained for years as of writing this.
 
 ## 🔒 License & Legal
 
