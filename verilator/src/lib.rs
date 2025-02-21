@@ -8,8 +8,8 @@
 //! modules.
 //!
 //! For an example of how to use this runtime to add support for your own custom
-//! HDL, see `SpadeRuntime` (under the spade-support/ folder), which just wraps
-//! [`VerilatorRuntime`].
+//! HDL, see `SpadeRuntime` (under the "language-support/spade/" directory),
+//! which just wraps [`VerilatorRuntime`].
 
 use std::{
     collections::{hash_map::Entry, HashMap},

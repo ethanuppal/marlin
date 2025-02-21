@@ -3,7 +3,6 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-
 In this tutorial, we'll setup a SystemVerilog project and test our code with
 Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project) (see in particular the `simple_test.rs` file).
 We won't touch on the advanced aspects or features; the goal is just to provide a simple overfiew sufficient to get started.
@@ -23,8 +22,11 @@ Here's what our project will look like in the end:
 ```
 .
 ├── Cargo.toml
+├── .gitignore
 ├── src
 │   ├── lib.rs
+│   ├── main.sv
+└── tests
     └── simple_test.rs
 ```
 
@@ -54,8 +56,8 @@ Now that we have the setup out of the way, we can start testing our code from Ru
 We'll initialize a Rust project:
 
 ```shell
-mkdir test
-vi Cargo.toml
+cargo init --lib
+vi src/lib.rs
 vi test/simple_test.rs
 ```
 
@@ -63,13 +65,6 @@ In the `Cargo.toml` generated, we'll want to add some dependencies:
 
 ```toml
 # file: Cargo.toml
-[package]
-name = "tutorial-project"
-
-[[bin]]
-name = "simple_test"
-path = "test/simple_test.rs"
-
 [dependencies]
 # other dependencies...
 marlin = { version = "0.1.0", features = ["verilog"] }
@@ -77,37 +72,43 @@ snafu = "0.8.5" # optional, whatever version
 colog = "1.3.0" # optional, whatever version
 ```
 
-The only required package is `verilog` from Marlin; everything else is just
-for fun.
-It's a good idea to fix a particular revision at this stage of development (and
-make sure to update it frequently insofar as it doesn't break your code!).
+The only required crate is `marlin`, but I strongly recommend at this stage of
+development to use the other two crates as well.
 
 > [!NOTE]
-> We're including the `colog` package as a backend for the well-known `log`
+> We're including the [`colog`](color) crates as a backend for the well-known [`log`][log]
 > crate. That's because, if you enable verbose mode on Marlin runtimes, it will
-> use the `log` API to print out information. You can use whatever logging
-> backend you want; I believe the most popular is `env_logger`.
+> use the [`log`][log] API to print out information. You can use whatever logging
+> backend you want; I believe the most popular is [`env_logger`][env_logger].
+
+In the `lib.rs`, we'll create the binding to our Verilog module:
+
+```rust
+// file: src/lib.rs
+use marlin::verilog::prelude::*;
+
+#[verilog(src = "src/main.sv", name = "main")]
+pub struct Main;
+```
+
+This tells Marlin that the `struct Main` should be linked to the `main` module
+in our Verilog file.
 
 Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
 
 ```rust
-// file: test/simple_test.rs
+// file: tests/simple_test.rs
+use tutorial_project::Main;
+use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
-use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    verilog::prelude::*,
-};
 
-#[verilog(src = "src/main.sv", name = "main")]
-struct Main;
-
+#[test]
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
-    colog::init();
-
+fn forwards_u32max_correctly() -> Result<(), Whatever> {
     let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
+        "build".into(),
         &["src/main.sv".as_ref()],
+        &[],
         [],
         VerilatorRuntimeOptions::default(),
         true,
@@ -126,41 +127,39 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-Let's break down the relevant parts of what's going on here:
+Let's break down the relevant parts of what's going on here.
 
-1. Binding at compile time:
-    ```rust
-    #[verilog(src = "src/main.sv", name = "main")]
-    struct Main;
-    ``` 
+We first setup the Verilator runtime configuration. We'll use a build directory
+called "build" in the local directory.
+```rust
+let mut runtime = VerilatorRuntime::new(
+    "build".into(),                     // build directory (relative path)
+    &["src/main.sv".as_ref()],          // source files
+    &[],                                // include search paths
+    [],                                 // DPI functions
+    VerilatorRuntimeOptions::default(), // configuration
+    true,                               // enable logging with the log crate
+)?;
+```
 
-    This snippet declares that the Rust `struct Main` binds to the Verilog module `main` as
-    defined in `src/main.sv` (this path is relative to the `Cargo.toml` parent directory).
+> [!TIP]
+> Add this build directory to your `.gitignore` file if you're using `git`.
 
-2. Binding at runtime:
-    ```rust
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &["src/main.sv".as_ref()],
-        true,
-    )?;
-    ``` 
-    This line creates a Verilog runtime powered by verilator, allowing you to run Verilog
-    from Rust.
+You can fill in the source files (2nd argument) by, for example, finding all `.v` files in a
+source direcory with `std::fs::read_dir`. Since we only have one, we've
+hardcoded it.
 
-3. Using at runtime: 
-    ```rust
-    let mut main = runtime.create_model::<Main>()?;
-    ``` 
-    This line asks the runtime to create a new version of `Main`, that is, our `main`
-    model.
+Then, we instantiate the model:
+```rust
+let mut main = runtime.create_model::<Main>()?;
+``` 
 
 I won't comment on the rest; it's just regular Rust --- including the part where
 we assign to values and call `eval()` on the model object! (Yes, that is the
 same as Verilator's evaluation method).
 
-> [!TIP]
-> If you are using `git`, add the `artifacts/` directory managed by the Verilator
-runtime to your `.gitignore`.
+Finally, we can simply use `cargo test` to drive our design!
 
-Finally, we can simply use `cargo run` to drive our design!
+[colog]: https://docs.rs/colog/latest/colog/
+[log]: https://docs.rs/log/latest/log/
+[env_logger]: https://docs.rs/env_logger/latest/env_logger/

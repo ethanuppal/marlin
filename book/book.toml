@@ -5,4 +5,7 @@ multilingual = false
 src = "src"
 title = "Marlin Handbook"
 
+[output.html]
+additional-js = ["src/js/verilog-highlight.js"]
+
 [preprocessor.callouts] # https://github.com/ToolmanP/rs-mdbook-callouts
