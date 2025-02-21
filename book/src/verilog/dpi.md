@@ -120,7 +120,7 @@ The magic happens here:
 
 ```rust
 #[verilog::dpi]
-pub extern fn three(#[output] out: &mut u32) {
+pub extern fn three(out: &mut u32) {
     *out = 3;
 }
 ```
