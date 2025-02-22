@@ -469,16 +469,11 @@ endmodule
 <p>Now that we have the setup out of the way, we can start testing our code from Rust.
 We'll initialize a Rust project:</p>
 <pre><code class="language-shell">cargo init --lib
-vi src/lib.rs
-vi test/simple_test.rs
 </code></pre>
 <p>In the <code>Cargo.toml</code> generated, we'll want to add some dependencies:</p>
-<pre><code class="language-toml"># file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = { version = "0.2.0", features = ["verilog"] }
-snafu = "0.8.5" # optional, whatever version
-colog = "1.3.0" # optional, whatever version
+<pre><code class="language-shell">cargo add marlin --features verilog
+cargo add colog --dev
+cargo add snafu --dev
 </code></pre>
 <p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
 development to use the other two crates as well.</p>
@@ -503,7 +498,13 @@ pub struct Main;
 <span class="boring">}</span></code></pre></pre>
 <p>This tells Marlin that the <code>struct Main</code> should be linked to the <code>main</code> module
 in our Verilog file.</p>
+<p>It's not necessary to even use the <code>lib.rs</code> -- you can put <code>marlin</code> in your
+<code>[dev-dependencies]</code> section in <code>Cargo.toml</code> and construct the bindings directly
+in your test files.</p>
 <p>Finally, we'll want to actually write the code that drives our project in <code>simple_test.rs</code>:</p>
+<pre><code class="language-shell">mkdir tests
+vi tests/simple_test.rs
+</code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// file: tests/simple_test.rs

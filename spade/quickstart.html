@@ -476,16 +476,9 @@ We'll write a very simple SystemVerilog module: one that forwards its inputs to
 its outputs.</p>
 <h2 id="part-2-setting-up-marlin"><a class="header" href="#part-2-setting-up-marlin">Part 2: Setting up Marlin</a></h2>
 <pre><code class="language-shell">cargo init --lib
-vi lib.rs
-mkdir tests
-vi tests/simple_test.rs
-</code></pre>
-<p>In the <code>Cargo.toml</code> generated, we'll want to add some dependencies:</p>
-<pre><code class="language-toml"># file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = { version = "0.2.0", features = ["spade"] }
-snafu = "0.8.5"
+cargo add marlin --features spade --dev
+cargo add colog --dev
+cargo add snafu --dev
 </code></pre>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Spade module:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -499,6 +492,9 @@ pub struct Main;
 <p>This tells Marlin that the <code>struct Main</code> should be linked to the <code>main</code> entity
 in our Spade file.</p>
 <p>Finally, we'll want to actually write the code that drives our hardware in <code>simple_test.rs</code>:</p>
+<pre><code class="language-shell">mkdir tests
+vi tests/simple_test.rs
+</code></pre>
 <pre><pre class="playground"><code class="language-rust">// file: tests/simple_test.rs
 use tutorial_project::Main;
 use marlin::spade::prelude::*;

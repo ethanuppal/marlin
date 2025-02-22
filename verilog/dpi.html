@@ -469,18 +469,17 @@ endmodule
 </code></pre>
 <h2 id="part-2-testing"><a class="header" href="#part-2-testing">Part 2: Testing</a></h2>
 <p>We'll create a new Rust project:</p>
-<pre><code class="language-shell">mkdir test
-vi Cargo.toml
-vi tests/dpi_test.rs
+<pre><code class="language-shell">cargo init --lib
 </code></pre>
 <p>Next, we'll add Marlin and other desired dependencies.</p>
-<pre><code class="language-toml"># file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = "0.2.0" # no language features needed
-snafu = "0.8.5"
+<pre><code class="language-shell">cargo add marlin --features verilog --dev
+cargo add colog --dev
+cargo add snafu --dev
 </code></pre>
 <p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
+<pre><code class="language-shell">mkdir tests
+vi tests/dpi_test.rs
+</code></pre>
 <pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
 use snafu::Whatever;
 use marlin::{
