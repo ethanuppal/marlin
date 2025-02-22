@@ -54,18 +54,15 @@ endmodule
 We'll create a new Rust project:
 
 ```shell
-mkdir test
-vi Cargo.toml
-vi tests/dynamic_test.rs
+cargo init --lib
 ```
 
 Next, we'll add Marlin and other desired dependencies.
-```toml
-# file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = { version = "0.2.0", features = ["verilog"] }
-snafu = "0.8.5"
+
+```shell
+cargo add marlin --dev # no features sneeded
+cargo add colog --dev
+cargo add snafu --dev
 ```
 
 We will illustrate using dynamic models by implementing the exact same test as
@@ -74,6 +71,11 @@ we did in the [Verilog quickstart](./quickstart.md).
 The code for dynamic models is slightly more verbose.
 It's not necessarily meant for human usage, though; this API is better suited for
 using Marlin as a library (e.g., writing an interpreter).
+
+```shell
+mkdir tests
+vi tests/dynamic_test.rs
+```
 
 ```rust
 // file: tests/simple_test.rs

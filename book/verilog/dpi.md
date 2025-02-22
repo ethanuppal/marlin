@@ -59,22 +59,23 @@ endmodule
 We'll create a new Rust project:
 
 ```shell
-mkdir test
-vi Cargo.toml
-vi tests/dpi_test.rs
+cargo init --lib
 ```
 
 Next, we'll add Marlin and other desired dependencies.
 
-```toml
-# file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = "0.2.0" # no language features needed
-snafu = "0.8.5"
+```shell
+cargo add marlin --features verilog --dev
+cargo add colog --dev
+cargo add snafu --dev
 ```
 
 Finally, we need the Rust file where we define the DPI function and drive the model.
+
+```shell
+mkdir tests
+vi tests/dpi_test.rs
+```
 
 ```rust
 // file: tests/dpi_test.rs

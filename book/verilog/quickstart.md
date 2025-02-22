@@ -57,19 +57,14 @@ We'll initialize a Rust project:
 
 ```shell
 cargo init --lib
-vi src/lib.rs
-vi test/simple_test.rs
 ```
 
 In the `Cargo.toml` generated, we'll want to add some dependencies:
 
-```toml
-# file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = { version = "0.2.0", features = ["verilog"] }
-snafu = "0.8.5" # optional, whatever version
-colog = "1.3.0" # optional, whatever version
+```shell
+cargo add marlin --features verilog
+cargo add colog --dev
+cargo add snafu --dev
 ```
 
 The only required crate is `marlin`, but I strongly recommend at this stage of
@@ -94,7 +89,16 @@ pub struct Main;
 This tells Marlin that the `struct Main` should be linked to the `main` module
 in our Verilog file.
 
+It's not necessary to even use the `lib.rs` -- you can put `marlin` in your
+`[dev-dependencies]` section in `Cargo.toml` and construct the bindings directly
+in your test files.
+
 Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
+
+```shell
+mkdir tests
+vi tests/simple_test.rs
+```
 
 ```rust
 // file: tests/simple_test.rs

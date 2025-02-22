@@ -61,19 +61,9 @@ its outputs.
 
 ```shell
 cargo init --lib
-vi lib.rs
-mkdir tests
-vi tests/simple_test.rs
-```
-
-In the `Cargo.toml` generated, we'll want to add some dependencies:
-
-```toml
-# file: Cargo.toml
-[dependencies]
-# other dependencies...
-marlin = { version = "0.2.0", features = ["spade"] }
-snafu = "0.8.5"
+cargo add marlin --features spade --dev
+cargo add colog --dev
+cargo add snafu --dev
 ```
 
 In the `lib.rs`, we'll create the binding to our Spade module:
@@ -90,6 +80,11 @@ This tells Marlin that the `struct Main` should be linked to the `main` entity
 in our Spade file.
 
 Finally, we'll want to actually write the code that drives our hardware in `simple_test.rs`:
+
+```shell
+mkdir tests
+vi tests/simple_test.rs
+```
 
 ```rust
 // file: tests/simple_test.rs
