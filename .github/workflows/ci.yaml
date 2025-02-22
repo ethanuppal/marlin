@@ -20,8 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
+      - name: Install Verilator
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator
+          fi
       - name: Manual test
         run: |
           cd examples/verilog-project
@@ -42,8 +47,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Rust Caching
         uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
+      - name: Install Verilator
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator
+          fi
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
