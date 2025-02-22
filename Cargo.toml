@@ -9,7 +9,6 @@ members = [
   "language-support/spade-macro",
   "examples/verilog-project",
   "examples/spade-project",
-  "marlin",
 ]
 
 [workspace.package]
@@ -48,3 +47,31 @@ marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.2
 marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.2.0" }
 marlin-spade = { path = "language-support/spade", version = "0.2.0" }
 marlin-spade-macro = { path = "language-support/spade-macro", version = "0.2.0" }
+
+[package]
+name = "marlin"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+# include = ["README.md"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+verilog = []
+spade = []
+
+[dependencies]
+marlin-verilator.workspace = true
+marlin-verilog.workspace = true
+marlin-verilog-macro.workspace = true
+marlin-verilog-macro-builder.workspace = true
+marlin-spade.workspace = true
+marlin-spade-macro.workspace = true

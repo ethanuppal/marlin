@@ -12,4 +12,4 @@ license = "GPL-3.0"
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
-marlin = { path = "../../marlin", features = ["spade"] }
+marlin = { path = "../../", features = ["spade"] }

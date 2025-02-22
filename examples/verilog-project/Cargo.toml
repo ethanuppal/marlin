@@ -16,4 +16,4 @@ path = "src/tutorial.rs"
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
-marlin = { path = "../../marlin", features = ["verilog"] }
+marlin = { path = "../../", features = ["verilog"] }
