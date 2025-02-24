@@ -172,9 +172,12 @@ macro_rules! eprintln_nocapture {
     }};
 }
 
+#[derive(Default)]
+struct ThreadLocalFileLock;
+
 /// The file_guard handles locking across processes, but does not guarantee
 /// locking between threads in one process.
-static THREAD_LOCK: LazyLock<DashMap<Utf8PathBuf, Mutex<()>>> =
+static THREAD_LOCK: LazyLock<DashMap<Utf8PathBuf, Mutex<ThreadLocalFileLock>>> =
     LazyLock::new(DashMap::default);
 
 /* </Forgive me father for I have sinned> */
