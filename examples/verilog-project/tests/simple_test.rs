@@ -18,52 +18,41 @@ use example_verilog_project::Main;
 use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
 
-#[test]
-#[snafu::report]
-fn first_test() -> Result<(), Whatever> {
-    if env::var("COLOG").is_ok() {
-        colog::init();
-    }
+macro_rules! test {
+    ($name:ident) => {
+        #[test]
+        #[snafu::report]
+        fn $name() -> Result<(), Whatever> {
+            if stringify!($name) == "colog_test" {
+                if env::var("COLOG").is_ok() {
+                    colog::init();
+                }
+            }
 
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &["src/main.sv".as_ref()],
-        &[],
-        [],
-        VerilatorRuntimeOptions::default_logging(),
-    )?;
+            let mut runtime = VerilatorRuntime::new(
+                "artifacts".into(),
+                &["src/main.sv".as_ref()],
+                &[],
+                [],
+                VerilatorRuntimeOptions::default_logging(),
+            )?;
 
-    let mut main = runtime.create_model::<Main>()?;
+            let mut main = runtime.create_model::<Main>()?;
 
-    main.medium_input = u32::MAX;
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, 0);
-    main.eval();
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, u32::MAX);
+            main.medium_input = u32::MAX;
+            println!("{}", main.medium_output);
+            assert_eq!(main.medium_output, 0);
+            main.eval();
+            println!("{}", main.medium_output);
+            assert_eq!(main.medium_output, u32::MAX);
 
-    Ok(())
+            Ok(())
+        }
+    };
 }
 
-#[test]
-#[snafu::report]
-fn second_test() -> Result<(), Whatever> {
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &["src/main.sv".as_ref()],
-        &[],
-        [],
-        VerilatorRuntimeOptions::default(),
-    )?;
-
-    let mut main = runtime.create_model::<Main>()?;
-
-    main.medium_input = u32::MAX;
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, 0);
-    main.eval();
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, u32::MAX);
-
-    Ok(())
-}
+test!(colog_test);
+test!(first_test);
+test!(second_test);
+test!(third_test);
+test!(fourth_test);

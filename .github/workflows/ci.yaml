@@ -37,6 +37,14 @@ jobs:
           cargo test --package example-verilog-project --test visibility_works -- --exact main
       - name: Cargo test
         run: cargo test --package example-verilog-project
+      - name: Ensure parallel tests don't clobber
+        run: |
+          cd examples/verilog-project
+          for i in $(seq 1 20); do
+            rm -rf artifacts # the simple_tset tests use the artifacts directory
+            cargo test --package example-verilog-project --test simple_test
+          done
+
       
   test_spade:
     strategy:

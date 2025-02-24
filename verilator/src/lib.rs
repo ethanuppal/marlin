@@ -23,11 +23,12 @@ use std::{
 
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
+use dashmap::DashMap;
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{prelude::*, Whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -152,6 +153,31 @@ pub struct VerilatorRuntime {
     /// Mapping between hardware (top, path) and Verilator implementations
     libraries: HashMap<(String, String), Library>,
 }
+
+/* <Forgive me father for I have sinned> */
+
+// TODO: make cross-platform
+static STDERR: LazyLock<Mutex<fs::File>> =
+    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
+
+macro_rules! eprintln_nocapture {
+    ($($contents:tt)*) => {{
+        use snafu::ResultExt;
+
+        writeln!(
+            &mut STDERR.lock().expect("poisoned"),
+            $($contents)*
+        )
+        .whatever_context("Failed to write to non-captured stderr")
+    }};
+}
+
+/// The file_guard handles locking across processes, but does not guarantee
+/// locking between threads in one process.
+static THREAD_LOCK: LazyLock<DashMap<Utf8PathBuf, Mutex<()>>> =
+    LazyLock::new(DashMap::default);
+
+/* </Forgive me father for I have sinned> */
 
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
@@ -361,6 +387,11 @@ impl VerilatorRuntime {
                 ),
             )?;
 
+            eprintln_nocapture!(
+                "{} waiting for file lock on build directory",
+                "    Blocking".bold().cyan(),
+            )?;
+
             // # Safety
             // build_library is not thread-safe, so we have to lock the
             // directory
@@ -377,20 +408,25 @@ impl VerilatorRuntime {
                     "Failed to open file lock file for artifacts directory (this is not the actual lock itself, it is an I/O error)",
                 )?;
 
-            let _ =
+            let _file_lock =
                 file_guard::lock(&file_lock, file_guard::Lock::Exclusive, 0, 1)
                     .whatever_context(
                         "Failed to acquire file lock for artifacts directory",
                     )?;
 
-            writeln!(
-                &mut STDERR.lock().expect("poisoned"),
+            let thread_mutex = THREAD_LOCK
+                .entry(local_artifacts_directory.clone())
+                .or_default();
+            let Ok(_thread_lock) = thread_mutex.lock() else {
+                whatever!("Failed to acquire thread-local lock for artifacts directory");
+            };
+
+            eprintln_nocapture!(
                 "{} {} ({})",
                 "   Compiling".bold().green(),
                 name,
                 source_path
-            )
-            .whatever_context("Failed to write to non-captured stderr")?;
+            )?;
             let start = Instant::now();
 
             if self.options.log {
@@ -441,14 +477,16 @@ impl VerilatorRuntime {
 
             let end = Instant::now();
             let duration = end - start;
-            writeln!(
-                &mut STDERR.lock().expect("poisoned"),
-                "{} Marlin dynamic compilation in {}.{:02}s",
+            eprintln_nocapture!(
+                "{} `verilator-{}` profile target(s) in {}.{:02}s",
                 "    Finished".bold().green(),
+                self.options
+                    .verilator_optimization
+                    .map(|level| format!("O{level}"))
+                    .unwrap_or("unoptimized".into()),
                 duration.as_secs(),
                 duration.subsec_millis() / 10
-            )
-            .whatever_context("Failed to write to non-captured stderr")?;
+            )?;
         }
 
         Ok(self
@@ -459,7 +497,3 @@ impl VerilatorRuntime {
             ))
     }
 }
-
-// TODO: make cross-platform
-static STDERR: LazyLock<Mutex<fs::File>> =
-    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
