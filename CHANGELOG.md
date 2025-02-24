@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ethanuppal/marlin/compare/v0.2.0...v0.2.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* **verilator:** Correctly lock build directory for parallel correctness ([#81](https://github.com/ethanuppal/marlin/issues/81)) ([99949ad](https://github.com/ethanuppal/marlin/commit/99949ad81f32bc99649cb7d1462a703590869ffe))
+
 ## [0.2.0](https://github.com/ethanuppal/marlin/compare/v0.1.0...v0.2.0) (2025-02-21)
 
 

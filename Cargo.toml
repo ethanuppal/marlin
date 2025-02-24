@@ -12,7 +12,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Ethan Uppal"]
 edition = "2021"
 rust-version = "1.83"
@@ -42,12 +42,12 @@ file-guard = { version = "0.2.0", default-features = false }
 indicatif = { version = "0.17.11", default-features = false }
 dashmap = { version = "6.1.0", default-features = false }
 
-marlin-verilator = { path = "verilator", version = "0.2.0" }
-marlin-verilog = { path = "language-support/verilog", version = "0.2.0" }
-marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.2.0" }
-marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.2.0" }
-marlin-spade = { path = "language-support/spade", version = "0.2.0" }
-marlin-spade-macro = { path = "language-support/spade-macro", version = "0.2.0" }
+marlin-verilator = { path = "verilator", version = "0.2.1" }
+marlin-verilog = { path = "language-support/verilog", version = "0.2.1" }
+marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.2.1" }
+marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.2.1" }
+marlin-spade = { path = "language-support/spade", version = "0.2.1" }
+marlin-spade-macro = { path = "language-support/spade-macro", version = "0.2.1" }
 
 [package]
 name = "marlin"
