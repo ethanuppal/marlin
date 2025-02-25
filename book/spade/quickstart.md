@@ -62,7 +62,6 @@ its outputs.
 ```shell
 cargo init --lib
 cargo add marlin --features spade --dev
-cargo add colog --dev
 cargo add snafu --dev
 ```
 
@@ -95,10 +94,8 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
-
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default_logging() // configuration 
+        SpadeRuntimeOptions::default() // configuration 
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
@@ -111,7 +108,7 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-Finally, we can simply use `cargo test` to drive our design!
+Finally, we can simply use `cargo test` to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the spade compiler.
 
 > [!WARNING]
 > By default, `SpadeRuntime` invokes `swim build`, which is not thread-safe. If

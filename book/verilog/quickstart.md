@@ -63,18 +63,12 @@ In the `Cargo.toml` generated, we'll want to add some dependencies:
 
 ```shell
 cargo add marlin --features verilog
-cargo add colog --dev
 cargo add snafu --dev
 ```
 
 The only required crate is `marlin`, but I strongly recommend at this stage of
-development to use the other two crates as well.
-
-> [!NOTE]
-> We're including the [`colog`](color) crates as a backend for the well-known [`log`][log]
-> crate. That's because, if you enable verbose mode on Marlin runtimes, it will
-> use the [`log`][log] API to print out information. You can use whatever logging
-> backend you want; I believe the most popular is [`env_logger`][env_logger].
+development to use `snafu`, which will display a human-readable error trace upon
+`Result::Err`.
 
 In the `lib.rs`, we'll create the binding to our Verilog module:
 

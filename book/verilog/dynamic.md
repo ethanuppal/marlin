@@ -61,7 +61,6 @@ Next, we'll add Marlin and other desired dependencies.
 
 ```shell
 cargo add marlin --dev # no features sneeded
-cargo add colog --dev
 cargo add snafu --dev
 ```
 
@@ -86,14 +85,12 @@ use marlin::verilator::{
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
-
     let mut runtime = VerilatorRuntime::new(
         "build2".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default(),
     )?;
 
     let mut main = runtime.create_dyn_model(

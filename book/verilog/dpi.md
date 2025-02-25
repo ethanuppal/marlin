@@ -66,7 +66,6 @@ Next, we'll add Marlin and other desired dependencies.
 
 ```shell
 cargo add marlin --features verilog --dev
-cargo add colog --dev
 cargo add snafu --dev
 ```
 
@@ -95,14 +94,12 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
-
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
         [three],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default(),
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
