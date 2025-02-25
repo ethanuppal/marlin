@@ -472,21 +472,11 @@ We'll initialize a Rust project:</p>
 </code></pre>
 <p>In the <code>Cargo.toml</code> generated, we'll want to add some dependencies:</p>
 <pre><code class="language-shell">cargo add marlin --features verilog
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
-development to use the other two crates as well.</p>
-<div class="mdbook-callouts mdbook-callouts-note">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  note
-</p>
-<p>We're including the <a href="color"><code>colog</code></a> crates as a backend for the well-known <a href="https://docs.rs/log/latest/log/"><code>log</code></a>
-crate. That's because, if you enable verbose mode on Marlin runtimes, it will
-use the <a href="https://docs.rs/log/latest/log/"><code>log</code></a> API to print out information. You can use whatever logging
-backend you want; I believe the most popular is <a href="https://docs.rs/env_logger/latest/env_logger/"><code>env_logger</code></a>.</p>
-</div>
+development to use <code>snafu</code>, which will display a human-readable error trace upon
+<code>Result::Err</code>.</p>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Verilog module:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {

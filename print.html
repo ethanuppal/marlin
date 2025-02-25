@@ -1065,21 +1065,11 @@ We'll initialize a Rust project:</p>
 </code></pre>
 <p>In the <code>Cargo.toml</code> generated, we'll want to add some dependencies:</p>
 <pre><code class="language-shell">cargo add marlin --features verilog
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
-development to use the other two crates as well.</p>
-<div class="mdbook-callouts mdbook-callouts-note">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  note
-</p>
-<p>We're including the <a href="verilog/color"><code>colog</code></a> crates as a backend for the well-known <a href="https://docs.rs/log/latest/log/"><code>log</code></a>
-crate. That's because, if you enable verbose mode on Marlin runtimes, it will
-use the <a href="https://docs.rs/log/latest/log/"><code>log</code></a> API to print out information. You can use whatever logging
-backend you want; I believe the most popular is <a href="https://docs.rs/env_logger/latest/env_logger/"><code>env_logger</code></a>.</p>
-</div>
+development to use <code>snafu</code>, which will display a human-readable error trace upon
+<code>Result::Err</code>.</p>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Verilog module:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -1478,7 +1468,6 @@ endmodule
 </code></pre>
 <p>Next, we'll add Marlin and other desired dependencies.</p>
 <pre><code class="language-shell">cargo add marlin --dev # no features sneeded
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>We will illustrate using dynamic models by implementing the exact same test as
@@ -1497,14 +1486,12 @@ use marlin::verilator::{
 
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    colog::init();
-
     let mut runtime = VerilatorRuntime::new(
         "build2".into(),
         &amp;["src/main.sv".as_ref()],
         &amp;[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default(),
     )?;
 
     let mut main = runtime.create_dyn_model(
@@ -1865,7 +1852,6 @@ endmodule
 </code></pre>
 <p>Next, we'll add Marlin and other desired dependencies.</p>
 <pre><code class="language-shell">cargo add marlin --features verilog --dev
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
@@ -1889,14 +1875,12 @@ struct Main;
 
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    colog::init();
-
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
         [three],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default(),
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;
@@ -2257,7 +2241,6 @@ its outputs.</p>
 <h2 id="part-2-setting-up-marlin"><a class="header" href="#part-2-setting-up-marlin">Part 2: Setting up Marlin</a></h2>
 <pre><code class="language-shell">cargo init --lib
 cargo add marlin --features spade --dev
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Spade module:</p>
@@ -2283,10 +2266,8 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    colog::init();
-
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default_logging() // configuration 
+        SpadeRuntimeOptions::default() // configuration 
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;
@@ -2297,7 +2278,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
 
     Ok(())
 }</code></pre></pre>
-<p>Finally, we can simply use <code>cargo test</code> to drive our design!</p>
+<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the spade compiler.</p>
 <div class="mdbook-callouts mdbook-callouts-warning">
 <p class="mdbook-callouts-title">
   <span class="mdbook-callouts-icon"></span>

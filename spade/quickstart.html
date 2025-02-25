@@ -477,7 +477,6 @@ its outputs.</p>
 <h2 id="part-2-setting-up-marlin"><a class="header" href="#part-2-setting-up-marlin">Part 2: Setting up Marlin</a></h2>
 <pre><code class="language-shell">cargo init --lib
 cargo add marlin --features spade --dev
-cargo add colog --dev
 cargo add snafu --dev
 </code></pre>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Spade module:</p>
@@ -503,10 +502,8 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    colog::init();
-
     let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default_logging() // configuration 
+        SpadeRuntimeOptions::default() // configuration 
     )?;
 
     let mut main = runtime.create_model::&lt;Main&gt;()?;
@@ -517,7 +514,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
 
     Ok(())
 }</code></pre></pre>
-<p>Finally, we can simply use <code>cargo test</code> to drive our design!</p>
+<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the spade compiler.</p>
 <div class="mdbook-callouts mdbook-callouts-warning">
 <p class="mdbook-callouts-title">
   <span class="mdbook-callouts-icon"></span>
