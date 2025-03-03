@@ -13,7 +13,7 @@ members = [
     "examples/verilog-project",
     "examples/spade-project",
     "marlin",
-    "language-support/veryl-macro",
+    "language-support/veryl-macro", "examples/veryl_project/example-veryl-project",
 ]
 
 [workspace.package]

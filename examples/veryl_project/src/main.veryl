@@ -1,0 +1,6 @@
+module ModuleA(
+    medium_input: input logic<32>,
+    medium_output: output logic<32>
+) {
+    assign medium_output = medium_input;
+}
