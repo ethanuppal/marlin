@@ -3,14 +3,14 @@
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
-In this tutorial, we'll explore how to use Marlin to call Rust functions from
-Verilog. Learn more about [DPI in general here](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi).
-You can find the full source code for this tutorial [here](../examples/verilog-project/) (in the `dpi_tutorial.rs` file).
+In this tutorial, we'll setup a SystemVerilog project and test our code with
+Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project) (see in particular the `dpi_tutorial.rs` file).
 
-I'll be assuming you've read the [tutorial on testing Verilog projects](./testing_verilog.md); if not, read that first and come back.
-In particular, I won't be reexplaining things I discussed in that tutorial, although I will still walk through the entire setup.
+I'll be assuming you've read the [tutorial on testing Verilog projects](./quickstart.md); if not, read that first and come back.
+In particular, I won't be reexplaining things I discussed in that tutorial,
+although I will still walk through the entire setup.
 
-## Part 1: The Basics
+## Part 1: Setup
 
 Let's call our project "tutorial-project" (you are free to call it however you
 like):
@@ -25,14 +25,16 @@ Here's what our project will look like in the end:
 ```
 .
 ├── Cargo.toml
+├── .gitignore
 ├── src
-│   └── dpi.sv
-└── test
+│   ├── lib.rs
+│   ├── dpi.sv
+└── tests
     └── dpi_test.rs
 ```
 
-We'll have a simple SystemVerilog module that writes the result of `three`, a
-DPI function with a single integer output.
+We'll have a simple SystemVerilog module that writes the result of `three`, a DPI function with a single integer output.
+
 ```shell
 mkdir src
 vi src/dpi.sv
@@ -55,34 +57,27 @@ endmodule
 ## Part 2: Testing
 
 We'll create a new Rust project:
+
 ```shell
-mkdir test
-vi Cargo.toml
-vi test/dpi_test.rs
+cargo init --lib
 ```
 
 Next, we'll add Marlin and other desired dependencies.
-```toml
-# file: Cargo.toml
-[package]
-name = "tutorial-project"
 
-[[bin]]
-name = "dpi_test"
-path = "test/dpi_test.rs"
-
-[dependencies]
-# other dependencies...
-marlin = { version = "0.1.0", features = ["verilog"] }
-snafu = "0.8.5" # optional, whatever version
-colog = "1.3.0" # optional, whatever version
+```shell
+cargo add marlin --features verilog --dev
+cargo add snafu --dev
 ```
 
-Finally, we need the Rust file where we define the DPI function and drive the
-model.
+Finally, we need the Rust file where we define the DPI function and drive the model.
+
+```shell
+mkdir tests
+vi tests/dpi_test.rs
+```
 
 ```rust
-// file: test/dpi_test.rs
+// file: tests/dpi_test.rs
 use snafu::Whatever;
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
@@ -99,14 +94,12 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
-
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
+        &[],
         [three],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model::<Main>()?;
@@ -123,8 +116,7 @@ The magic happens here:
 
 ```rust
 #[verilog::dpi]
-#[no_mangle]
-extern "C" fn three(#[output] out: &mut u32) {
+pub extern fn three(out: &mut u32) {
     *out = 3;
 }
 ```
@@ -132,7 +124,7 @@ By applying `#[verilog::dpi]`, we turn our normal Rust function into a DPI one.
 We need to apply `pub` and `extern` (or `extern "C"`) so that Rust
 exposes the function correctly to C. 
 
-DPI functions cannot have a return value and only take primitive integers or mutable references to primitive integers as
+DPI functions cannot have a return value and only take primitive integers (for `input`) or mutable references to primitive integers (for `output`/`inout`) as
 arguments. Beside that, there are no restrictions on the content --- write
 whatever Rust code you want!
 
@@ -141,6 +133,7 @@ Then, we told the runtime about this function:
     let mut runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
+        &[],
 -       [],
 +       [three],
         VerilatorRuntimeOptions::default(),

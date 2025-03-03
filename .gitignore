@@ -1,3 +1,6 @@
 target/
 **/artifacts/
 **/artifacts2/
+**/artifacts3/
+docs/
+version.txt

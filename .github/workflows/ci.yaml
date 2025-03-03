@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 1 # since we cache
+  COLOG: 1
 
 jobs:
   test_verilog:
@@ -18,18 +19,32 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Rust Caching
-        uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
-      - name: Test
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Verilator
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator
+          fi
+      - name: Manual test
         run: |
           cd examples/verilog-project
           cargo run --package example-verilog-project --bin tutorial
           cargo run --package example-verilog-project --bin tutorial # rerun
-          cargo run --package example-verilog-project --bin dynamic_model_tutorial
-          cargo run --package example-verilog-project --bin dpi_tutorial
-          cargo run --package example-verilog-project --bin visibility_works
+          cargo test --package example-verilog-project --test dynamic_model_tutorial -- --exact main
+          cargo test --package example-verilog-project --test dpi_tutorial -- --exact main
+          cargo test --package example-verilog-project --test visibility_works -- --exact main
+      - name: Cargo test
+        run: cargo test --package example-verilog-project
+      - name: Ensure parallel tests don't clobber
+        run: |
+          cd examples/verilog-project
+          for i in $(seq 1 20); do
+            rm -rf artifacts # the simple_tset tests use the artifacts directory
+            cargo test --package example-verilog-project --test simple_test
+          done
+
       
   test_spade:
     strategy:
@@ -40,34 +55,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Rust Caching
         uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
-      - name: Install swim
-        run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
-      - name: Test
-        run: cd examples/spade-project && cargo run --package example-spade-project
-
-  test_swim_marlin:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-15]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Rust Caching
-        uses: Swatinem/rust-cache@v2
-      - name: Install verilator
-        run: make install_verilator
-      - name: Install swim
-        run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
-      - name: Install swim-marlin
-        run: cargo install --path tooling/swim-marlin
-      - name: Test
+      - name: Install Verilator
         run: |
-          mkdir TMP
-          cd TMP
-          swim init my_swim_project && cd my_swim_project
-          swim marlin init
-          swim marlin check
-          swim marlin add another_test
-          swim marlin test
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator
+          fi
+      - name: Install swim
+        run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
+      - name: Test
+        run: cargo test --package example-spade-project

@@ -12,17 +12,21 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::env;
+
+use example_spade_project::Main;
 use marlin::spade::prelude::*;
 use snafu::Whatever;
 
-#[spade(src = "src/main.spade", name = "main")]
-struct Main;
-
+#[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    colog::init();
+    if env::var("COLOG").is_ok() {
+        colog::init();
+    }
 
-    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions::default(), true)?;
+    let mut runtime =
+        SpadeRuntime::new(SpadeRuntimeOptions::default_logging())?;
 
     let mut main = runtime.create_model::<Main>()?;
 

@@ -8,21 +8,27 @@
 //! modules.
 //!
 //! For an example of how to use this runtime to add support for your own custom
-//! HDL, see `SpadeRuntime` (under the spade-support/ folder), which just wraps
-//! [`VerilatorRuntime`].
+//! HDL, see `SpadeRuntime` (under the "language-support/spade/" directory),
+//! which just wraps [`VerilatorRuntime`].
 
 use std::{
     collections::{hash_map::Entry, HashMap},
     ffi::OsString,
     fmt, fs,
+    io::Write,
+    os::fd::FromRawFd,
+    sync::{LazyLock, Mutex},
+    time::Instant,
 };
 
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
+use dashmap::DashMap;
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
-use snafu::{prelude::*, Whatever};
+use owo_colors::OwoColorize;
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -103,9 +109,15 @@ pub struct VerilatorRuntimeOptions {
     /// compilation times.
     pub verilator_optimization: Option<usize>,
 
-    /// Whether verilator should always be invoked instead of only when the
+    /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
+
+    /// A list of warnings to disable.
+    pub ignored_warnings: Vec<String>,
+
+    /// Whether to use the log crate.
+    pub log: bool,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -114,6 +126,19 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             verilator_optimization: None,
             force_verilator_rebuild: false,
+            ignored_warnings: vec![],
+            log: false,
+        }
+    }
+}
+
+impl VerilatorRuntimeOptions {
+    /// The same as the [`Default`] implementation except that the log crate is
+    /// used.
+    pub fn default_logging() -> Self {
+        Self {
+            log: true,
+            ..Default::default()
         }
     }
 }
@@ -122,12 +147,40 @@ impl Default for VerilatorRuntimeOptions {
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
     source_files: Vec<Utf8PathBuf>,
+    include_directories: Vec<Utf8PathBuf>,
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and Verilator implementations
     libraries: HashMap<(String, String), Library>,
-    verbose: bool,
 }
+
+/* <Forgive me father for I have sinned> */
+
+// TODO: make cross-platform
+static STDERR: LazyLock<Mutex<fs::File>> =
+    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
+
+macro_rules! eprintln_nocapture {
+    ($($contents:tt)*) => {{
+        use snafu::ResultExt;
+
+        writeln!(
+            &mut STDERR.lock().expect("poisoned"),
+            $($contents)*
+        )
+        .whatever_context("Failed to write to non-captured stderr")
+    }};
+}
+
+#[derive(Default)]
+struct ThreadLocalFileLock;
+
+/// The file_guard handles locking across processes, but does not guarantee
+/// locking between threads in one process.
+static THREAD_LOCK: LazyLock<DashMap<Utf8PathBuf, Mutex<ThreadLocalFileLock>>> =
+    LazyLock::new(DashMap::default);
+
+/* </Forgive me father for I have sinned> */
 
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
@@ -135,11 +188,11 @@ impl VerilatorRuntime {
     pub fn new<I: IntoIterator<Item = &'static dyn DpiFunction>>(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
+        include_directories: &[&Utf8Path],
         dpi_functions: I,
         options: VerilatorRuntimeOptions,
-        verbose: bool,
     ) -> Result<Self, Whatever> {
-        if verbose {
+        if options.log {
             log::info!("Validating source files");
         }
         for source_file in source_files {
@@ -157,10 +210,13 @@ impl VerilatorRuntime {
                 .iter()
                 .map(|path| path.to_path_buf())
                 .collect(),
+            include_directories: include_directories
+                .iter()
+                .map(|path| path.to_path_buf())
+                .collect(),
             dpi_functions: dpi_functions.into_iter().collect(),
             options,
             libraries: HashMap::new(),
-            verbose,
         })
     }
 
@@ -262,6 +318,10 @@ impl VerilatorRuntime {
     /// functions, the library will be initialized with the DPI functions.
     ///
     /// See [`build_library::build_library`] for more information.
+    ///
+    /// # Safety
+    ///
+    /// This function is thread-safe.
     fn build_or_retrieve_library(
         &mut self,
         name: &str,
@@ -272,7 +332,7 @@ impl VerilatorRuntime {
             whatever!("Escaped module names are not supported");
         }
 
-        if self.verbose {
+        if self.options.log {
             log::info!("Validating model source file");
         }
         if !self.source_files.iter().any(|source_file| {
@@ -310,9 +370,14 @@ impl VerilatorRuntime {
             .libraries
             .entry((name.to_string(), source_path.to_string()))
         {
-            let local_artifacts_directory = self.artifact_directory.join(name);
+            let local_directory_name = format!(
+                "{name}_{}",
+                source_path.replace("_", "__").replace("/", "_")
+            );
+            let local_artifacts_directory =
+                self.artifact_directory.join(&local_directory_name);
 
-            if self.verbose {
+            if self.options.log {
                 log::info!(
                     "Creating artifacts directory {}",
                     local_artifacts_directory
@@ -325,26 +390,64 @@ impl VerilatorRuntime {
                 ),
             )?;
 
-            if self.verbose {
+            eprintln_nocapture!(
+                "{} waiting for file lock on build directory",
+                "    Blocking".bold().cyan(),
+            )?;
+
+            // # Safety
+            // build_library is not thread-safe, so we have to lock the
+            // directory
+            if self.options.log {
+                log::info!("Acquiring file lock on artifact directory");
+            }
+            let file_lock = fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(self.artifact_directory.join(format!("{local_directory_name}.lock")))
+                .whatever_context(
+                    "Failed to open file lock file for artifacts directory (this is not the actual lock itself, it is an I/O error)",
+                )?;
+
+            let _file_lock =
+                file_guard::lock(&file_lock, file_guard::Lock::Exclusive, 0, 1)
+                    .whatever_context(
+                        "Failed to acquire file lock for artifacts directory",
+                    )?;
+
+            let thread_mutex = THREAD_LOCK
+                .entry(local_artifacts_directory.clone())
+                .or_default();
+            let Ok(_thread_lock) = thread_mutex.lock() else {
+                whatever!("Failed to acquire thread-local lock for artifacts directory");
+            };
+
+            eprintln_nocapture!(
+                "{} {} ({})",
+                "   Compiling".bold().green(),
+                name,
+                source_path
+            )?;
+            let start = Instant::now();
+
+            if self.options.log {
                 log::info!("Building the dynamic library with verilator");
             }
-            let source_files = self
-                .source_files
-                .iter()
-                .map(|path_buf| path_buf.as_str())
-                .collect::<Vec<_>>();
             let library_path = build_library(
-                &source_files,
+                &self.source_files,
+                &self.include_directories,
                 &self.dpi_functions,
                 name,
                 ports,
                 &local_artifacts_directory,
                 &self.options,
-                self.verbose,
+                self.options.log,
             )
             .whatever_context("Failed to build verilator dynamic library")?;
 
-            if self.verbose {
+            if self.options.log {
                 log::info!("Opening the dynamic library");
             }
             let library = unsafe { Library::new(library_path) }
@@ -368,12 +471,25 @@ impl VerilatorRuntime {
 
                 (dpi_init_callback)(function_pointers.as_ptr_range().start);
 
-                if self.verbose {
+                if self.options.log {
                     log::info!("Initialized DPI functions");
                 }
             }
 
             entry.insert(library);
+
+            let end = Instant::now();
+            let duration = end - start;
+            eprintln_nocapture!(
+                "{} `verilator-{}` profile target(s) in {}.{:02}s",
+                "    Finished".bold().green(),
+                self.options
+                    .verilator_optimization
+                    .map(|level| format!("O{level}"))
+                    .unwrap_or("unoptimized".into()),
+                duration.as_secs(),
+                duration.subsec_millis() / 10
+            )?;
         }
 
         Ok(self

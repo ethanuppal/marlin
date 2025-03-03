@@ -236,7 +236,7 @@ extern \"C\" void {}({}) {{
 /// Returns `Ok(true)` when the library doesn't exist or if any Verilog source
 /// file has been modified after last building the library.
 fn needs_verilator_rebuild(
-    source_files: &[&str],
+    source_files: &[Utf8PathBuf],
     library_path: &Utf8Path,
 ) -> Result<bool, Whatever> {
     if !library_path.exists() {
@@ -299,8 +299,12 @@ fn needs_verilator_rebuild(
 /// about this and only rebuild if the module's source file was edited).
 ///
 /// Finally, we invoke `verilator` and return the library path.
+///
+/// This function is not thread-safe; the `artifact_directory` must be guarded.
+#[allow(clippy::too_many_arguments)]
 pub fn build_library(
-    source_files: &[&str],
+    source_files: &[Utf8PathBuf],
+    include_directories: &[Utf8PathBuf],
     dpi_functions: &[&'static dyn DpiFunction],
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
@@ -341,7 +345,11 @@ pub fn build_library(
         .whatever_context("Failed to check if artifacts need rebuilding")?
             && !dpi_rebuilt)
     {
-        log::info!("| Skipping rebuild of verilated model due to no changes");
+        if verbose {
+            log::info!(
+                "| Skipping rebuild of verilated model due to no changes"
+            );
+        }
         return Ok(library_path);
     }
 
@@ -360,6 +368,9 @@ pub fn build_library(
         .args(["--top-module", top_module])
         .args(source_files)
         .arg(ffi_wrappers);
+    for include_directory in include_directories {
+        verilator_command.arg(format!("-I{}", include_directory));
+    }
     if let Some(dpi_file) = dpi_file {
         verilator_command.arg(dpi_file);
     }
@@ -369,6 +380,9 @@ pub fn build_library(
         } else {
             whatever!("Invalid Verilator optimization level: {}", level);
         }
+    }
+    for ignored_warning in &options.ignored_warnings {
+        verilator_command.arg(format!("-Wno-{}", ignored_warning));
     }
     if verbose {
         log::info!("| Verilator invocation: {:?}", verilator_command);

@@ -1,6 +1,6 @@
 import "DPI-C" function void three(output int out);
 
-module main(output logic[31:0] out);
+module dpi_main(output logic[31:0] out);
     int a = 0;
     initial begin
         three(a);

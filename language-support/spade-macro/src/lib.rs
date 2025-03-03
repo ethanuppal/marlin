@@ -89,12 +89,25 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
             _ => None,
         })
     else {
+        let names = top_level
+            .members
+            .iter()
+            .filter_map(|item| match item {
+                spade_ast::Item::Unit(unit) => Some(format!(
+                    "{} {}",
+                    unit.head.unit_kind, unit.head.name.0
+                )),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
         return syn::Error::new_spanned(
             &args.name,
             format!(
-                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle(all)]`",
+                "Could not find top-level unit named `{}` in {}. Remember to use `#[no_mangle(all)]`. Unit names found are: {} (there are {} module item(s) in total)",
                 args.name.value(),
-                args.source_path.value()
+                args.source_path.value(),
+                if names.is_empty() {"<none found>".into()} else {names.join(", ")},
+                top_level.members.len()
             ),
         )
         .into_compile_error()

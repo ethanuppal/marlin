@@ -7,20 +7,25 @@
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
 
+**[Read the documentation](https://ethanuppal.com/marlin)**
+
 Marlin is a really powerful library (and API) that lets you "import" hardware
 modules into Rust (or Rust functions into hardware modules!). 
 
 No precompilation step and manual updates with `verilator` harnesses; no 
-Makefiles and quirky decorators with `cocotb`.
-testbenches. You're writing a regular Rust crate here.
+Makefiles and quirky decorators with `cocotb` testbenches. You're writing a regular Rust crate here.
 
 Add this library to your `Cargo.toml` like any other library. Use hardware
 modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
-`serde` even.
+`serde` even. `cargo test` as hard as you want.
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
 ![Early example of using this with Spade](./assets/demo-alpha.png)
+
+> [!NOTE]
+> The above screenshot is pre-0.1.0, so it's a bit out of date -- Marlin has
+> improved a lot since then!
 
 ## 🔥 Motivation
 
@@ -31,8 +36,8 @@ Why does hardware testing suck? Consider the ways we have to test
   tests *in* Verilog is really annoying.
 - **Use verilator harnesses**: You have to first run Verilator to get the right
   headers, recompile manually every time, deal with raw pointers and C++, etc.
-- **Use cocotb**: You have to use Makefiles, performance isn't the
-  greatest, you get no LSP support, etc.
+- **Use cocotb**: You have to use Makefiles or write your own Python runner, 
+  performance isn't the greatest, you get no LSP support for ports, etc.
 
 The problem gets worse with custom HDLs, so they've come up with some creative
 solutions:
@@ -63,21 +68,10 @@ Still, a lot of these are less than optimal.
 
 ## 📦 Install
 
-Marlin is currently under development.
-You can currently install the crates via `git` specifications.
-(I'm aware that this is not explained well.)
-Look at the tutorials in the Usage section for detailed instructions.
+Marlin is on crates.io, so just use `cargo add --dev marlin` to add Marlin as a
+dependency for your tests (`dev-dependencies`).
 
-## ❓ Usage
-
-I'll write more documentation once I get further in the development process.
-
-- [Testing a Verilog project](./docs/testing_verilog.md)
-- [Testing a Spade project](./docs/testing_spade.md)
-- [Using dynamic Verilog models](./docs/verilog_dynamic_models.md)
-- [Calling Rust from Verilog](./docs/verilog_dpi.md)
-
-## 💡 How it works
+## ❓ How it works
 
 I'll write more on this once I get further in the development process.
 The TLDR is procedural macros + `dlopen`.
@@ -96,8 +90,8 @@ Marlin automatically running them with all the right flags and arguments
 ## 🌎 Related
 
 - [verilated-rs](https://github.com/djg/verilated-rs) is a super cool library
-that uses a build script to statically link in verilated bindings, but is
-unmaintained for years as of writing this.
+  that uses a build script to statically link in verilated bindings, but is
+  unmaintained for years as of writing this.
 
 ## 🔒 License & Legal
 
