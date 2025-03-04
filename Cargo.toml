@@ -1,5 +1,5 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
   "verilator",
   "language-support/verilog",
@@ -17,7 +17,7 @@ members = [
 [workspace.package]
 version = "0.2.1"
 authors = ["Ethan Uppal"]
-edition = "2021"
+edition = "2024"
 rust-version = "1.83"
 description = "🦀 No nonsense hardware testing in Rust 🛠️"
 repository = "https://github.com/ethanuppal/marlin"
