@@ -21,4 +21,4 @@ proc-macro2.workspace = true
 syn.workspace = true
 quote.workspace = true
 
-marlin-verilog-macro.workspace = true
+veryl-parser.workspace = true

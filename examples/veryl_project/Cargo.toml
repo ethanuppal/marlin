@@ -7,9 +7,9 @@ rust-version.workspace = true
 description.workspace = true
 repository.workspace = true
 readme.workspace = true
-license.workspace = true
+license = "GPL-3.0"
 
 [dependencies]
 snafu.workspace = true
 colog.workspace = true
-# marlin = { path = "../../marlin", features = ["veryl"] }
+marlin = { path = "../../", features = ["veryl"] }

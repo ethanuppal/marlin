@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::env;
+use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use marlin_verilog_macro_builder::{
@@ -43,14 +43,33 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
         veryl_source_path.pop();
         veryl_source_path.join(args.source_path.value())
     };
+    let source_code = match fs::read_to_string(&veryl_source_path) {
+        Ok(contents) => contents,
+        Err(error) => {
+            return syn::Error::new_spanned(
+                &args.source_path,
+                format!(
+                    "Failed to read source code file at {}: {}",
+                    veryl_source_path, error
+                ),
+            )
+            .into_compile_error()
+            .into();
+        }
+    };
+
+    let parser = Parser::new();
+
     let verilog_source_path = syn::LitStr::new(
         veryl_source_path.with_extension("sv").as_str(),
         args.source_path.span(),
     );
+
     let verilog_module_prefix = veryl_source_path
         .file_stem()
         .map(|stem| format!("{}_", stem))
         .unwrap_or_default();
+
     let verilog_module_name = syn::LitStr::new(
         &format!("{}{}", verilog_module_prefix, args.name.value()),
         args.name.span(),

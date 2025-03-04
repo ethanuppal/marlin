@@ -1,4 +1,4 @@
-module ModuleA(
+module Wire(
     medium_input: input logic<32>,
     medium_output: output logic<32>
 ) {

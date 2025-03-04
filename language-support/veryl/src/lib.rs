@@ -7,12 +7,16 @@
 use std::{env::current_dir, ffi::OsString, process::Command};
 
 use camino::Utf8PathBuf;
-use marlin_verilog::__reexports::verilator::{
+use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use snafu::{whatever, ResultExt, Whatever};
 
-pub use marlin_verilog::__reexports;
+pub mod __reexports {
+    pub use libc;
+    pub use libloading;
+    pub use marlin_verilator as verilator;
+}
 
 pub mod prelude {
     pub use crate as veryl;
@@ -50,7 +54,7 @@ impl Default for VerylRuntimeOptions {
     fn default() -> Self {
         Self {
             veryl_executable: "veryl".into(),
-            call_veryl_build: true,
+            call_veryl_build: false,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
@@ -63,11 +67,11 @@ pub struct VerylRuntime {
 
 impl VerylRuntime {
     /// Creates a new runtime for instantiating Veryl units as Rust objects.
-    pub fn new(
-        options: VerylRuntimeOptions,
-        verbose: bool,
-    ) -> Result<Self, Whatever> {
-        if verbose {
+    /// Does NOT call `veryl build` by defaul because `veryl build` is not
+    /// thread safe. You can enable this with [`VerylRuntimeOptions`] or just
+    /// run it beforehand.
+    pub fn new(options: VerylRuntimeOptions) -> Result<Self, Whatever> {
+        if options.verilator_options.log {
             log::info!("Searching for Veryl project root");
         }
         let Some(veryl_toml_path) = search_for_veryl_toml(
@@ -86,7 +90,7 @@ impl VerylRuntime {
         veryl_project_path.pop();
 
         if options.call_veryl_build {
-            if verbose {
+            if options.verilator_options.log {
                 log::info!("Invoking `veryl build` (this may take a while)");
             }
             let veryl_output = Command::new(options.veryl_executable)
@@ -97,11 +101,11 @@ impl VerylRuntime {
 
             if !veryl_output.status.success() {
                 whatever!(
-            "Invocation of veryl failed with {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-            veryl_output.status,
-            String::from_utf8(veryl_output.stdout).unwrap_or_default(),
-            String::from_utf8(veryl_output.stderr).unwrap_or_default()
-        );
+                    "Invocation of veryl failed with {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+                    veryl_output.status,
+                    String::from_utf8(veryl_output.stdout).unwrap_or_default(),
+                    String::from_utf8(veryl_output.stderr).unwrap_or_default()
+                );
             }
         }
 
@@ -120,9 +124,9 @@ impl VerylRuntime {
             verilator_runtime: VerilatorRuntime::new(
                 &veryl_project_path.join("dependencies/whatever"),
                 &verilog_source_files_ref,
+                &[],
                 [],
                 options.verilator_options,
-                verbose,
             )?,
         })
     }

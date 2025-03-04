@@ -12,7 +12,28 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use marlin::veryl::prelude::*;
+use std::env;
 
-#[veryl(src = "src/main.veryl", name = "Wire")]
-pub struct Wire;
+use example_veryl_project::Wire;
+use marlin::{
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    veryl::VerylRuntime,
+};
+use snafu::Whatever;
+
+#[test]
+#[snafu::report]
+fn forwards_correctly() -> Result<(), Whatever> {
+    let mut runtime = VerylRuntime::new()?;
+
+    let mut main = runtime.create_model::<Wire>()?;
+
+    main.medium_input = u32::MAX;
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, 0);
+    main.eval();
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, u32::MAX);
+
+    Ok(())
+}
