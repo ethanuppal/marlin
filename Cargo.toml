@@ -25,10 +25,19 @@ readme = "README.md"
 license = "MPL-2.0"
 
 [workspace.dependencies]
+# Implements ergonomic error handling and error report printing. I should be
+# able to replace this with my own error handling system.
 snafu = { version = "0.8.5", default-features = false, features = ["std"] }
+# Complete replacement for native path API but supporting UTF-8. This would be
+# too much effort to rewrite myself and implement all the methods that camino
+# does to make this a drop-in replacement everywhere.
 camino = { version = "1.1.9", default-features = false }
+# The canonical source for C types, needed when generating bindings from C to
+# Rust.
 libc = { version = "0.2.169", default-features = false }
+# The canonical dlopen solution with built-in safety.
 libloading = { version = "0.8.6", default-features = false }
+# 
 proc-macro2 = { version = "1.0.93", default-features = false }
 syn = { version = "2.0.96", features = ["full"] }
 quote = { version = "1.0.38", default-features = false }
