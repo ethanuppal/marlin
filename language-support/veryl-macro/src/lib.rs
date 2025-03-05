@@ -12,9 +12,8 @@ use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
 use proc_macro::TokenStream;
 use veryl_parser::{
     veryl_grammar_trait::{
-        FactorTypeGroup, FirstToken, FixedType, ModuleDeclaration,
+        FactorTypeGroup, FirstToken, ModuleDeclaration,
         PortDeclarationGroupGroup, PortDeclarationItemGroup, ScalarTypeGroup,
-        VariableType,
     },
     veryl_walker::VerylWalker,
     Parser,
@@ -150,7 +149,7 @@ impl VerylWalker for ModuleFinder<'_, '_> {
                                             //    }
                                             //}
                                         },
-                                        FactorTypeGroup::FixedType(factor_type_group_fixed_type) => {
+                                        FactorTypeGroup::FixedType(_factor_type_group_fixed_type) => {
                                             todo!("What is FactorTypeGroup::FixedType?")
                                             //match &*factor_type_group_fixed_type.fixed_type {
                                             //    FixedType::U32(fixed_type_u32) => &fixed_type_u32.u32.u32_token,
