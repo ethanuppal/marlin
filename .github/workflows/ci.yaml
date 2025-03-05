@@ -84,8 +84,6 @@ jobs:
             sudo apt-get install -y verilator
           fi
       - name: Install Veryl
-        run: |
-          cargo install verylup
-          verylup setup
+        uses: veryl-lang/setup-veryl@v1
       - name: Test
         run: cargo test --package example-veryl-project
