@@ -8,15 +8,15 @@ use std::{env, fs, iter, str};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::PortDirection;
-use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
+use marlin_verilog_macro_builder::{MacroArgs, build_verilated_struct};
 use proc_macro::TokenStream;
 use veryl_parser::{
+    Parser,
     veryl_grammar_trait::{
         FactorTypeGroup, FirstToken, ModuleDeclaration,
         PortDeclarationGroupGroup, PortDeclarationItemGroup, ScalarTypeGroup,
     },
     veryl_walker::VerylWalker,
-    Parser,
 };
 
 fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {

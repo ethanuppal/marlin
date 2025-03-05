@@ -8,7 +8,7 @@ use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::PortDirection;
-use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
+use marlin_verilog_macro_builder::{MacroArgs, build_verilated_struct};
 use proc_macro::TokenStream;
 use spade_parser::logos::Logos;
 

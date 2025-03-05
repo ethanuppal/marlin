@@ -12,7 +12,7 @@
 //! which just wraps [`VerilatorRuntime`].
 
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::OsString,
     fmt, fs,
     io::Write,
@@ -28,7 +28,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;
@@ -344,7 +344,11 @@ impl VerilatorRuntime {
                 _ => false,
             }
         }) {
-            whatever!("Module `{}` requires source file {}, which was not provided to the runtime", name, source_path);
+            whatever!(
+                "Module `{}` requires source file {}, which was not provided to the runtime",
+                name,
+                source_path
+            );
         }
 
         if let Some((port, _, _, _)) =
@@ -421,7 +425,9 @@ impl VerilatorRuntime {
                 .entry(local_artifacts_directory.clone())
                 .or_default();
             let Ok(_thread_lock) = thread_mutex.lock() else {
-                whatever!("Failed to acquire thread-local lock for artifacts directory");
+                whatever!(
+                    "Failed to acquire thread-local lock for artifacts directory"
+                );
             };
 
             eprintln_nocapture!(

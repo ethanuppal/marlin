@@ -7,7 +7,7 @@
 use std::{env, fmt, path::PathBuf};
 
 use marlin_verilog_macro_builder::{
-    build_verilated_struct, parse_verilog_ports, MacroArgs,
+    MacroArgs, build_verilated_struct, parse_verilog_ports,
 };
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
@@ -134,7 +134,7 @@ fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
     match ty {
         syn::Type::Path(type_path) => {
             Ok(DPIType::Input(parse_dpi_primitive_type(type_path)?))
-        },
+        }
         syn::Type::Reference(syn::TypeReference {
             and_token,
             lifetime,
@@ -142,19 +142,30 @@ fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
             elem,
         }) => {
             if mutability.is_none() {
-                return Err(syn::Error::new_spanned(and_token, "DPI output or inout type must be represented with a mutable reference"));
+                return Err(syn::Error::new_spanned(
+                    and_token,
+                    "DPI output or inout type must be represented with a mutable reference",
+                ));
             }
-           if let Some(lifetime) = lifetime {
-                return Err(syn::Error::new_spanned(lifetime, "DPI output or inout type cannot use lifetimes"));
+            if let Some(lifetime) = lifetime {
+                return Err(syn::Error::new_spanned(
+                    lifetime,
+                    "DPI output or inout type cannot use lifetimes",
+                ));
             }
 
             let syn::Type::Path(type_path) = elem.as_ref() else {
-
-                return Err(syn::Error::new_spanned(elem, "DPI output or inout type must be a mutable reference to a primitive integer type"));
+                return Err(syn::Error::new_spanned(
+                    elem,
+                    "DPI output or inout type must be a mutable reference to a primitive integer type",
+                ));
             };
-                Ok(DPIType::Inout(parse_dpi_primitive_type(type_path)?))
-        },
-        other => Err(syn::Error::new_spanned(other, "This type is not supported in DPI. Please use primitive integers or mutable references to them")),
+            Ok(DPIType::Inout(parse_dpi_primitive_type(type_path)?))
+        }
+        other => Err(syn::Error::new_spanned(
+            other,
+            "This type is not supported in DPI. Please use primitive integers or mutable references to them",
+        )),
     }
 }
 

@@ -12,7 +12,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 pub mod __reexports {
     pub use libc;
@@ -111,11 +111,11 @@ impl SpadeRuntime {
 
             if !swim_output.status.success() {
                 whatever!(
-            "Invocation of swim failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-            swim_output.status,
-            String::from_utf8(swim_output.stdout).unwrap_or_default(),
-            String::from_utf8(swim_output.stderr).unwrap_or_default()
-        );
+                    "Invocation of swim failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+                    swim_output.status,
+                    String::from_utf8(swim_output.stdout).unwrap_or_default(),
+                    String::from_utf8(swim_output.stderr).unwrap_or_default()
+                );
             }
         }
 

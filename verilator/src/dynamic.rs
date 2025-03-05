@@ -9,7 +9,7 @@ use std::{collections::HashMap, fmt};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{types, PortDirection};
+use crate::{PortDirection, types};
 
 pub struct DynamicVerilatedModel<'ctx> {
     pub(crate) ports: HashMap<String, (usize, PortDirection)>,
@@ -71,7 +71,9 @@ impl From<types::QData> for VerilatorValue {
 
 #[derive(Debug, Snafu)]
 pub enum DynamicVerilatedModelError {
-    #[snafu(display("Port {port} not found on verilated module {top_module}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"))]
+    #[snafu(display(
+        "Port {port} not found on verilated module {top_module}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"
+    ))]
     NoSuchPort {
         top_module: String,
         port: String,
