@@ -1,9 +1,26 @@
+[graph]
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-pc-windows-msvc",
+]
+all-features = true
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+skip = [
+  { crate = "hashbrown@0.14.5", reason = "dashmap@6.1.0 uses this old version" },
+  { crate = "syn@1.0.109", reason = "sv-parser-parser@0.13.3 uses this old version" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+
 [licenses]
 allow = ["MIT", "Apache-2.0", "MPL-2.0", "EUPL-1.2", "ISC", "Unicode-3.0"]
-exceptions = [
-  # we allow colog's LGPL because it is only used in GPL code
-  { allow = ["LGPL-3.0"], crate = "colog" },
-  { allow = ["GPL-3.0"], crate = "example-verilog-project" },
-  { allow = ["GPL-3.0"], crate = "example-spade-project" },
-]
 confidence-threshold = 1.0
