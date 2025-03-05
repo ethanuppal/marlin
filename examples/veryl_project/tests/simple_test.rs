@@ -12,19 +12,21 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::env;
-
 use example_veryl_project::Wire;
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    veryl::VerylRuntime,
+    veryl::{VerylRuntime, VerylRuntimeOptions},
 };
 use snafu::Whatever;
 
 #[test]
 #[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
-    let mut runtime = VerylRuntime::new()?;
+    let mut runtime = VerylRuntime::new(VerylRuntimeOptions {
+        call_veryl_build: true, /* warning: not thread safe! don't use if you
+                                 * have multiple tests */
+        ..Default::default()
+    })?;
 
     let mut main = runtime.create_model::<Wire>()?;
 

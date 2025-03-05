@@ -44,7 +44,7 @@ glob = { version = "0.3.2", default-features = false }
 file-guard = { version = "0.2.0", default-features = false }
 indicatif = { version = "0.17.11", default-features = false }
 dashmap = { version = "6.1.0", default-features = false }
-veryl-parser = "0.14.0"
+veryl-parser = { git = "https://github.com/veryl-lang/veryl", default-features = false }
 
 marlin-verilator = { path = "verilator", version = "0.2.1" }
 marlin-verilog = { path = "language-support/verilog", version = "0.2.1" }
