@@ -67,3 +67,26 @@ jobs:
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
         run: cargo test --package example-spade-project
+
+  test_veryl:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Verilator
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator
+          fi
+      - name: Install Veryl
+        run: |
+          cargo install verylup
+          verylup setup
+      - name: Test
+        run: cargo test --package example-veryl-project
