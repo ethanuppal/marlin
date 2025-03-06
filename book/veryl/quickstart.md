@@ -1,4 +1,4 @@
-# Spade Quickstart
+# Veryl Quickstart
 
 > [!NOTE]
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
@@ -43,7 +43,7 @@ Here's what our project will look like in the end:
     └── simple_test.rs
 ```
 
-In `main.spade` (which should already exist after running `swim init`), we'll write some simple Spade code:
+In `main.veryl`, we'll write some simple Veryl code:
 
 ```shell
 mkdir src
@@ -75,7 +75,7 @@ The only required crate is `marlin_veryl`, but I strongly recommend at this stag
 development to use `snafu`, which will display a human-readable error trace upon
 `Result::Err`.
 
-In the test file, we'll create the binding to our Spade module:
+In the test file, we'll create the binding to our Veryl module:
 ```shell
 mkdir tests
 vi tests/simple_test.rs
