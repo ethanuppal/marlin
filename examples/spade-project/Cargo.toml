@@ -11,5 +11,5 @@ license = "GPL-3.0"
 
 [dependencies]
 snafu.workspace = true
-colog.workspace = true
+env_logger.workspace = true
 marlin = { path = "../../", features = ["spade"] }

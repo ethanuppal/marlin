@@ -25,35 +25,27 @@ readme = "README.md"
 license = "MPL-2.0"
 
 [workspace.dependencies]
-# Implements ergonomic error handling and error report printing. I should be
-# able to replace this with my own error handling system.
+# see deny.toml for justification for all dependencies
 snafu = { version = "0.8.5", default-features = false, features = ["std"] }
-# Complete replacement for native path API but supporting UTF-8. This would be
-# too much effort to rewrite myself and implement all the methods that camino
-# does to make this a drop-in replacement everywhere.
 camino = { version = "1.1.9", default-features = false }
-# The canonical source for C types, needed when generating bindings from C to
-# Rust.
 libc = { version = "0.2.169", default-features = false }
-# The canonical dlopen solution with built-in safety.
 libloading = { version = "0.8.6", default-features = false }
-# 
-proc-macro2 = { version = "1.0.93", default-features = false }
-syn = { version = "2.0.96", features = ["full"] }
-quote = { version = "1.0.38", default-features = false }
-sv-parser = { version = "0.13.3", default-features = false }
-spade-parser = { version = "0.13.0", default-features = false }
-spade-ast = { version = "0.13.0", default-features = false }
 log = { version = "0.4.25", default-features = false }
-colog = { version = "1.3.0", default-features = false }
-argh = { version = "0.1.13", default-features = false }
+env_logger = { version = "0.11.6", default-features = false }
 toml = { version = "0.8.20", default-features = false, features = ["parse"] }
 owo-colors = { version = "4.1.0", default-features = false }
 glob = { version = "0.3.2", default-features = false }
 file-guard = { version = "0.2.0", default-features = false }
-indicatif = { version = "0.17.11", default-features = false }
 dashmap = { version = "6.1.0", default-features = false }
 veryl-parser = { git = "https://github.com/veryl-lang/veryl", default-features = false }
+
+proc-macro2 = { version = "1.0.93", default-features = false }
+syn = { version = "2.0.96", features = ["full"] }
+quote = { version = "1.0.38", default-features = false }
+
+sv-parser = { version = "0.13.3", default-features = false }
+spade-parser = { version = "0.13.0", default-features = false }
+spade-ast = { version = "0.13.0", default-features = false }
 
 marlin-verilator = { path = "verilator", version = "0.2.1" }
 marlin-verilog = { path = "language-support/verilog", version = "0.2.1" }

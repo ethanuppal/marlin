@@ -11,5 +11,4 @@ license = "GPL-3.0"
 
 [dependencies]
 snafu.workspace = true
-colog.workspace = true
 marlin = { path = "../../", features = ["veryl"] }
