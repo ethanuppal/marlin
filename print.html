@@ -2663,14 +2663,14 @@ pub struct Wire;
 <p>This tells Marlin that the <code>struct Wire</code> should be linked to the <code>Wire</code> module
 in our Veryl file. You can instead put this in your <code>lib.rs</code> file if you prefer.</p>
 <p>Finally, we'll want to actually write the code that drives our hardware in <code>simple_test.rs</code>:</p>
-<pre><code class="language-shell">mkdir tests
-vi tests/simple_test.rs
-</code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// file: tests/simple_test.rs
-use marlin_veryl::{VerylRuntime, VerylRuntimeOptions};
+use marlin_veryl::prelude::*;
 use snafu::Whatever;
+
+#[veryl(src = "src/main.veryl", name = "Wire")]
+pub struct Wire;
 
 #[test]
 #[snafu::report]
