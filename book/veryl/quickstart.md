@@ -94,15 +94,13 @@ in our Veryl file. You can instead put this in your `lib.rs` file if you prefer.
 
 Finally, we'll want to actually write the code that drives our hardware in `simple_test.rs`:
 
-```shell
-mkdir tests
-vi tests/simple_test.rs
-```
-
 ```rust
 // file: tests/simple_test.rs
-use marlin_veryl::{VerylRuntime, VerylRuntimeOptions};
+use marlin_veryl::prelude::*;
 use snafu::Whatever;
+
+#[veryl(src = "src/main.veryl", name = "Wire")]
+pub struct Wire;
 
 #[test]
 #[snafu::report]
