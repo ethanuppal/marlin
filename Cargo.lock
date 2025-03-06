@@ -272,7 +272,7 @@ dependencies = [
 name = "example-veryl-project"
 version = "0.2.1"
 dependencies = [
- "marlin",
+ "marlin-veryl",
  "snafu",
 ]
 
