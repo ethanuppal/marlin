@@ -23,9 +23,9 @@ macro_rules! test {
         #[test]
         #[snafu::report]
         fn $name() -> Result<(), Whatever> {
-            if stringify!($name) == "colog_test" {
-                if env::var("COLOG").is_ok() {
-                    colog::init();
+            if stringify!($name) == "verbose_test" {
+                if env::var("RUST_LOG").is_ok() {
+                    env_logger::init();
                 }
             }
 
@@ -51,7 +51,7 @@ macro_rules! test {
     };
 }
 
-test!(colog_test);
+test!(verbose_test);
 test!(first_test);
 test!(second_test);
 test!(third_test);

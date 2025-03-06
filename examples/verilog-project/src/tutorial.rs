@@ -25,8 +25,8 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("COLOG").is_ok() {
-        colog::init();
+    if env::var("RUST_LOG").is_ok() {
+        env_logger::init();
     }
 
     let mut runtime = VerilatorRuntime::new(

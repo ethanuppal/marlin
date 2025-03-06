@@ -42,11 +42,10 @@ jobs:
         run: |
           cd examples/verilog-project
           for i in $(seq 1 20); do
-            rm -rf artifacts # the simple_tset tests use the artifacts directory
+            rm -rf artifacts # the simple_test tests use the artifacts directory
             cargo test --package example-verilog-project --test simple_test
           done
 
-      
   test_spade:
     strategy:
       matrix:
