@@ -25,6 +25,7 @@ Here's what our project will look like in the end:
 ```
 .
 ├── Cargo.toml
+├── Cargo.lock
 ├── .gitignore
 ├── src
 │   ├── lib.rs

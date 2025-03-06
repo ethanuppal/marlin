@@ -24,7 +24,7 @@ existing Rust ecosystem.
 
 ## Features
 
-Marlin comes with prebuilt integration for (System)Verilog and [Spade][spade], and offers:
+Marlin comes with prebuilt integration for (System)Verilog and [Spade][spade] (with experimental [Veryl][veryl] support), and offers:
 
 - A declarative API for writing tests in plain Rust, treating the hardware
   models as normal `struct`s with fields and member functions ([learn more](./verilog/quickstart.md)).
@@ -39,10 +39,10 @@ You can also [call Rust functions](./verilog/dpi.md) from Verilog.
 
 Planned features include:
 
-- Ports wider than 64 bits ([#7](https://github.com/ethanuppal/marlin/issues/7))
-- Static linking + build scripts as an option ([#23](https://github.com/ethanuppal/marlin/issues/23))
-- Supporting the [Calyx intermediate language][calyx] ([#8](https://github.com/ethanuppal/marlin/issues/8))
-- Supporting the [Veryl HDL][veryl] ([#8](https://github.com/ethanuppal/marlin/issues/6))
+- [ ] Ports wider than 64 bits ([#7](https://github.com/ethanuppal/marlin/issues/7))
+- [ ] Static linking + build scripts as an option ([#23](https://github.com/ethanuppal/marlin/issues/23))
+- [ ] Supporting the [Calyx intermediate language][calyx] ([#8](https://github.com/ethanuppal/marlin/issues/8))
+- [x] Supporting the [Veryl HDL][veryl] ([#8](https://github.com/ethanuppal/marlin/issues/6))
 
 [verilator]: https://www.veripool.org/verilator/
 [cocotb]: https://www.cocotb.org

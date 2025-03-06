@@ -22,6 +22,7 @@ Here's what our project will look like in the end:
 ```
 .
 ├── Cargo.toml
+├── Cargo.lock
 ├── .gitignore
 ├── src
 │   ├── lib.rs
@@ -83,9 +84,10 @@ pub struct Main;
 This tells Marlin that the `struct Main` should be linked to the `main` module
 in our Verilog file.
 
-It's not necessary to even use the `lib.rs` -- you can put `marlin` in your
-`[dev-dependencies]` section in `Cargo.toml` and construct the bindings directly
-in your test files.
+> [!HELP]
+> It's not necessary to even use the `lib.rs` -- you can put `marlin` in your
+> `[dev-dependencies]` section in `Cargo.toml` and construct the bindings directly
+> in your test files.
 
 Finally, we'll want to actually write the code that drives our project in `simple_test.rs`:
 

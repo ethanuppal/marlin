@@ -6,7 +6,7 @@
 In this tutorial, we'll setup a Spade project and test our code with
 Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/spade-project).
 
-I'll be assuming you've read the [tutorial on testing Verilog projects](../verilog/quickstart.md); if not, read that first and come back.
+**I'll be assuming you've read the [tutorial on testing Verilog projects](../verilog/quickstart.md); if not, read that first and come back.**
 
 Also, make sure you have a Spade toolchain installed, although we'll only be using the Swim build tool
 (follow the instructions [here](https://docs.spade-lang.org/swim/install.html)
@@ -64,22 +64,11 @@ cargo init --lib
 cargo add marlin --features spade --dev
 cargo add snafu --dev
 ```
+The only required crate is `marlin`, but I strongly recommend at this stage of
+development to use `snafu`, which will display a human-readable error trace upon
+`Result::Err`.
 
-In the `lib.rs`, we'll create the binding to our Spade module:
-
-```rust
-// file: src/lib.rs
-use marlin::spade::prelude::*;
-
-#[spade(src = "src/main.spade", name = "main")]
-pub struct Main;
-```
-
-This tells Marlin that the `struct Main` should be linked to the `main` entity
-in our Spade file.
-
-Finally, we'll want to actually write the code that drives our hardware in `simple_test.rs`:
-
+In the test file, we'll create the binding to our Spade module:
 ```shell
 mkdir tests
 vi tests/simple_test.rs
@@ -87,7 +76,19 @@ vi tests/simple_test.rs
 
 ```rust
 // file: tests/simple_test.rs
-use tutorial_project::Main;
+use marlin::spade::prelude::*;
+
+#[spade(src = "src/main.spade", name = "main")]
+pub struct Main;
+```
+
+This tells Marlin that the `struct Main` should be linked to the `main` entity
+in our Spade file. You can instead put this in your `lib.rs` file if you prefer.
+
+Finally, we'll want to actually write the code that drives our hardware:
+
+```rust
+// file: tests/simple_test.rs
 use marlin::spade::prelude::*;
 use snafu::Whatever;
 
@@ -108,7 +109,7 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-Finally, we can simply use `cargo test` to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the spade compiler.
+Finally, we can simply use `cargo test` to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the Spade compiler.
 
 > [!WARNING]
 > By default, `SpadeRuntime` invokes `swim build`, which is not thread-safe. If
