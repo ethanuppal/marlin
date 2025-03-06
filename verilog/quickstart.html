@@ -442,6 +442,7 @@ git init # optional, if using git
 <p>Here's what our project will look like in the end:</p>
 <pre><code>.
 ├── Cargo.toml
+├── Cargo.lock
 ├── .gitignore
 ├── src
 │   ├── lib.rs
@@ -488,9 +489,15 @@ pub struct Main;
 <span class="boring">}</span></code></pre></pre>
 <p>This tells Marlin that the <code>struct Main</code> should be linked to the <code>main</code> module
 in our Verilog file.</p>
+<div class="mdbook-callouts mdbook-callouts-help">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  help
+</p>
 <p>It's not necessary to even use the <code>lib.rs</code> -- you can put <code>marlin</code> in your
 <code>[dev-dependencies]</code> section in <code>Cargo.toml</code> and construct the bindings directly
 in your test files.</p>
+</div>
 <p>Finally, we'll want to actually write the code that drives our project in <code>simple_test.rs</code>:</p>
 <pre><code class="language-shell">mkdir tests
 vi tests/simple_test.rs

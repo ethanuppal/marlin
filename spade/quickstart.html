@@ -431,7 +431,7 @@
 </div>
 <p>In this tutorial, we'll setup a Spade project and test our code with
 Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/spade-project">here</a>.</p>
-<p>I'll be assuming you've read the <a href="../verilog/quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.</p>
+<p><strong>I'll be assuming you've read the <a href="../verilog/quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.</strong></p>
 <p>Also, make sure you have a Spade toolchain installed, although we'll only be using the Swim build tool
 (follow the instructions <a href="https://docs.spade-lang.org/swim/install.html">here</a>
 to install it).</p>
@@ -479,23 +479,25 @@ its outputs.</p>
 cargo add marlin --features spade --dev
 cargo add snafu --dev
 </code></pre>
-<p>In the <code>lib.rs</code>, we'll create the binding to our Spade module:</p>
+<p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
+development to use <code>snafu</code>, which will display a human-readable error trace upon
+<code>Result::Err</code>.</p>
+<p>In the test file, we'll create the binding to our Spade module:</p>
+<pre><code class="language-shell">mkdir tests
+vi tests/simple_test.rs
+</code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>// file: src/lib.rs
+</span>// file: tests/simple_test.rs
 use marlin::spade::prelude::*;
 
 #[spade(src = "src/main.spade", name = "main")]
 pub struct Main;
 <span class="boring">}</span></code></pre></pre>
 <p>This tells Marlin that the <code>struct Main</code> should be linked to the <code>main</code> entity
-in our Spade file.</p>
-<p>Finally, we'll want to actually write the code that drives our hardware in <code>simple_test.rs</code>:</p>
-<pre><code class="language-shell">mkdir tests
-vi tests/simple_test.rs
-</code></pre>
+in our Spade file. You can instead put this in your <code>lib.rs</code> file if you prefer.</p>
+<p>Finally, we'll want to actually write the code that drives our hardware:</p>
 <pre><pre class="playground"><code class="language-rust">// file: tests/simple_test.rs
-use tutorial_project::Main;
 use marlin::spade::prelude::*;
 use snafu::Whatever;
 
@@ -514,7 +516,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
 
     Ok(())
 }</code></pre></pre>
-<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the spade compiler.</p>
+<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the Spade compiler.</p>
 <div class="mdbook-callouts mdbook-callouts-warning">
 <p class="mdbook-callouts-title">
   <span class="mdbook-callouts-icon"></span>
@@ -539,6 +541,9 @@ though.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="../veryl/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -550,6 +555,9 @@ though.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="../veryl/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

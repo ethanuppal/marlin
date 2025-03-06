@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Calling Rust from Verilog - Marlin Handbook</title>
+        <title>Veryl Quickstart - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -421,7 +421,7 @@
 }
 
 </style>
-<h1 id="calling-rust-from-verilog"><a class="header" href="#calling-rust-from-verilog">Calling Rust from Verilog</a></h1>
+<h1 id="veryl-quickstart"><a class="header" href="#veryl-quickstart">Veryl Quickstart</a></h1>
 <div class="mdbook-callouts mdbook-callouts-note">
 <p class="mdbook-callouts-title">
   <span class="mdbook-callouts-icon"></span>
@@ -429,125 +429,124 @@
 </p>
 <p>This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.</p>
 </div>
-<p>In this tutorial, we'll setup a SystemVerilog project and test our code with
-Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project">here</a> (see in particular the <code>dpi_tutorial.rs</code> file).</p>
-<p>I'll be assuming you've read the <a href="./quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.
-In particular, I won't be reexplaining things I discussed in that tutorial,
-although I will still walk through the entire setup.</p>
-<h2 id="part-1-setup"><a class="header" href="#part-1-setup">Part 1: Setup</a></h2>
-<p>Let's call our project "tutorial-project" (you are free to call it however you
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Veryl support is still experimental. For example, you cannot use the <code>marlin</code>
+crate directly and instead must use <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#specifying-dependencies-from-git-repositories"><code>git</code>
+dependencies</a>.</p>
+</div>
+<p>In this tutorial, we'll setup a Veryl project and test our code with
+Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/veryl_project">here</a>.</p>
+<p><strong>I'll be assuming you've read the <a href="../verilog/quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.</strong></p>
+<p>Also, make sure you have a <a href="https://veryl-lang.org/install/">Veryl toolchain installed</a>.</p>
+<div class="mdbook-callouts mdbook-callouts-note">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  note
+</p>
+<p>If you already have a Veryl project and are looking to integrate Marlin into
+it, you don't need to read Part 1 too carefully.</p>
+</div>
+<h2 id="part-1-making-a-veryl-project"><a class="header" href="#part-1-making-a-veryl-project">Part 1: Making a Veryl Project</a></h2>
+<p>Let's call our project "tutorial_project" (you are free to call it however you
 like):</p>
-<pre><code class="language-shell">mkdir tutorial-project
+<pre><code class="language-shell">veryl new tutorial_project
 cd tutorial-project
 git init # optional, if using git
 </code></pre>
 <p>Here's what our project will look like in the end:</p>
-<pre><code>.
+<pre><code class="language-.">├── Veryl.toml
+├── Veryl.lock
 ├── Cargo.toml
 ├── Cargo.lock
-├── .gitignore
 ├── src
-│   ├── lib.rs
-│   ├── dpi.sv
+│   ├── lib.rs
+│   └── main.veryl
 └── tests
-    └── dpi_test.rs
+    └── simple_test.rs
 </code></pre>
-<p>We'll have a simple SystemVerilog module that writes the result of <code>three</code>, a DPI function with a single integer output.</p>
+<p>In <code>main.veryl</code>, we'll write some simple Veryl code:</p>
 <pre><code class="language-shell">mkdir src
-vi src/dpi.sv
+vi src/main.veryl
 </code></pre>
-<pre><code class="language-systemverilog">// file: src/dpi.sv
-import "DPI-C" function void three(output int out);
-
-module main(output logic[31:0] out);
-    int a = 0;
-    initial begin
-        three(a);
-        $display("%d", a);
-        out = a;
-    end
-endmodule
+<pre><code class="language-systemverilog">// file: src/main.veryl
+module Wire(
+    medium_input: input logic&lt;32&gt;,
+    medium_output: output logic&lt;32&gt;
+) {
+    assign medium_output = medium_input;
+}
 </code></pre>
-<h2 id="part-2-testing"><a class="header" href="#part-2-testing">Part 2: Testing</a></h2>
-<p>We'll create a new Rust project:</p>
+<p>You can read the <a href="https://doc.veryl-lang.org/book/01_introduction.html">Veryl book</a> for an
+introduction to Veryl; this tutorial will not focus on teaching the language. If
+you know Verilog, the code should feel very familiar.</p>
+<h2 id="part-2-setting-up-marlin"><a class="header" href="#part-2-setting-up-marlin">Part 2: Setting up Marlin</a></h2>
 <pre><code class="language-shell">cargo init --lib
-</code></pre>
-<p>Next, we'll add Marlin and other desired dependencies.</p>
-<pre><code class="language-shell">cargo add marlin --features verilog --dev
+cargo add marlin-veryl --git https://github.com/ethanuppal/marlin --rev c71ed55c6d38a3e2738553bc0a9f64669f0cae2b --dev
 cargo add snafu --dev
 </code></pre>
-<p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
+<p>The only required crate is <code>marlin_veryl</code>, but I strongly recommend at this stage of
+development to use <code>snafu</code>, which will display a human-readable error trace upon
+<code>Result::Err</code>.</p>
+<p>In the test file, we'll create the binding to our Veryl module:</p>
 <pre><code class="language-shell">mkdir tests
-vi tests/dpi_test.rs
+vi tests/simple_test.rs
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
-use snafu::Whatever;
-use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    verilog::prelude::*,
-};
-
-#[verilog::dpi]
-pub extern "C" fn three(out: &amp;mut u32) {
-    *out = 3;
-}
-
-#[verilog(src = "src/dpi.sv", name = "main")]
-struct Main;
-
-#[snafu::report]
-fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &amp;["src/dpi.sv".as_ref()],
-        &amp;[],
-        [three],
-        VerilatorRuntimeOptions::default(),
-    )?;
-
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
-    main.eval();
-    assert_eq!(main.out, 3);
-
-    Ok(())
-}</code></pre></pre>
-<p>We can <code>cargo run</code> as usual to test.</p>
-<p>The magic happens here:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>#[verilog::dpi]
-pub extern fn three(out: &amp;mut u32) {
-    *out = 3;
+</span>// file: tests/simple_test.rs
+use marlin_veryl::prelude::*;
+
+#[veryl(src = "src/main.veryl", name = "Wire")]
+pub struct Wire;
+<span class="boring">}</span></code></pre></pre>
+<p>This tells Marlin that the <code>struct Wire</code> should be linked to the <code>Wire</code> module
+in our Veryl file. You can instead put this in your <code>lib.rs</code> file if you prefer.</p>
+<p>Finally, we'll want to actually write the code that drives our hardware in <code>simple_test.rs</code>:</p>
+<pre><code class="language-shell">mkdir tests
+vi tests/simple_test.rs
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// file: tests/simple_test.rs
+use marlin_veryl::{VerylRuntime, VerylRuntimeOptions};
+use snafu::Whatever;
+
+#[test]
+#[snafu::report]
+fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
+    let mut runtime = VerylRuntime::new(VerylRuntimeOptions {
+        call_veryl_build: true, /* warning: not thread safe! don't use if you
+                                 * have multiple tests */
+        ..Default::default()
+    })?;
+
+    let mut main = runtime.create_model::&lt;Wire&gt;()?;
+
+    main.medium_input = u32::MAX;
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, 0);
+    main.eval();
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, u32::MAX);
+
+    Ok(())
 }
 <span class="boring">}</span></code></pre></pre>
-<p>By applying <code>#[verilog::dpi]</code>, we turn our normal Rust function into a DPI one.
-We need to apply <code>pub</code> and <code>extern</code> (or <code>extern "C"</code>) so that Rust
-exposes the function correctly to C.</p>
-<p>DPI functions cannot have a return value and only take primitive integers (for <code>input</code>) or mutable references to primitive integers (for <code>output</code>/<code>inout</code>) as
-arguments. Beside that, there are no restrictions on the content --- write
-whatever Rust code you want!</p>
-<p>Then, we told the runtime about this function:</p>
-<pre><code class="language-diff">    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &amp;["src/dpi.sv".as_ref()],
-        &amp;[],
--       [],
-+       [three],
-        VerilatorRuntimeOptions::default(),
-        true,
-    )?;
-
-</code></pre>
+<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Veryl project by invoking the Veryl compiler.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../verilog/dynamic.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../spade/quickstart.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../name.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -557,11 +556,11 @@ whatever Rust code you want!</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../verilog/dynamic.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../spade/quickstart.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../name.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

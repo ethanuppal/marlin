@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Calling Rust from Verilog - Marlin Handbook</title>
+        <title>Name - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -12,32 +12,32 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
-        <link rel="stylesheet" href="../css/print.css" media="print">
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../highlight.css">
-        <link rel="stylesheet" href="../tomorrow-night.css">
-        <link rel="stylesheet" href="../ayu-highlight.css">
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
 
 
         <!-- Provide site root to javascript -->
         <script>
-            var path_to_root = "../";
+            var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="toc.js"></script>
     </head>
     <body>
     <div id="body-container">
@@ -89,7 +89,7 @@
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
-                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -123,7 +123,7 @@
                     <h1 class="menu-title">Marlin Handbook</h1>
 
                     <div class="right-buttons">
-                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
 
@@ -421,135 +421,20 @@
 }
 
 </style>
-<h1 id="calling-rust-from-verilog"><a class="header" href="#calling-rust-from-verilog">Calling Rust from Verilog</a></h1>
-<div class="mdbook-callouts mdbook-callouts-note">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  note
-</p>
-<p>This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.</p>
+<h1 id="name"><a class="header" href="#name">Name</a></h1>
+<p>Marlin are fish that can swim pretty fast<sup class="footnote-reference"><a href="#1">1</a></sup>.</p>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>https://pmc.ncbi.nlm.nih.gov/articles/PMC5087677/</p>
 </div>
-<p>In this tutorial, we'll setup a SystemVerilog project and test our code with
-Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/verilog-project">here</a> (see in particular the <code>dpi_tutorial.rs</code> file).</p>
-<p>I'll be assuming you've read the <a href="./quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.
-In particular, I won't be reexplaining things I discussed in that tutorial,
-although I will still walk through the entire setup.</p>
-<h2 id="part-1-setup"><a class="header" href="#part-1-setup">Part 1: Setup</a></h2>
-<p>Let's call our project "tutorial-project" (you are free to call it however you
-like):</p>
-<pre><code class="language-shell">mkdir tutorial-project
-cd tutorial-project
-git init # optional, if using git
-</code></pre>
-<p>Here's what our project will look like in the end:</p>
-<pre><code>.
-├── Cargo.toml
-├── Cargo.lock
-├── .gitignore
-├── src
-│   ├── lib.rs
-│   ├── dpi.sv
-└── tests
-    └── dpi_test.rs
-</code></pre>
-<p>We'll have a simple SystemVerilog module that writes the result of <code>three</code>, a DPI function with a single integer output.</p>
-<pre><code class="language-shell">mkdir src
-vi src/dpi.sv
-</code></pre>
-<pre><code class="language-systemverilog">// file: src/dpi.sv
-import "DPI-C" function void three(output int out);
-
-module main(output logic[31:0] out);
-    int a = 0;
-    initial begin
-        three(a);
-        $display("%d", a);
-        out = a;
-    end
-endmodule
-</code></pre>
-<h2 id="part-2-testing"><a class="header" href="#part-2-testing">Part 2: Testing</a></h2>
-<p>We'll create a new Rust project:</p>
-<pre><code class="language-shell">cargo init --lib
-</code></pre>
-<p>Next, we'll add Marlin and other desired dependencies.</p>
-<pre><code class="language-shell">cargo add marlin --features verilog --dev
-cargo add snafu --dev
-</code></pre>
-<p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
-<pre><code class="language-shell">mkdir tests
-vi tests/dpi_test.rs
-</code></pre>
-<pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
-use snafu::Whatever;
-use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    verilog::prelude::*,
-};
-
-#[verilog::dpi]
-pub extern "C" fn three(out: &amp;mut u32) {
-    *out = 3;
-}
-
-#[verilog(src = "src/dpi.sv", name = "main")]
-struct Main;
-
-#[snafu::report]
-fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &amp;["src/dpi.sv".as_ref()],
-        &amp;[],
-        [three],
-        VerilatorRuntimeOptions::default(),
-    )?;
-
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
-    main.eval();
-    assert_eq!(main.out, 3);
-
-    Ok(())
-}</code></pre></pre>
-<p>We can <code>cargo run</code> as usual to test.</p>
-<p>The magic happens here:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[verilog::dpi]
-pub extern fn three(out: &amp;mut u32) {
-    *out = 3;
-}
-<span class="boring">}</span></code></pre></pre>
-<p>By applying <code>#[verilog::dpi]</code>, we turn our normal Rust function into a DPI one.
-We need to apply <code>pub</code> and <code>extern</code> (or <code>extern "C"</code>) so that Rust
-exposes the function correctly to C.</p>
-<p>DPI functions cannot have a return value and only take primitive integers (for <code>input</code>) or mutable references to primitive integers (for <code>output</code>/<code>inout</code>) as
-arguments. Beside that, there are no restrictions on the content --- write
-whatever Rust code you want!</p>
-<p>Then, we told the runtime about this function:</p>
-<pre><code class="language-diff">    let mut runtime = VerilatorRuntime::new(
-        "artifacts".into(),
-        &amp;["src/dpi.sv".as_ref()],
-        &amp;[],
--       [],
-+       [three],
-        VerilatorRuntimeOptions::default(),
-        true,
-    )?;
-
-</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../verilog/dynamic.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="veryl/quickstart.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -557,13 +442,10 @@ whatever Rust code you want!</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../verilog/dynamic.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="veryl/quickstart.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
@@ -576,17 +458,17 @@ whatever Rust code you want!</p>
         </script>
 
 
-        <script src="../elasticlunr.min.js"></script>
-        <script src="../mark.min.js"></script>
-        <script src="../searcher.js"></script>
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="../book/js/verilog-highlight.js"></script>
-        <script src="../book/js/spade-highlight.js"></script>
+        <script src="book/js/verilog-highlight.js"></script>
+        <script src="book/js/spade-highlight.js"></script>
 
 
     </div>
