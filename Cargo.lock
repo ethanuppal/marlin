@@ -479,8 +479,6 @@ dependencies = [
  "marlin-verilog",
  "marlin-verilog-macro",
  "marlin-verilog-macro-builder",
- "marlin-veryl",
- "marlin-veryl-macro",
 ]
 
 [[package]]
@@ -1484,7 +1482,7 @@ checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 [[package]]
 name = "veryl-parser"
 version = "0.14.1"
-source = "git+https://github.com/veryl-lang/veryl#a175bf9646548d082e22cd46c838c6976ab23c8c"
+source = "git+https://github.com/veryl-lang/veryl?rev=6153e69c6659a543f08178e80dd0dab1367f0d0e#6153e69c6659a543f08178e80dd0dab1367f0d0e"
 dependencies = [
  "anyhow",
  "bimap",

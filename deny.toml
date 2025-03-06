@@ -11,10 +11,14 @@ all-features = true
 
 [bans]
 multiple-versions = "deny"
-wildcards = "deny"
+wildcards = "deny" # todo: use Veryl crates.io dependency
 skip = [
   { crate = "hashbrown@0.14.5", reason = "dashmap@6.1.0 uses this old version" },
   { crate = "syn@1.0.109", reason = "sv-parser-parser@0.13.3 uses this old version" },
+  # recomment once veryl is readded as a crates.io dependency
+  # { crate = "unicode-width@0.1.14", reason = "veryl-parser@0.14.1 uses this old version" },
+  # { crate = "thiserror-impl@1.0.69", reason = "veryl-parser@0.14.1 uses this old version" },
+  # { crate = "thiserror@1.0.69", reason = "veryl-parser@0.14.1 uses this old version" },
 ]
 # allow = [
 #   { crate = "snafu", reason = "Implements ergonomic error handling and error report printing. I should be able to replace this with my own error handling system." },
@@ -132,7 +136,10 @@ skip = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-allow-git = []
+required-git-spec = "rev"
+
+[sources.allow-org]
+github = ["veryl-lang"]
 
 [licenses]
 allow = ["MIT", "Apache-2.0", "MPL-2.0", "EUPL-1.2", "ISC", "Unicode-3.0"]
