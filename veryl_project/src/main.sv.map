@@ -1,1 +1,0 @@
-{"version":3,"file":"main.sv.map","sources":["main.veryl"],"names":["","module","Wire","(","input","logic","[","32","]","medium_input",",","output","medium_output",")",";","always_comb","=","endmodule"],"mappings":"AAAAA,AAAAC,qBAAOC,KAAIC;IACOC,OAAMC,MAAKC,CAACC,MAAEC,EAA5BC,aAA6BC;IACdC,OAAON,MAAKC,CAACC,MAAEC,EAA9BI;AACJC,CAAEC;IACEC,YAAOH,cAAcI,EAAEP,YAAYK;AACvCG"}
