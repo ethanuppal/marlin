@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/ethanuppal/marlin/compare/v0.2.1...v0.3.0) (2025-03-06)
+
+
+### Features
+
+* **veryl:** Initial Veryl support ([#57](https://github.com/ethanuppal/marlin/issues/57)) ([7290f17](https://github.com/ethanuppal/marlin/commit/7290f173f0afe9758e28ff955c38cf0473ce37ed))
+
 ## [0.2.1](https://github.com/ethanuppal/marlin/compare/v0.2.0...v0.2.1) (2025-02-24)
 
 
