@@ -37,7 +37,7 @@ owo-colors = { version = "4.1.0", default-features = false }
 glob = { version = "0.3.2", default-features = false }
 file-guard = { version = "0.2.0", default-features = false }
 dashmap = { version = "6.1.0", default-features = false }
-veryl-parser = { git = "https://github.com/veryl-lang/veryl", default-features = false, rev = "6153e69c6659a543f08178e80dd0dab1367f0d0e" }
+veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
 proc-macro2 = { version = "1.0.93", default-features = false }
 syn = { version = "2.0.96", features = ["full"] }
@@ -83,5 +83,5 @@ marlin-verilog-macro.workspace = true
 marlin-verilog-macro-builder.workspace = true
 marlin-spade.workspace = true
 marlin-spade-macro.workspace = true
-# marlin-veryl.workspace = true
-# marlin-veryl-macro.workspace = true
+marlin-veryl.workspace = true
+marlin-veryl-macro.workspace = true

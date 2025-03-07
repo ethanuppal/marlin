@@ -479,6 +479,8 @@ dependencies = [
  "marlin-verilog",
  "marlin-verilog-macro",
  "marlin-verilog-macro-builder",
+ "marlin-veryl",
+ "marlin-veryl-macro",
 ]
 
 [[package]]
@@ -1481,8 +1483,9 @@ checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "veryl-parser"
-version = "0.14.1"
-source = "git+https://github.com/veryl-lang/veryl?rev=6153e69c6659a543f08178e80dd0dab1367f0d0e#6153e69c6659a543f08178e80dd0dab1367f0d0e"
+version = "0.14.2-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b77e013cd15bc16637e3037da20d3b92abb88db72334ad13004cda7f565dead"
 dependencies = [
  "anyhow",
  "bimap",
