@@ -13,3 +13,7 @@ license = "GPL-3.0"
 snafu.workspace = true
 env_logger.workspace = true
 marlin = { path = "../../", features = ["spade"] }
+
+[package.metadata.release]
+release = false
+publish = false

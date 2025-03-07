@@ -12,3 +12,7 @@ license = "GPL-3.0"
 [dependencies]
 snafu.workspace = true
 marlin = { path = "../..", features = ["veryl"] }
+
+[package.metadata.release]
+release = false
+publish = false
