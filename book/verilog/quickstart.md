@@ -71,6 +71,9 @@ The only required crate is `marlin`, but I strongly recommend at this stage of
 development to use `snafu`, which will display a human-readable error trace upon
 `Result::Err`.
 
+> [!CAUTION]
+> Please use `snafu`! 😂
+
 In the `lib.rs`, we'll create the binding to our Verilog module:
 
 ```rust

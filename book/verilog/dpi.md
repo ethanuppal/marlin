@@ -70,6 +70,9 @@ cargo add marlin --features verilog --dev
 cargo add snafu --dev
 ```
 
+> [!CAUTION]
+> Please use `snafu`! 😂
+
 Finally, we need the Rust file where we define the DPI function and drive the model.
 
 ```shell

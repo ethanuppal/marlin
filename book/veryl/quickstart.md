@@ -4,9 +4,7 @@
 > This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.
 
 > [!CAUTION]
-> Veryl support is still experimental. For example, you cannot use the `marlin`
-> crate directly and instead must use [`git`
-> dependencies](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#specifying-dependencies-from-git-repositories).
+> Veryl support is still experimental.
 
 In this tutorial, we'll setup a Veryl project and test our code with
 Marlin. You can find the full source code for this tutorial [here](https://github.com/ethanuppal/marlin/tree/main/examples/veryl_project).
@@ -68,12 +66,15 @@ you know Verilog, the code should feel very familiar.
 
 ```shell
 cargo init --lib
-cargo add marlin-veryl --git https://github.com/ethanuppal/marlin --rev c71ed55c6d38a3e2738553bc0a9f64669f0cae2b --dev
+cargo add marlin --features veryl --dev
 cargo add snafu --dev
 ```
-The only required crate is `marlin_veryl`, but I strongly recommend at this stage of
+The only required crate is `marlin`, but I strongly recommend at this stage of
 development to use `snafu`, which will display a human-readable error trace upon
 `Result::Err`.
+
+> [!CAUTION]
+> Please use `snafu`! 😂
 
 In the test file, we'll create the binding to our Veryl module:
 ```shell
@@ -83,7 +84,7 @@ vi tests/simple_test.rs
 
 ```rust
 // file: tests/simple_test.rs
-use marlin_veryl::prelude::*;
+use marlin::veryl::prelude::*;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
 pub struct Wire;
@@ -96,7 +97,7 @@ Finally, we'll want to actually write the code that drives our hardware in `simp
 
 ```rust
 // file: tests/simple_test.rs
-use marlin_veryl::prelude::*;
+use marlin::veryl::prelude::*;
 use snafu::Whatever;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]

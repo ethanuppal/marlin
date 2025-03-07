@@ -65,6 +65,9 @@ cargo add marlin --dev # no features sneeded
 cargo add snafu --dev
 ```
 
+> [!CAUTION]
+> Please use `snafu`! 😂
+
 We will illustrate using dynamic models by implementing the exact same test as
 we did in the [Verilog quickstart](./quickstart.md).
 
