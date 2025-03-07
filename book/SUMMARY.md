@@ -17,4 +17,7 @@
 
 ---
 
-- [Name](name.md)
+# Internal
+
+- [Name](internal/name.md)
+- [Release Process](internal/release-process.md)
