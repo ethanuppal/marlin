@@ -21,6 +21,6 @@ pub use marlin_verilog as verilog;
 pub use marlin_spade as spade;
 
 #[doc(inline)]
-#[cfg_attr(docsrs, doc(cfg(feature = "very")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "veryl")))]
 #[cfg(feature = "veryl")]
 pub use marlin_veryl as veryl;

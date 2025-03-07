@@ -9,16 +9,18 @@ targets = [
 ]
 all-features = true
 
+[advisories]
+ignore = ["RUSTSEC-2024-0436"]
+
 [bans]
 multiple-versions = "deny"
-wildcards = "deny" # todo: use Veryl crates.io dependency
+wildcards = "deny"
 skip = [
   { crate = "hashbrown@0.14.5", reason = "dashmap@6.1.0 uses this old version" },
   { crate = "syn@1.0.109", reason = "sv-parser-parser@0.13.3 uses this old version" },
-  # recomment once veryl is readded as a crates.io dependency
-  # { crate = "unicode-width@0.1.14", reason = "veryl-parser@0.14.1 uses this old version" },
-  # { crate = "thiserror-impl@1.0.69", reason = "veryl-parser@0.14.1 uses this old version" },
-  # { crate = "thiserror@1.0.69", reason = "veryl-parser@0.14.1 uses this old version" },
+  { crate = "unicode-width@0.1.14", reason = "veryl-parser@0.14.2-rc.1 uses this old version" },
+  { crate = "thiserror-impl@1.0.69", reason = "veryl-parser@0.14.2-rc.1 uses this old version" },
+  { crate = "thiserror@1.0.69", reason = "veryl-parser@0.14.2-rc.2 uses this old version" },
 ]
 # allow = [
 #   { crate = "snafu", reason = "Implements ergonomic error handling and error report printing. I should be able to replace this with my own error handling system." },
