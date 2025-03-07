@@ -1075,6 +1075,13 @@ cargo add snafu --dev
 <p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
 development to use <code>snafu</code>, which will display a human-readable error trace upon
 <code>Result::Err</code>.</p>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Please use <code>snafu</code>! 😂</p>
+</div>
 <p>In the <code>lib.rs</code>, we'll create the binding to our Verilog module:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -1482,6 +1489,13 @@ endmodule
 <pre><code class="language-shell">cargo add marlin --dev # no features sneeded
 cargo add snafu --dev
 </code></pre>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Please use <code>snafu</code>! 😂</p>
+</div>
 <p>We will illustrate using dynamic models by implementing the exact same test as
 we did in the <a href="verilog/./quickstart.html">Verilog quickstart</a>.</p>
 <p>The code for dynamic models is slightly more verbose.
@@ -1867,6 +1881,13 @@ endmodule
 <pre><code class="language-shell">cargo add marlin --features verilog --dev
 cargo add snafu --dev
 </code></pre>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Please use <code>snafu</code>! 😂</p>
+</div>
 <p>Finally, we need the Rust file where we define the DPI function and drive the model.</p>
 <pre><code class="language-shell">mkdir tests
 vi tests/dpi_test.rs
@@ -2259,6 +2280,13 @@ cargo add snafu --dev
 <p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
 development to use <code>snafu</code>, which will display a human-readable error trace upon
 <code>Result::Err</code>.</p>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Please use <code>snafu</code>! 😂</p>
+</div>
 <p>In the test file, we'll create the binding to our Spade module:</p>
 <pre><code class="language-shell">mkdir tests
 vi tests/simple_test.rs
@@ -2591,9 +2619,7 @@ though.</p>
   <span class="mdbook-callouts-icon"></span>
   caution
 </p>
-<p>Veryl support is still experimental. For example, you cannot use the <code>marlin</code>
-crate directly and instead must use <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#specifying-dependencies-from-git-repositories"><code>git</code>
-dependencies</a>.</p>
+<p>Veryl support is still experimental.</p>
 </div>
 <p>In this tutorial, we'll setup a Veryl project and test our code with
 Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/veryl_project">here</a>.</p>
@@ -2642,12 +2668,19 @@ introduction to Veryl; this tutorial will not focus on teaching the language. If
 you know Verilog, the code should feel very familiar.</p>
 <h2 id="part-2-setting-up-marlin-1"><a class="header" href="#part-2-setting-up-marlin-1">Part 2: Setting up Marlin</a></h2>
 <pre><code class="language-shell">cargo init --lib
-cargo add marlin-veryl --git https://github.com/ethanuppal/marlin --rev c71ed55c6d38a3e2738553bc0a9f64669f0cae2b --dev
+cargo add marlin --features veryl --dev
 cargo add snafu --dev
 </code></pre>
-<p>The only required crate is <code>marlin_veryl</code>, but I strongly recommend at this stage of
+<p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
 development to use <code>snafu</code>, which will display a human-readable error trace upon
 <code>Result::Err</code>.</p>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Please use <code>snafu</code>! 😂</p>
+</div>
 <p>In the test file, we'll create the binding to our Veryl module:</p>
 <pre><code class="language-shell">mkdir tests
 vi tests/simple_test.rs
@@ -2655,7 +2688,7 @@ vi tests/simple_test.rs
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// file: tests/simple_test.rs
-use marlin_veryl::prelude::*;
+use marlin::veryl::prelude::*;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
 pub struct Wire;
@@ -2666,7 +2699,7 @@ in our Veryl file. You can instead put this in your <code>lib.rs</code> file if 
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// file: tests/simple_test.rs
-use marlin_veryl::prelude::*;
+use marlin::veryl::prelude::*;
 use snafu::Whatever;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
