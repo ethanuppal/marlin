@@ -29,7 +29,7 @@ macro_rules! test {
                 }
             }
 
-            let mut runtime = VerilatorRuntime::new(
+            let runtime = VerilatorRuntime::new(
                 "artifacts".into(),
                 &["src/main.sv".as_ref()],
                 &[],

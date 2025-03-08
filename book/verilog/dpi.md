@@ -98,7 +98,7 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
@@ -134,7 +134,7 @@ whatever Rust code you want!
 
 Then, we told the runtime about this function:
 ```diff
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],

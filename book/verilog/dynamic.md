@@ -89,7 +89,7 @@ use marlin::verilator::{
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "build2".into(),
         &["src/main.sv".as_ref()],
         &[],
@@ -129,7 +129,5 @@ If you're using `git`, remember to add `build2/` to your `.gitignore`.
 Make sure you pass in the correct filename to `create_dyn_model`.
 You only need to pass in a correct _subset_ of the ports.
 
-> [!WARNING]
-> One current issue is that if you use multiple dynamic models, since models are
-> lazy-built and cached, omitting ports in the first `create_dyn_model` for a
-> given module means that no later model can access those omitted ports.
+You can use `create_dyn_model` again with different ports. Of course, if you use
+the same ports, the model will just be loaded from the cache.

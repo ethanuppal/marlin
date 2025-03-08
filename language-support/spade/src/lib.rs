@@ -12,7 +12,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 pub mod __reexports {
     pub use libc;
@@ -202,7 +202,7 @@ impl SpadeRuntime {
 
     /// Instantiates a new Spade unit. This function simply wraps
     /// [`VerilatorRuntime::create_model`].
-    pub fn create_model<M: VerilatedModel>(&mut self) -> Result<M, Whatever> {
+    pub fn create_model<M: VerilatedModel>(&self) -> Result<M, Whatever> {
         self.verilator_runtime.create_model()
     }
 }

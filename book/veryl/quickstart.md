@@ -106,7 +106,7 @@ pub struct Wire;
 #[test]
 #[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
-    let mut runtime = VerylRuntime::new(VerylRuntimeOptions {
+    let runtime = VerylRuntime::new(VerylRuntimeOptions {
         call_veryl_build: true, /* warning: not thread safe! don't use if you
                                  * have multiple tests */
         ..Default::default()

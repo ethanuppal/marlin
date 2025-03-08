@@ -108,7 +108,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn forwards_u32max_correctly() -> Result<(), Whatever> {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "build".into(),
         &["src/main.sv".as_ref()],
         &[],
@@ -135,7 +135,7 @@ Let's break down the relevant parts of what's going on here.
 We first setup the Verilator runtime configuration. We'll use a build directory
 called "build" in the local directory.
 ```rust
-let mut runtime = VerilatorRuntime::new(
+let runtime = VerilatorRuntime::new(
     "build".into(),                             // build directory (relative)
     &["src/main.sv".as_ref()],                  // source files
     &[],                                        // include search paths

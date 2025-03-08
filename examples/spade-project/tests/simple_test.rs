@@ -25,7 +25,7 @@ fn main() -> Result<(), Whatever> {
         env_logger::init();
     }
 
-    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions {
+    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
         call_swim_build: true, /* warning: not thread safe! don't use if you
                                 * have multiple tests */
         ..SpadeRuntimeOptions::default_logging()
