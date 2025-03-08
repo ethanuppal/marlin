@@ -84,7 +84,7 @@ For example, when you use Marlin in a Spade project, it calls out to:
 - `swim build`, which recompiles the entire Spade compiler from source
 - `verilator`, which compiles and links C++ code
 
-Marlin automatically running them with all the right flags and arguments
+Marlin automatically runs them with all the right flags and arguments
 --- and it caches and only invokes them when needed.
 
 ## 🌎 Related
