@@ -26,13 +26,29 @@ fn main() -> Result<(), Whatever> {
         env_logger::init();
     }
 
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts2".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
         VerilatorRuntimeOptions::default_logging(),
     )?;
+
+    let mut main = runtime.create_dyn_model(
+        "main",
+        "src/main.sv",
+        &[
+            ("medium_input", 31, 0, PortDirection::Input),
+            //("medium_output", 31, 0, PortDirection::Output),
+        ],
+    )?;
+
+    main.pin("medium_input", u32::MAX).whatever_context("pin")?;
+    assert!(
+        main.read("medium_output").is_err(),
+        "We didn't specify the `medium_output` port"
+    );
+    main.eval();
 
     let mut main = runtime.create_dyn_model(
         "main",

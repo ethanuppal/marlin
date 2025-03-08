@@ -9,7 +9,7 @@ use std::{collections::HashMap, fmt};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, types};
+use crate::{types, PortDirection};
 
 pub struct DynamicVerilatedModel<'ctx> {
     pub(crate) ports: HashMap<String, (usize, PortDirection)>,

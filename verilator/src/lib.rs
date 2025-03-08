@@ -12,23 +12,24 @@
 //! which just wraps [`VerilatorRuntime`].
 
 use std::{
-    collections::{HashMap, hash_map::Entry},
     ffi::OsString,
     fmt, fs,
+    hash::{self, Hash, Hasher},
     io::Write,
     os::fd::FromRawFd,
     sync::{LazyLock, Mutex},
     time::Instant,
 };
 
+use boxcar::Vec as BoxcarVec;
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
-use dashmap::DashMap;
+use dashmap::{DashMap, Entry};
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -62,7 +63,7 @@ pub mod types {
 }
 
 /// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum PortDirection {
     Input,
     Output,
@@ -143,6 +144,13 @@ impl VerilatorRuntimeOptions {
     }
 }
 
+#[derive(PartialEq, Eq, Hash, Clone)]
+struct LibraryArenaKey {
+    name: String,
+    source_path: String,
+    ports_hash: u64,
+}
+
 /// Runtime for (System)Verilog code.
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
@@ -150,8 +158,11 @@ pub struct VerilatorRuntime {
     include_directories: Vec<Utf8PathBuf>,
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
-    /// Mapping between hardware (top, path) and Verilator implementations
-    libraries: HashMap<(String, String), Library>,
+    /// Mapping between hardware (top, path) and arena index of Verilator
+    /// implementations
+    library_map: DashMap<LibraryArenaKey, usize>,
+    /// Verilator implementations arena
+    library_arena: BoxcarVec<Library>,
 }
 
 /* <Forgive me father for I have sinned> */
@@ -216,7 +227,8 @@ impl VerilatorRuntime {
                 .collect(),
             dpi_functions: dpi_functions.into_iter().collect(),
             options,
-            libraries: HashMap::new(),
+            library_map: DashMap::new(),
+            library_arena: BoxcarVec::new(),
         })
     }
 
@@ -224,7 +236,7 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model<M: VerilatedModel>(&mut self) -> Result<M, Whatever> {
+    pub fn create_model<M: VerilatedModel>(&self) -> Result<M, Whatever> {
         let library = self
             .build_or_retrieve_library(M::name(), M::source_path(), M::ports())
             .whatever_context(
@@ -247,7 +259,7 @@ impl VerilatorRuntime {
     ///
     /// See also: [`VerilatorRuntime::create_model`]
     pub fn create_dyn_model<'ctx>(
-        &'ctx mut self,
+        &'ctx self,
         name: &str,
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
@@ -323,7 +335,7 @@ impl VerilatorRuntime {
     ///
     /// This function is thread-safe.
     fn build_or_retrieve_library(
-        &mut self,
+        &self,
         name: &str,
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
@@ -370,42 +382,49 @@ impl VerilatorRuntime {
             );
         }
 
-        if let Entry::Vacant(entry) = self
-            .libraries
-            .entry((name.to_string(), source_path.to_string()))
-        {
-            let local_directory_name = format!(
-                "{name}_{}",
-                source_path.replace("_", "__").replace("/", "_")
-            );
-            let local_artifacts_directory =
-                self.artifact_directory.join(&local_directory_name);
+        let mut ports_hasher = hash::DefaultHasher::new();
+        ports.hash(&mut ports_hasher);
+        let library_key = LibraryArenaKey {
+            name: name.to_owned(),
+            source_path: source_path.to_owned(),
+            ports_hash: ports_hasher.finish(),
+        };
 
-            if self.options.log {
-                log::info!(
-                    "Creating artifacts directory {}",
-                    local_artifacts_directory
+        let library_idx = match self.library_map.entry(library_key.clone()) {
+            Entry::Occupied(entry) => *entry.get(),
+            Entry::Vacant(entry) => {
+                let local_directory_name = format!(
+                    "{name}_{}_{}",
+                    source_path.replace("_", "__").replace("/", "_"),
+                    library_key.ports_hash
                 );
-            }
-            fs::create_dir_all(&local_artifacts_directory).whatever_context(
-                format!(
-                    "Failed to create artifacts directory {}",
-                    local_artifacts_directory,
-                ),
-            )?;
+                let local_artifacts_directory =
+                    self.artifact_directory.join(&local_directory_name);
 
-            eprintln_nocapture!(
-                "{} waiting for file lock on build directory",
-                "    Blocking".bold().cyan(),
-            )?;
+                if self.options.log {
+                    log::info!(
+                        "Creating artifacts directory {}",
+                        local_artifacts_directory
+                    );
+                }
+                fs::create_dir_all(&local_artifacts_directory)
+                    .whatever_context(format!(
+                        "Failed to create artifacts directory {}",
+                        local_artifacts_directory,
+                    ))?;
 
-            // # Safety
-            // build_library is not thread-safe, so we have to lock the
-            // directory
-            if self.options.log {
-                log::info!("Acquiring file lock on artifact directory");
-            }
-            let file_lock = fs::OpenOptions::new()
+                eprintln_nocapture!(
+                    "{} waiting for file lock on build directory",
+                    "    Blocking".bold().cyan(),
+                )?;
+
+                // # Safety
+                // build_library is not thread-safe, so we have to lock the
+                // directory
+                if self.options.log {
+                    log::info!("Acquiring file lock on artifact directory");
+                }
+                let file_lock = fs::OpenOptions::new()
                 .read(true)
                 .write(true)
                 .create(true)
@@ -415,94 +434,104 @@ impl VerilatorRuntime {
                     "Failed to open file lock file for artifacts directory (this is not the actual lock itself, it is an I/O error)",
                 )?;
 
-            let _file_lock =
-                file_guard::lock(&file_lock, file_guard::Lock::Exclusive, 0, 1)
-                    .whatever_context(
-                        "Failed to acquire file lock for artifacts directory",
-                    )?;
+                let _file_lock = file_guard::lock(
+                    &file_lock,
+                    file_guard::Lock::Exclusive,
+                    0,
+                    1,
+                )
+                .whatever_context(
+                    "Failed to acquire file lock for artifacts directory",
+                )?;
 
-            let thread_mutex = THREAD_LOCK
-                .entry(local_artifacts_directory.clone())
-                .or_default();
-            let Ok(_thread_lock) = thread_mutex.lock() else {
-                whatever!(
-                    "Failed to acquire thread-local lock for artifacts directory"
-                );
-            };
+                let thread_mutex = THREAD_LOCK
+                    .entry(local_artifacts_directory.clone())
+                    .or_default();
+                let Ok(_thread_lock) = thread_mutex.lock() else {
+                    whatever!(
+                        "Failed to acquire thread-local lock for artifacts directory"
+                    );
+                };
 
-            eprintln_nocapture!(
-                "{} {} ({})",
-                "   Compiling".bold().green(),
-                name,
-                source_path
-            )?;
-            let start = Instant::now();
-
-            if self.options.log {
-                log::info!("Building the dynamic library with verilator");
-            }
-            let library_path = build_library(
-                &self.source_files,
-                &self.include_directories,
-                &self.dpi_functions,
-                name,
-                ports,
-                &local_artifacts_directory,
-                &self.options,
-                self.options.log,
-            )
-            .whatever_context("Failed to build verilator dynamic library")?;
-
-            if self.options.log {
-                log::info!("Opening the dynamic library");
-            }
-            let library = unsafe { Library::new(library_path) }
-                .whatever_context("Failed to load verilator dynamic library")?;
-
-            if !self.dpi_functions.is_empty() {
-                let dpi_init_callback: extern "C" fn(
-                    *const *const libc::c_void,
-                ) = *unsafe { library.get(b"dpi_init_callback") }
-                    .whatever_context("Failed to load DPI initializer")?;
-
-                // order is important here. the function pointers will be
-                // initialized in the same order that they
-                // appear in the DPI array --- this is to match how the C
-                // initialization code was constructed in `build_library`.
-                let function_pointers = self
-                    .dpi_functions
-                    .iter()
-                    .map(|dpi_function| dpi_function.pointer())
-                    .collect::<Vec<_>>();
-
-                (dpi_init_callback)(function_pointers.as_ptr_range().start);
+                eprintln_nocapture!(
+                    "{} {} ({})",
+                    "   Compiling".bold().green(),
+                    name,
+                    source_path
+                )?;
+                let start = Instant::now();
 
                 if self.options.log {
-                    log::info!("Initialized DPI functions");
+                    log::info!("Building the dynamic library with verilator");
                 }
+                let library_path = build_library(
+                    &self.source_files,
+                    &self.include_directories,
+                    &self.dpi_functions,
+                    name,
+                    ports,
+                    &local_artifacts_directory,
+                    &self.options,
+                    self.options.log,
+                )
+                .whatever_context(
+                    "Failed to build verilator dynamic library",
+                )?;
+
+                if self.options.log {
+                    log::info!("Opening the dynamic library");
+                }
+                let library = unsafe { Library::new(library_path) }
+                    .whatever_context(
+                        "Failed to load verilator dynamic library",
+                    )?;
+
+                if !self.dpi_functions.is_empty() {
+                    let dpi_init_callback: extern "C" fn(
+                        *const *const libc::c_void,
+                    ) = *unsafe { library.get(b"dpi_init_callback") }
+                        .whatever_context("Failed to load DPI initializer")?;
+
+                    // order is important here. the function pointers will be
+                    // initialized in the same order that they
+                    // appear in the DPI array --- this is to match how the C
+                    // initialization code was constructed in `build_library`.
+                    let function_pointers = self
+                        .dpi_functions
+                        .iter()
+                        .map(|dpi_function| dpi_function.pointer())
+                        .collect::<Vec<_>>();
+
+                    (dpi_init_callback)(function_pointers.as_ptr_range().start);
+
+                    if self.options.log {
+                        log::info!("Initialized DPI functions");
+                    }
+                }
+
+                let library_idx = self.library_arena.push(library);
+                entry.insert(library_idx);
+
+                let end = Instant::now();
+                let duration = end - start;
+                eprintln_nocapture!(
+                    "{} `verilator-{}` profile target(s) in {}.{:02}s",
+                    "    Finished".bold().green(),
+                    self.options
+                        .verilator_optimization
+                        .map(|level| format!("O{level}"))
+                        .unwrap_or("unoptimized".into()),
+                    duration.as_secs(),
+                    duration.subsec_millis() / 10
+                )?;
+
+                library_idx
             }
-
-            entry.insert(library);
-
-            let end = Instant::now();
-            let duration = end - start;
-            eprintln_nocapture!(
-                "{} `verilator-{}` profile target(s) in {}.{:02}s",
-                "    Finished".bold().green(),
-                self.options
-                    .verilator_optimization
-                    .map(|level| format!("O{level}"))
-                    .unwrap_or("unoptimized".into()),
-                duration.as_secs(),
-                duration.subsec_millis() / 10
-            )?;
-        }
+        };
 
         Ok(self
-            .libraries
-            .get(&(name.to_string(), source_path.to_string()))
-            .expect(
-                "If it didn't exist, we just inserted it into the hash map",
-            ))
+            .library_arena
+            .get(library_idx)
+            .expect("bug: We just inserted the library"))
     }
 }

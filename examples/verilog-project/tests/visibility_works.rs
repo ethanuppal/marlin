@@ -25,7 +25,7 @@ fn main() -> Result<(), Whatever> {
         env_logger::init();
     }
 
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts3".into(),
         &["src/main.sv".as_ref()],
         &[],
