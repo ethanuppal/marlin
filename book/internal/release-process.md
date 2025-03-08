@@ -1,7 +1,9 @@
 # Release Process
 
 1. After a `feat`, `feat!`, `fix`, or `fix!`, merge the [release-please] PR
-   after commiting a dummy commit to trigger CI.
+   after commiting a dummy commit to trigger CI. **Please remember to update
+   `Cargo.lock` too!** (Remove this extra notice once you figure out how to have
+   this be done automatically.)
 2. After any further fixes are required and commited, run `cargo release
    --workspace --execute` from the project root.
 
