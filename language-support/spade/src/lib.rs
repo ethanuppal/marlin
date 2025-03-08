@@ -12,7 +12,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 pub mod __reexports {
     pub use libc;
@@ -56,7 +56,7 @@ impl Default for SpadeRuntimeOptions {
     fn default() -> Self {
         Self {
             swim_executable: "swim".into(),
-            call_swim_build: true,
+            call_swim_build: false,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
