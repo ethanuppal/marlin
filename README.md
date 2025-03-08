@@ -68,7 +68,7 @@ Still, a lot of these are less than optimal.
 
 ## 📦 Install
 
-Marlin is on crates.io, so just use `cargo add --dev marlin` to add Marlin as a
+Marlin is on [crates.io], so just use `cargo add --dev marlin` to add Marlin as a
 dependency for your tests (`dev-dependencies`).
 
 ## ❓ How it works
@@ -105,3 +105,5 @@ I use [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) (see the
 [`deny.toml`](./deny.toml) to ensure no licensing violations occur. I also check
 this on CI to prevent merging any new dependencies or dependency updates that
 introduce incompatible licenses.
+
+[crates.io]: https://crates.io/crates/marlin
