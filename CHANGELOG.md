@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/ethanuppal/marlin/compare/v0.3.1...v0.3.2) (2025-03-08)
+
+
+### Bug Fixes
+
+* **verilator:** Support multiple models from one runtime ([#100](https://github.com/ethanuppal/marlin/issues/100)) ([f3c17d1](https://github.com/ethanuppal/marlin/commit/f3c17d16c4cf73b5b54dedf177fc8095d3257379))
+
 ## [0.3.1](https://github.com/ethanuppal/marlin/compare/v0.3.0...v0.3.1) (2025-03-08)
 
 
