@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/ethanuppal/marlin/compare/v0.3.0...v0.3.1) (2025-03-08)
+
+
+### Bug Fixes
+
+* **spade:** Don't `swim build` by default ([#96](https://github.com/ethanuppal/marlin/issues/96)) ([f5adc52](https://github.com/ethanuppal/marlin/commit/f5adc520870ae187dca5b5dfb4992be9e8931444))
+
 ## [0.3.0](https://github.com/ethanuppal/marlin/compare/v0.2.1...v0.3.0) (2025-03-06)
 
 

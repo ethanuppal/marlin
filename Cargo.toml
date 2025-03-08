@@ -15,7 +15,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Ethan Uppal"]
 edition = "2024"
 rust-version = "1.85"
@@ -47,14 +47,14 @@ sv-parser = { version = "0.13.3", default-features = false }
 spade-parser = { version = "0.13.0", default-features = false }
 spade-ast = { version = "0.13.0", default-features = false }
 
-marlin-verilator = { path = "verilator", version = "0.3.0" }
-marlin-verilog = { path = "language-support/verilog", version = "0.3.0" }
-marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.3.0" }
-marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.3.0" }
-marlin-spade = { path = "language-support/spade", version = "0.3.0" }
-marlin-spade-macro = { path = "language-support/spade-macro", version = "0.3.0" }
-marlin-veryl = { path = "language-support/veryl", version = "0.3.0" }
-marlin-veryl-macro = { path = "language-support/veryl-macro", version = "0.3.0" }
+marlin-verilator = { path = "verilator", version = "0.3.1" }
+marlin-verilog = { path = "language-support/verilog", version = "0.3.1" }
+marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.3.1" }
+marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.3.1" }
+marlin-spade = { path = "language-support/spade", version = "0.3.1" }
+marlin-spade-macro = { path = "language-support/spade-macro", version = "0.3.1" }
+marlin-veryl = { path = "language-support/veryl", version = "0.3.1" }
+marlin-veryl-macro = { path = "language-support/veryl-macro", version = "0.3.1" }
 
 [workspace.metadata.release]
 push = false
