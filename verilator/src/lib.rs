@@ -29,7 +29,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;

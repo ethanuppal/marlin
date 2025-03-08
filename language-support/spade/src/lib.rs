@@ -12,7 +12,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 pub mod __reexports {
     pub use libc;
