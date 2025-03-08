@@ -98,9 +98,11 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let mut runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default() // configuration 
-    )?;
+    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions {
+        call_spade_build: true, /* warning: not thread safe! don't use if you
+                                 * have multiple tests */
+        ..Default::default()
+    })?;
 
     let mut main = runtime.create_model::<Main>()?;
 
