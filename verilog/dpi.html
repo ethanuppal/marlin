@@ -504,7 +504,7 @@ struct Main;
 
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
@@ -534,7 +534,7 @@ exposes the function correctly to C.</p>
 arguments. Beside that, there are no restrictions on the content --- write
 whatever Rust code you want!</p>
 <p>Then, we told the runtime about this function:</p>
-<pre><code class="language-diff">    let mut runtime = VerilatorRuntime::new(
+<pre><code class="language-diff">    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],

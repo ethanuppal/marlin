@@ -1116,7 +1116,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn forwards_u32max_correctly() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "build".into(),
         &amp;["src/main.sv".as_ref()],
         &amp;[],
@@ -1142,7 +1142,7 @@ fn forwards_u32max_correctly() -&gt; Result&lt;(), Whatever&gt; {
 called "build" in the local directory.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>let mut runtime = VerilatorRuntime::new(
+</span>let runtime = VerilatorRuntime::new(
     "build".into(),                             // build directory (relative)
     &amp;["src/main.sv".as_ref()],                  // source files
     &amp;[],                                        // include search paths
@@ -1512,7 +1512,7 @@ use marlin::verilator::{
 
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "build2".into(),
         &amp;["src/main.sv".as_ref()],
         &amp;[],
@@ -1548,15 +1548,8 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
 If you're using <code>git</code>, remember to add <code>build2/</code> to your <code>.gitignore</code>.</p>
 <p>Make sure you pass in the correct filename to <code>create_dyn_model</code>.
 You only need to pass in a correct <em>subset</em> of the ports.</p>
-<div class="mdbook-callouts mdbook-callouts-warning">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  warning
-</p>
-<p>One current issue is that if you use multiple dynamic models, since models are
-lazy-built and cached, omitting ports in the first <code>create_dyn_model</code> for a
-given module means that no later model can access those omitted ports.</p>
-</div>
+<p>You can use <code>create_dyn_model</code> again with different ports. Of course, if you use
+the same ports, the model will just be loaded from the cache.</p>
 <div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-callouts {
   padding: 8px 16px;
@@ -1909,7 +1902,7 @@ struct Main;
 
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
@@ -1939,7 +1932,7 @@ exposes the function correctly to C.</p>
 arguments. Beside that, there are no restrictions on the content --- write
 whatever Rust code you want!</p>
 <p>Then, we told the runtime about this function:</p>
-<pre><code class="language-diff">    let mut runtime = VerilatorRuntime::new(
+<pre><code class="language-diff">    let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
         &amp;[],
@@ -2309,7 +2302,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = SpadeRuntime::new(SpadeRuntimeOptions {
+    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
         call_spade_build: true, /* warning: not thread safe! don't use if you
                                  * have multiple tests */
         ..Default::default()
@@ -2710,7 +2703,7 @@ pub struct Wire;
 #[test]
 #[snafu::report]
 fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
-    let mut runtime = VerylRuntime::new(VerylRuntimeOptions {
+    let runtime = VerylRuntime::new(VerylRuntimeOptions {
         call_veryl_build: true, /* warning: not thread safe! don't use if you
                                  * have multiple tests */
         ..Default::default()
