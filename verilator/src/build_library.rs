@@ -14,9 +14,9 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{prelude::*, Whatever};
+use snafu::{Whatever, prelude::*};
 
-use crate::{dpi::DpiFunction, PortDirection, VerilatorRuntimeOptions};
+use crate::{PortDirection, VerilatorRuntimeOptions, dpi::DpiFunction};
 
 /// Writes `extern "C"` C++ bindings for a Verilator model with the given name
 /// (`top_module`) and signature (`ports`) to the given artifact directory
@@ -91,8 +91,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", (width + 31) / 32) // words are 32 bits
-                                                       // according to header
-                                                       // file
+                // according to header
+                // file
                 } else {
                     "".into()
                 }
