@@ -98,4 +98,5 @@ marlin-veryl-macro.workspace = true
 [dev-dependencies]
 camino.workspace = true
 criterion = { version = "2.9.1", package = "codspeed-criterion-compat" }
-marlin = { path = ".", features = ["verilog"] }
+marlin-verilator.workspace = true
+marlin-verilog.workspace = true

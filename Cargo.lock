@@ -740,7 +740,6 @@ version = "0.3.3"
 dependencies = [
  "camino",
  "codspeed-criterion-compat",
- "marlin",
  "marlin-spade",
  "marlin-spade-macro",
  "marlin-verilator",

@@ -1,11 +1,9 @@
 use std::fs;
 
 use camino::Utf8Path;
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
-    verilog::prelude::*,
-};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use marlin_verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
+use marlin_verilog::prelude::*;
 
 #[verilog(src = "examples/verilog-project/src/main.sv", name = "main")]
 pub struct Main;
