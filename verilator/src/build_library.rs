@@ -152,7 +152,7 @@ fn bind_dpi_if_needed(
         return Ok((None, false));
     }
 
-    let _dpi_file = dpi_artifact_directory.join("dpi.cpp");
+    let dpi_file_absolute_path = dpi_artifact_directory.join("dpi.cpp");
     // TODO: hard-coded knowledge, same verilator bug
     let dpi_file = Utf8PathBuf::from("../dpi/dpi.cpp");
 
@@ -213,7 +213,7 @@ extern \"C\" void {}({}) {{
     );
 
     // only rebuild if there's been a change
-    if fs::read_to_string(&dpi_file)
+    if fs::read_to_string(&dpi_file_absolute_path)
         .map(|current_file_code| current_file_code == file_code)
         .unwrap_or(false)
     {
@@ -230,7 +230,7 @@ extern \"C\" void {}({}) {{
     fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
         .whatever_context(format!(
             "Failed to write DPI function wrapper code to {}",
-            dpi_file
+            dpi_file_absolute_path
         ))?;
 
     Ok((Some(dpi_file), true))
