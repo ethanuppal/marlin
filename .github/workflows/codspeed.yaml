@@ -26,8 +26,10 @@ jobs:
           if [[ "$(uname)" == 'Darwin' ]]; then
             brew install verilator
           else
+            sudo apt-get update
             sudo apt-get install -y verilator
           fi
+          verilator --version
 
       - name: Build the benchmark target(s)
         run: cargo codspeed build
