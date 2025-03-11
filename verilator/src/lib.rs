@@ -440,18 +440,18 @@ impl VerilatorRuntime {
                 if self.options.log {
                     log::info!("Acquiring file lock on artifact directory");
                 }
-                let file_lock = fs::OpenOptions::new()
+                let lockfile = fs::OpenOptions::new()
                 .read(true)
                 .write(true)
                 .create(true)
                 .truncate(true)
                 .open(self.artifact_directory.join(format!("{local_directory_name}.lock")))
                 .whatever_context(
-                    "Failed to open file lock file for artifacts directory (this is not the actual lock itself, it is an I/O error)",
+                    "Failed to open lockfile for artifacts directory (this is not the actual lock itself, it is an I/O error)",
                 )?;
 
                 let _file_lock = file_guard::lock(
-                    &file_lock,
+                    &lockfile,
                     file_guard::Lock::Exclusive,
                     0,
                     1,
