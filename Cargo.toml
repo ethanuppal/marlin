@@ -97,5 +97,5 @@ marlin-veryl-macro.workspace = true
 
 [dev-dependencies]
 camino.workspace = true
-divan = { version = "2.9.1", package = "codspeed-divan-compat" }
+criterion = { version = "2.9.1", package = "codspeed-criterion-compat" }
 marlin = { path = ".", features = ["verilog"] }
