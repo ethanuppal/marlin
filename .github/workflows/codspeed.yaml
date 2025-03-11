@@ -10,7 +10,7 @@ on:
 jobs:
   benchmarks:
     name: Run benchmarks
-    runs-on: macos-15
+    runs-on: codspeed-macro
     steps:
       - uses: actions/checkout@v4
 

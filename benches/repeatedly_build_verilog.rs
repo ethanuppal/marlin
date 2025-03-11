@@ -1,7 +1,7 @@
 use std::fs;
 
 use camino::Utf8Path;
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use marlin_verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use marlin_verilog::prelude::*;
 
