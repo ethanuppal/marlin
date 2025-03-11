@@ -29,7 +29,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -453,18 +453,12 @@ impl VerilatorRuntime {
                     );
                 };
 
-                eprintln_nocapture!(
-                    "{} {} ({})",
-                    "   Compiling".bold().green(),
-                    name,
-                    source_path
-                )?;
                 let start = Instant::now();
 
                 if self.options.log {
                     log::info!("Building the dynamic library with verilator");
                 }
-                let library_path = build_library(
+                let (library_path, was_rebuilt) = build_library(
                     &self.source_files,
                     &self.include_directories,
                     &self.dpi_functions,
@@ -473,6 +467,14 @@ impl VerilatorRuntime {
                     &local_artifacts_directory,
                     &self.options,
                     self.options.log,
+                    || {
+                        eprintln_nocapture!(
+                            "{} {} ({})",
+                            "   Compiling".bold().green(),
+                            name,
+                            source_path
+                        )
+                    },
                 )
                 .whatever_context(
                     "Failed to build verilator dynamic library",
@@ -514,16 +516,19 @@ impl VerilatorRuntime {
 
                 let end = Instant::now();
                 let duration = end - start;
-                eprintln_nocapture!(
-                    "{} `verilator-{}` profile target(s) in {}.{:02}s",
-                    "    Finished".bold().green(),
-                    self.options
-                        .verilator_optimization
-                        .map(|level| format!("O{level}"))
-                        .unwrap_or("unoptimized".into()),
-                    duration.as_secs(),
-                    duration.subsec_millis() / 10
-                )?;
+
+                if was_rebuilt {
+                    eprintln_nocapture!(
+                        "{} `verilator-{}` profile target in {}.{:02}s",
+                        "    Finished".bold().green(),
+                        self.options
+                            .verilator_optimization
+                            .map(|level| format!("O{level}"))
+                            .unwrap_or("unoptimized".into()),
+                        duration.as_secs(),
+                        duration.subsec_millis() / 10
+                    )?;
+                }
 
                 library_idx
             }
