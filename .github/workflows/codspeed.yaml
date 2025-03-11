@@ -23,13 +23,26 @@ jobs:
 
       - name: Install Verilator
         run: |
-          if [[ "$(uname)" == 'Darwin' ]]; then
-            brew install verilator
-          else
             sudo apt-get update
-            sudo apt-get install -y verilator
-          fi
-          verilator --version
+            sudo apt-get install git help2man perl python3 make autoconf g++ flex bison ccache
+            sudo apt-get install libgoogle-perftools-dev numactl perl-doc
+            sudo apt-get install libfl2  || echo "Ubuntu only (ignore if gives error)"
+            sudo apt-get install libfl-dev  || echo "Ubuntu only (ignore if gives error)"
+            sudo apt-get install zlibc zlib1g zlib1g-dev || echo "Ubuntu only (ignore if gives error)"
+
+            git clone https://github.com/verilator/verilator
+
+            unset VERILATOR_ROOT
+            cd verilator
+            git pull
+            git checkout v5.034
+
+            autoconf
+            ./configure
+            make -j `nproc`
+            sudo make install
+
+            verilator --version
 
       - name: Build the benchmark target(s)
         run: cargo codspeed build
