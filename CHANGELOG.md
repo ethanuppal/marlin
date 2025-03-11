@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/ethanuppal/marlin/compare/v0.3.2...v0.3.3) (2025-03-11)
+
+
+### Bug Fixes
+
+* **verilator:** Only log compile messages when actually rebuilding ([#103](https://github.com/ethanuppal/marlin/issues/103)) ([aae7f4d](https://github.com/ethanuppal/marlin/commit/aae7f4d250eebf34c39570eed7fd9bebd3db62f4))
+
 ## [0.3.2](https://github.com/ethanuppal/marlin/compare/v0.3.1...v0.3.2) (2025-03-08)
 
 
