@@ -29,7 +29,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -413,10 +413,26 @@ impl VerilatorRuntime {
                         local_artifacts_directory,
                     ))?;
 
-                eprintln_nocapture!(
-                    "{} waiting for file lock on build directory",
-                    "    Blocking".bold().cyan(),
-                )?;
+                let thread_mutex = THREAD_LOCK
+                    .entry(local_artifacts_directory.clone())
+                    .or_default();
+
+                let _thread_lock = if let Ok(_thread_lock) =
+                    thread_mutex.try_lock()
+                {
+                    _thread_lock
+                } else {
+                    eprintln_nocapture!(
+                        "{} waiting for file lock on build directory",
+                        "    Blocking".bold().cyan(),
+                    )?;
+                    let Ok(_thread_lock) = thread_mutex.lock() else {
+                        whatever!(
+                            "Failed to acquire thread-local lock for artifacts directory"
+                        );
+                    };
+                    _thread_lock
+                };
 
                 // # Safety
                 // build_library is not thread-safe, so we have to lock the
@@ -443,15 +459,6 @@ impl VerilatorRuntime {
                 .whatever_context(
                     "Failed to acquire file lock for artifacts directory",
                 )?;
-
-                let thread_mutex = THREAD_LOCK
-                    .entry(local_artifacts_directory.clone())
-                    .or_default();
-                let Ok(_thread_lock) = thread_mutex.lock() else {
-                    whatever!(
-                        "Failed to acquire thread-local lock for artifacts directory"
-                    );
-                };
 
                 let start = Instant::now();
 
