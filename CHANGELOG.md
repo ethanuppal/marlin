@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/ethanuppal/marlin/compare/v0.3.3...v0.3.4) (2025-03-11)
+
+
+### Bug Fixes
+
+* **verilator:** Only log blocking message when actually blocking ([#105](https://github.com/ethanuppal/marlin/issues/105)) ([4f0a007](https://github.com/ethanuppal/marlin/commit/4f0a007e6e96ce22b350cbceffa58b9f5fb7101a))
+
 ## [0.3.3](https://github.com/ethanuppal/marlin/compare/v0.3.2...v0.3.3) (2025-03-11)
 
 
