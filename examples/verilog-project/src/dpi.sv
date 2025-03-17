@@ -1,4 +1,4 @@
-import "DPI-C" function void three(output int out);
+import "DPI-C" function void three(output int unsigned out);
 
 module dpi_main(output logic[31:0] out);
     int a = 0;
