@@ -34,7 +34,7 @@ Why does hardware testing suck? Consider the ways we have to test
 
 - **Test natively**: Verilog is already a terrible enough language, and writing
   tests *in* Verilog is really annoying.
-- **Use verilator harnesses**: You have to first run Verilator to get the right
+- **Use Verilator harnesses**: You have to first run Verilator to get the right
   headers, recompile manually every time, deal with raw pointers and C++, etc.
 - **Use cocotb**: You have to use Makefiles or write your own Python runner, 
   performance isn't the greatest, you get no LSP support for ports, etc.
@@ -105,5 +105,20 @@ I use [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) (see the
 [`deny.toml`](./deny.toml) to ensure no licensing violations occur. I also check
 this on CI to prevent merging any new dependencies or dependency updates that
 introduce incompatible licenses.
+
+### Verilator
+
+Verilator is licensed under the Lesser GNU General Public License 3.0. However,
+Marlin will `dlopen` Verilated code, which is permitted via this clause:
+
+> 1) Use a suitable shared library mechanism for linking with the
+> Library.  A suitable mechanism is one that (a) uses at run time
+> a copy of the Library already present on the user's computer
+> system, and (b) will operate properly with a modified version
+> of the Library that is interface-compatible with the Linked
+> Version.
+
+Through [`VerilatorRuntimeOptions::verilator_executable`](https://docs.rs/marlin/latest/marlin/verilator/struct.VerilatorRuntimeOptions.html#structfield.verilator_executable),
+you can specify your own interface-compatible Verilator wrapper, enabling (b).
 
 [crates.io]: https://crates.io/crates/marlin

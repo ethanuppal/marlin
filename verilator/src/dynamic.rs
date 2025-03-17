@@ -9,16 +9,16 @@ use std::{collections::HashMap, fmt};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, types};
+use crate::{types, PortDirection};
 
 pub struct DynamicVerilatedModel<'ctx> {
+    // TODO: add the dlsyms here and remove the library field
     pub(crate) ports: HashMap<String, (usize, PortDirection)>,
     pub(crate) name: String,
     pub(crate) main: *mut libc::c_void,
     pub(crate) eval_main: extern "C" fn(*mut libc::c_void),
     pub(crate) delete_main: extern "C" fn(*mut libc::c_void),
     pub(crate) library: &'ctx Library,
-    //cache: HashMap<String, Symbol<'ctx>>,
 }
 
 impl Drop for DynamicVerilatedModel<'_> {

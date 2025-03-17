@@ -41,7 +41,7 @@ fn main() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    let mut main = runtime.create_model::<DpiMain>()?;
+    let mut main = runtime.create_model_simple::<DpiMain>()?;
     main.eval();
     assert_eq!(main.out, 3);
 

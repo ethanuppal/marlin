@@ -104,7 +104,7 @@ use snafu::Whatever;
 pub struct Wire;
 
 #[test]
-#[snafu::report]
+//#[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
     let runtime = VerylRuntime::new(VerylRuntimeOptions {
         call_veryl_build: true, /* warning: not thread safe! don't use if you
@@ -124,5 +124,11 @@ fn forwards_correctly() -> Result<(), Whatever> {
     Ok(())
 }
 ```
+
+> [!CAUTION]
+> Using `#[snafu::report]` on the function gives error messages that are
+> actually useful, but sometimes breaks LSP services like code completion.
+> I recommend to only apply it to your test functions when you actually
+> encounter an error.
 
 Finally, we can simply use `cargo test` to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Veryl project by invoking the Veryl compiler.

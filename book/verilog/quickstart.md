@@ -106,7 +106,7 @@ use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
 
 #[test]
-#[snafu::report]
+//#[snafu::report]
 fn forwards_u32max_correctly() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
         "build".into(),
@@ -129,6 +129,12 @@ fn forwards_u32max_correctly() -> Result<(), Whatever> {
     Ok(())
 }
 ```
+
+> [!CAUTION]
+> Using `#[snafu::report]` on the function gives error messages that are
+> actually useful, but sometimes breaks LSP services like code completion.
+> I recommend to only apply it to your test functions when you actually
+> encounter an error.
 
 Let's break down the relevant parts of what's going on here.
 

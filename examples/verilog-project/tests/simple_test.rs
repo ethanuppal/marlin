@@ -37,7 +37,7 @@ macro_rules! test {
                 VerilatorRuntimeOptions::default_logging(),
             )?;
 
-            let mut main = runtime.create_model::<Main>()?;
+            let mut main = runtime.create_model_simple::<Main>()?;
 
             main.medium_input = u32::MAX;
             println!("{}", main.medium_output);
