@@ -76,11 +76,10 @@ impl fmt::Display for DPIPrimitiveType {
 impl DPIPrimitiveType {
     fn as_c(&self) -> &'static str {
         match self {
-            // verilator uses signed for everything it seems
-            DPIPrimitiveType::U8 => "int8_t",
-            DPIPrimitiveType::U16 => "int16_t",
-            DPIPrimitiveType::U32 => "int32_t",
-            DPIPrimitiveType::U64 => "int64_t",
+            DPIPrimitiveType::U8 => "uint8_t",
+            DPIPrimitiveType::U16 => "uint16_t",
+            DPIPrimitiveType::U32 => "uint32_t",
+            DPIPrimitiveType::U64 => "uint64_t",
             DPIPrimitiveType::I8 => "int8_t",
             DPIPrimitiveType::I16 => "int16_t",
             DPIPrimitiveType::I32 => "int32_t",
