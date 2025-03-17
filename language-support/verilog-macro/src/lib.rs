@@ -47,6 +47,7 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 enum DPIPrimitiveType {
+    Bool,
     U8,
     U16,
     U32,
@@ -60,6 +61,7 @@ enum DPIPrimitiveType {
 impl fmt::Display for DPIPrimitiveType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            DPIPrimitiveType::Bool => "bool",
             DPIPrimitiveType::U8 => "u8",
             DPIPrimitiveType::U16 => "u16",
             DPIPrimitiveType::U32 => "u32",
@@ -76,6 +78,7 @@ impl fmt::Display for DPIPrimitiveType {
 impl DPIPrimitiveType {
     fn as_c(&self) -> &'static str {
         match self {
+            DPIPrimitiveType::Bool => "svBit",
             DPIPrimitiveType::U8 => "uint8_t",
             DPIPrimitiveType::U16 => "uint16_t",
             DPIPrimitiveType::U32 => "uint32_t",
@@ -108,6 +111,7 @@ fn parse_dpi_primitive_type(
         .to_string()
         .as_str()
     {
+        "bool" => Ok(DPIPrimitiveType::Bool),
         "u8" => Ok(DPIPrimitiveType::U8),
         "u16" => Ok(DPIPrimitiveType::U16),
         "u32" => Ok(DPIPrimitiveType::U32),
