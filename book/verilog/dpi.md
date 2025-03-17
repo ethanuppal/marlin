@@ -96,7 +96,7 @@ pub extern "C" fn three(out: &mut u32) {
 #[verilog(src = "src/dpi.sv", name = "main")]
 struct Main;
 
-#[snafu::report]
+//#[snafu::report]
 fn main() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
@@ -114,7 +114,13 @@ fn main() -> Result<(), Whatever> {
 }
 ```
 
-We can `cargo run` as usual to test.
+> [!CAUTION]
+> Using `#[snafu::report]` on the function gives error messages that are
+> actually useful, but sometimes breaks LSP services like code completion.
+> I recommend to only apply it to your test functions when you actually
+> encounter an error.
+
+We can `cargo test` as usual to test.
 
 The magic happens here:
 

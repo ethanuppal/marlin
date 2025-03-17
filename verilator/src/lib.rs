@@ -29,11 +29,12 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+pub mod vcd;
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -81,6 +82,22 @@ impl fmt::Display for PortDirection {
     }
 }
 
+/// Configuration for a particular [`VerilatedModel`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub struct VerilatedModelConfig {
+    /// If `None`, there will be no optimization. If a value from `0` to `3`
+    /// inclusive, the flag `-O<level>` will be passed. Enabling will slow
+    /// compilation times.
+    pub verilator_optimization: usize,
+
+    /// A list of Verilator warnings to disable on the Verilog source code for
+    /// this model.
+    pub ignored_warnings: Vec<String>,
+
+    /// Whether this model should be compiled with tracing support.
+    pub enable_tracing: bool,
+}
+
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
 pub trait VerilatedModel {
@@ -95,27 +112,20 @@ pub trait VerilatedModel {
 
     /// Use [`VerilatorRuntime::create_model`] or similar function for another
     /// runtime.
-    fn init_from(library: &Library) -> Self;
+    fn init_from(library: &Library, tracing_enabled: bool) -> Self;
 }
 
 /// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can
 /// just use [`VerilatorRuntimeOptions::default()`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VerilatorRuntimeOptions {
     /// The name of the `verilator` executable, interpreted in some way by the
     /// OS/shell.
     pub verilator_executable: OsString,
 
-    /// If `None`, there will be no optimization. If a value from `0` to `3`
-    /// inclusive, the flag `-O<level>` will be passed. Enabling will slow
-    /// compilation times.
-    pub verilator_optimization: Option<usize>,
-
     /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
-
-    /// A list of warnings to disable.
-    pub ignored_warnings: Vec<String>,
 
     /// Whether to use the log crate.
     pub log: bool,
@@ -125,9 +135,7 @@ impl Default for VerilatorRuntimeOptions {
     fn default() -> Self {
         Self {
             verilator_executable: "verilator".into(),
-            verilator_optimization: None,
             force_verilator_rebuild: false,
-            ignored_warnings: vec![],
             log: false,
         }
     }
@@ -148,7 +156,7 @@ impl VerilatorRuntimeOptions {
 struct LibraryArenaKey {
     name: String,
     source_path: String,
-    ports_hash: u64,
+    hash: u64,
 }
 
 /// Runtime for (System)Verilog code.
@@ -195,14 +203,57 @@ static THREAD_LOCKS_PER_BUILD_DIR: LazyLock<
 
 /* </Forgive me father for I have sinned> */
 
+fn one_time_library_setup(
+    library: &Library,
+    dpi_functions: &[&'static dyn DpiFunction],
+    tracing_enabled: bool,
+    options: &VerilatorRuntimeOptions,
+) -> Result<(), Whatever> {
+    if !dpi_functions.is_empty() {
+        let dpi_init_callback: extern "C" fn(*const *const libc::c_void) =
+            *unsafe { library.get(b"dpi_init_callback") }
+                .whatever_context("Failed to load DPI initializer")?;
+
+        // order is important here. the function pointers will be
+        // initialized in the same order that they
+        // appear in the DPI array --- this is to match how the C
+        // initialization code was constructed in `build_library`.
+        let function_pointers = dpi_functions
+            .iter()
+            .map(|dpi_function| dpi_function.pointer())
+            .collect::<Vec<_>>();
+
+        (dpi_init_callback)(function_pointers.as_ptr_range().start);
+
+        if options.log {
+            log::info!("Initialized DPI functions");
+        }
+    }
+
+    if tracing_enabled {
+        let trace_ever_on_callback: extern "C" fn(bool) =
+            *unsafe { library.get(b"ffi_Verilated_traceEverOn") }
+                .whatever_context(
+                    "Model was not configured with tracing enabled",
+                )?;
+        trace_ever_on_callback(true);
+
+        if options.log {
+            log::info!("Initialized VCD tracing");
+        }
+    }
+
+    Ok(())
+}
+
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
-    pub fn new<I: IntoIterator<Item = &'static dyn DpiFunction>>(
+    pub fn new(
         artifact_directory: &Utf8Path,
         source_files: &[&Utf8Path],
         include_directories: &[&Utf8Path],
-        dpi_functions: I,
+        dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
     ) -> Result<Self, Whatever> {
         if options.log {
@@ -238,14 +289,32 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model<M: VerilatedModel>(&self) -> Result<M, Whatever> {
+    pub fn create_model_simple<M: VerilatedModel>(
+        &self,
+    ) -> Result<M, Whatever> {
+        self.create_model(&VerilatedModelConfig::default())
+    }
+
+    /// Constructs a new model. Uses lazy and incremental building for
+    /// efficiency.
+    ///
+    /// See also: [`VerilatorRuntime::create_dyn_model`]
+    pub fn create_model<M: VerilatedModel>(
+        &self,
+        config: &VerilatedModelConfig,
+    ) -> Result<M, Whatever> {
         let library = self
-            .build_or_retrieve_library(M::name(), M::source_path(), M::ports())
+            .build_or_retrieve_library(
+                M::name(),
+                M::source_path(),
+                M::ports(),
+                config,
+            )
             .whatever_context(
-                "Failed to build or retrieve verilator dynamic library",
+                "Failed to build or retrieve verilator dynamic library. Try removing the build directory if it is corrupted.",
             )?;
 
-        Ok(M::init_from(library))
+        Ok(M::init_from(library, config.enable_tracing))
     }
 
     // TODO: should this be unified with the normal create_model by having
@@ -259,17 +328,35 @@ impl VerilatorRuntime {
     /// file defining the module `name`, and `ports` is a correct subset of
     /// the ports of the Verilog module.
     ///
+    /// ```no_run
+    /// # use marlin_verilator::*;
+    /// # use marlin_verilator::dynamic::*;
+    /// # let runtime = VerilatorRuntime::new("".as_ref(), &[], &[], [], Default::default()).unwrap();
+    /// # || -> Result<(), snafu::Whatever> {
+    /// let mut main = runtime.create_dyn_model(
+    ///    "main",
+    ///    "src/main.sv",
+    ///    &[
+    ///        ("medium_input", 31, 0, PortDirection::Input),
+    ///        ("medium_output", 31, 0, PortDirection::Output),
+    ///    ],
+    ///    VerilatedModelConfig::default(),
+    /// )?;
+    /// # Ok(()) };
+    /// ````
+    ///
     /// See also: [`VerilatorRuntime::create_model`]
     pub fn create_dyn_model<'ctx>(
         &'ctx self,
         name: &str,
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
+        config: VerilatedModelConfig,
     ) -> Result<DynamicVerilatedModel<'ctx>, Whatever> {
         let library = self
-            .build_or_retrieve_library(name, source_path, ports)
+            .build_or_retrieve_library(name, source_path, ports, &config)
             .whatever_context(
-                "Failed to build or retrieve verilator dynamic library",
+                "Failed to build or retrieve verilator dynamic library. Try removing the build directory if it is corrupted.",
             )?;
 
         let new_main: extern "C" fn() -> *mut libc::c_void =
@@ -341,6 +428,7 @@ impl VerilatorRuntime {
         name: &str,
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
+        config: &VerilatedModelConfig,
     ) -> Result<&Library, Whatever> {
         if name.chars().any(|c| c == '\\' || c == ' ') {
             whatever!("Escaped module names are not supported");
@@ -384,12 +472,13 @@ impl VerilatorRuntime {
             );
         }
 
-        let mut ports_hasher = hash::DefaultHasher::new();
-        ports.hash(&mut ports_hasher);
+        let mut hasher = hash::DefaultHasher::new();
+        ports.hash(&mut hasher);
+        config.hash(&mut hasher);
         let library_key = LibraryArenaKey {
             name: name.to_owned(),
             source_path: source_path.to_owned(),
-            ports_hash: ports_hasher.finish(),
+            hash: hasher.finish(),
         };
 
         let library_idx = match self.library_map.entry(library_key.clone()) {
@@ -398,7 +487,7 @@ impl VerilatorRuntime {
                 let local_directory_name = format!(
                     "{name}_{}_{}",
                     source_path.replace("_", "__").replace("/", "_"),
-                    library_key.ports_hash
+                    library_key.hash
                 );
                 let local_artifacts_directory =
                     self.artifact_directory.join(&local_directory_name);
@@ -496,13 +585,14 @@ impl VerilatorRuntime {
                     ports,
                     &local_artifacts_directory,
                     &self.options,
+                    config,
                     self.options.log,
                     || {
                         eprintln_nocapture!(
                             "{} {}#{} ({})",
                             "   Compiling".bold().green(),
                             name,
-                            library_key.ports_hash,
+                            library_key.hash,
                             source_path
                         )
                     },
@@ -519,28 +609,12 @@ impl VerilatorRuntime {
                         "Failed to load verilator dynamic library",
                     )?;
 
-                if !self.dpi_functions.is_empty() {
-                    let dpi_init_callback: extern "C" fn(
-                        *const *const libc::c_void,
-                    ) = *unsafe { library.get(b"dpi_init_callback") }
-                        .whatever_context("Failed to load DPI initializer")?;
-
-                    // order is important here. the function pointers will be
-                    // initialized in the same order that they
-                    // appear in the DPI array --- this is to match how the C
-                    // initialization code was constructed in `build_library`.
-                    let function_pointers = self
-                        .dpi_functions
-                        .iter()
-                        .map(|dpi_function| dpi_function.pointer())
-                        .collect::<Vec<_>>();
-
-                    (dpi_init_callback)(function_pointers.as_ptr_range().start);
-
-                    if self.options.log {
-                        log::info!("Initialized DPI functions");
-                    }
-                }
+                one_time_library_setup(
+                    &library,
+                    &self.dpi_functions,
+                    config.enable_tracing,
+                    &self.options,
+                )?;
 
                 let library_idx = self.library_arena.push(library);
                 entry.insert(library_idx);
@@ -552,10 +626,11 @@ impl VerilatorRuntime {
                     eprintln_nocapture!(
                         "{} `verilator-{}` profile target in {}.{:02}s",
                         "    Finished".bold().green(),
-                        self.options
-                            .verilator_optimization
-                            .map(|level| format!("O{level}"))
-                            .unwrap_or("unoptimized".into()),
+                        if config.verilator_optimization == 0 {
+                            "unoptimized".into()
+                        } else {
+                            format!("O{}", config.verilator_optimization)
+                        },
                         duration.as_secs(),
                         duration.subsec_millis() / 10
                     )?;

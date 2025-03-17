@@ -14,9 +14,45 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
-use crate::{PortDirection, VerilatorRuntimeOptions, dpi::DpiFunction};
+use crate::{
+    dpi::DpiFunction, PortDirection, VerilatedModelConfig,
+    VerilatorRuntimeOptions,
+};
+
+fn build_ffi_for_tracing(
+    buffer: &mut String,
+    top_module: &str,
+) -> Result<(), Whatever> {
+    writeln!(
+        buffer,
+        r#"
+    void ffi_Verilated_traceEverOn(bool everOn) {{
+        Verilated::traceEverOn(everOn);
+    }}
+
+    VerilatedVcdC* ffi_V{top_module}_open_trace(V{top_module}* top, const char* path) {{
+        VerilatedVcdC* vcd = new VerilatedVcdC;
+        top->trace(vcd, 99);
+        vcd->open(path);
+        return vcd;
+    }}
+
+    void ffi_VerilatedVcdC_dump(VerilatedVcdC* vcd, uint64_t timestamp) {{
+        vcd->dump(timestamp);
+    }}
+
+    void ffi_VerilatedVcdC_close_and_delete(VerilatedVcdC* vcd) {{
+        vcd->close();
+        delete vcd;
+    }}
+"#
+    )
+    .whatever_context("Failed to format tracing FFI")?;
+
+    Ok(())
+}
 
 /// Writes `extern "C"` C++ bindings for a Verilator model with the given name
 /// (`top_module`) and signature (`ports`) to the given artifact directory
@@ -26,10 +62,17 @@ fn build_ffi(
     artifact_directory: &Utf8Path,
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
+    enable_tracing: bool,
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
     let mut buffer = String::new();
+
+    if enable_tracing {
+        buffer.push_str("#include \"verilated_vcd_c.h\"\n");
+        buffer.push_str("#include <stdint.h>\n");
+    }
+
     writeln!(
         &mut buffer,
         r#"
@@ -91,8 +134,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", (width + 31) / 32) // words are 32 bits
-                // according to header
-                // file
+                                                       // according to header
+                                                       // file
                 } else {
                     "".into()
                 }
@@ -124,6 +167,12 @@ extern "C" {{
             )
             .whatever_context("Failed to format output port FFI")?;
         }
+    }
+
+    if enable_tracing {
+        build_ffi_for_tracing(&mut buffer, top_module).whatever_context(
+            "Failed to generate FFI bindings to Verilator tracing APIs",
+        )?;
     }
 
     writeln!(&mut buffer, "}} // extern \"C\"")
@@ -314,6 +363,7 @@ pub fn build_library(
     ports: &[(&str, usize, usize, PortDirection)],
     artifact_directory: &Utf8Path,
     options: &VerilatorRuntimeOptions,
+    config: &VerilatedModelConfig,
     verbose: bool,
     on_rebuild: impl FnOnce() -> Result<(), Whatever>,
 ) -> Result<(Utf8PathBuf, bool), Whatever> {
@@ -360,8 +410,13 @@ pub fn build_library(
 
     on_rebuild()?;
 
-    let _ffi_wrappers = build_ffi(&ffi_artifact_directory, top_module, ports)
-        .whatever_context("Failed to build FFI wrappers")?;
+    let _ffi_wrappers = build_ffi(
+        &ffi_artifact_directory,
+        top_module,
+        ports,
+        config.enable_tracing,
+    )
+    .whatever_context("Failed to build FFI wrappers")?;
 
     // bug in verilator#5226 means the directory must be relative to -Mdir
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
@@ -381,15 +436,19 @@ pub fn build_library(
     if let Some(dpi_file) = dpi_file {
         verilator_command.arg(dpi_file);
     }
-    if let Some(level) = options.verilator_optimization {
-        if (0..=3).contains(&level) {
+    if config.verilator_optimization != 0 {
+        let level = config.verilator_optimization;
+        if (1..=3).contains(&level) {
             verilator_command.arg(format!("-O{}", level));
         } else {
             whatever!("Invalid Verilator optimization level: {}", level);
         }
     }
-    for ignored_warning in &options.ignored_warnings {
+    for ignored_warning in &config.ignored_warnings {
         verilator_command.arg(format!("-Wno-{}", ignored_warning));
+    }
+    if config.enable_tracing {
+        verilator_command.arg("--trace");
     }
     if verbose {
         log::info!("| Verilator invocation: {:?}", verilator_command);

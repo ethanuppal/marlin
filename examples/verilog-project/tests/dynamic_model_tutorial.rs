@@ -15,7 +15,8 @@
 use std::env;
 
 use marlin::verilator::{
-    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
+    PortDirection, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
 use snafu::{ResultExt, Whatever};
 
@@ -41,6 +42,7 @@ fn main() -> Result<(), Whatever> {
             ("medium_input", 31, 0, PortDirection::Input),
             //("medium_output", 31, 0, PortDirection::Output),
         ],
+        VerilatedModelConfig::default(),
     )?;
 
     main.pin("medium_input", u32::MAX).whatever_context("pin")?;
@@ -57,6 +59,7 @@ fn main() -> Result<(), Whatever> {
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
         ],
+        VerilatedModelConfig::default(),
     )?;
 
     main.pin("medium_input", u32::MAX).whatever_context("pin")?;

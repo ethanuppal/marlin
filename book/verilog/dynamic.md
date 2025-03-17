@@ -87,7 +87,7 @@ use marlin::verilator::{
     PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
 };
 
-#[snafu::report]
+//#[snafu::report]
 fn main() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
         "build2".into(),
@@ -122,6 +122,12 @@ fn main() -> Result<(), Whatever> {
     Ok(())
 }
 ```
+
+> [!CAUTION]
+> Using `#[snafu::report]` on the function gives error messages that are
+> actually useful, but sometimes breaks LSP services like code completion.
+> I recommend to only apply it to your test functions when you actually
+> encounter an error.
 
 We can `cargo test` as usual to test.
 If you're using `git`, remember to add `build2/` to your `.gitignore`.
