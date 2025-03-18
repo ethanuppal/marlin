@@ -22,8 +22,18 @@ use marlin::{
 use snafu::Whatever;
 
 #[verilog::dpi]
-pub extern "C" fn three(out: &mut u32) {
-    *out = 3;
+pub extern "C" fn three(output: &mut u32) {
+    *output = 3;
+}
+
+#[verilog::dpi]
+pub extern "C" fn check_three(input: i32) {
+    assert_eq!(input, 3);    
+}
+
+#[verilog::dpi]
+pub extern "C" fn Bool(output: &mut bool) {
+    *output = true;
 }
 
 #[test]
@@ -37,13 +47,14 @@ fn main() -> Result<(), Whatever> {
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
-        [three],
+        [three, check_three, Bool],
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::<DpiMain>()?;
     main.eval();
-    assert_eq!(main.out, 3);
+
+    assert_eq!(main.out, 1);
 
     Ok(())
 }
