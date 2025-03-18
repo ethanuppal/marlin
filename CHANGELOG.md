@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/ethanuppal/marlin/compare/v0.3.4...v0.4.0) (2025-03-18)
+
+
+### Features
+
+* **verilog:** Support `bool` and distinguish signed/unsigned integers over DPI ([#110](https://github.com/ethanuppal/marlin/issues/110)) ([da3596f](https://github.com/ethanuppal/marlin/commit/da3596f0d46fd74a3e536f99a5463e26a7dfb635))
+
 ## [0.3.4](https://github.com/ethanuppal/marlin/compare/v0.3.3...v0.3.4) (2025-03-11)
 
 
