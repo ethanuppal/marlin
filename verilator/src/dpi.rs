@@ -4,6 +4,11 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
+//! See the [`#[verilog::dpi]`](https://docs.rs/marlin/latest/marlin/verilog/attr.dpi.html) macro for details.
+
+/// A `&'static dyn DpiFunction` represents a Rust function suitable for use in
+/// Verilator DPI. See the [`#[verilog::dpi]`](https://docs.rs/marlin/latest/marlin/verilog/attr.dpi.html)
+/// macro for details.
 pub trait DpiFunction: Sync {
     /// The Rust-declared name of the DPI function. This should be taken to be
     /// equivalent to the name given for the DPI C function in Verilog

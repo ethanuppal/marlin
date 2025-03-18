@@ -7,7 +7,7 @@
 use std::{env, fmt, path::PathBuf};
 
 use marlin_verilog_macro_builder::{
-    MacroArgs, build_verilated_struct, parse_verilog_ports,
+    build_verilated_struct, parse_verilog_ports, MacroArgs,
 };
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
@@ -172,6 +172,44 @@ fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
     }
 }
 
+/// Marlin allows you to import Rust functions into (System)Verilog over DPI.
+/// The function must have "C" linkage and be imported into SystemVerilog with
+/// "DPI-C" linkage.
+///
+/// For example:
+/// ```ignore
+/// // in Rust
+/// #[verilog::dpi]
+/// pub extern "C" fn three(out: &mut u32) {
+///     *out = 3;
+/// }
+/// ```
+/// ```systemverilog
+/// // in SystemVerilog
+/// import "DPI-C" function void three(output int out);
+/// ```
+///
+/// The Rust function can only take in primitive integer types at or below
+/// 64-bit width and booleans. The order and count of parameters must correspond
+/// exactly with the SystemVerilog import declaration.
+///
+/// Any `input` parameter on the Verilog side should correspond to a plain
+/// argument on the Rust side. Any `output` or `inout` parmaeter on the Verilog
+/// side should corresponding to a mutable reference on the Rust side. Note that
+/// the names of parmaeters on either side are irrelevant and need not
+/// correspond.
+///
+/// Here are some examples:
+///
+/// | SystemVerilog parameter | Rust parameter |
+/// | --- | --- |
+/// | `output int foo` | `foo: &mut i32` |
+/// | `input bit bar` | `bar: bool` |
+///
+/// ## More
+///
+/// Please reference the [Verilator docs on VPI](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi) for further information.
+/// You can also see the [corresponding page in the Marlin handbook](https://www.ethanuppal.com/marlin/verilog/dpi.html).
 #[proc_macro_attribute]
 pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
     let item_fn = parse_macro_input!(item as syn::ItemFn);
