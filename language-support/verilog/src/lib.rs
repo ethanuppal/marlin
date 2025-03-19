@@ -6,6 +6,7 @@
 
 //! Verilog integration for Marlin.
 
+#[doc(hidden)]
 pub mod __reexports {
     pub use libc;
     pub use libloading;
