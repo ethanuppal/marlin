@@ -22,8 +22,7 @@
   - changed-files:
       - any-glob-to-any-file: ".github/workflows/*"
       - any-glob-to-any-file: ".github/labels.yaml"
-      - any-glob-to-any-file: "release-please-config.json"
-      - any-glob-to-any-file: ".release-please-manifest.json"
+      - any-glob-to-any-file: ".github/release-please-config.json"
 
 "Documentation":
   - changed-files:
