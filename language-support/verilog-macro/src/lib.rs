@@ -7,7 +7,7 @@
 use std::{env, fmt, path::PathBuf};
 
 use marlin_verilog_macro_builder::{
-    build_verilated_struct, parse_verilog_ports, MacroArgs,
+    MacroArgs, build_verilated_struct, parse_verilog_ports,
 };
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};

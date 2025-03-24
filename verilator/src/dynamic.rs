@@ -9,7 +9,7 @@ use std::{collections::HashMap, ffi, fmt};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{types, PortDirection};
+use crate::{PortDirection, types};
 
 pub struct DynamicVerilatedModel<'ctx> {
     // TODO: add the dlsyms here and remove the library field
