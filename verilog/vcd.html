@@ -422,6 +422,7 @@
 
 </style>
 <h1 id="waveform-tracing"><a class="header" href="#waveform-tracing">Waveform Tracing</a></h1>
+<p>Example <a href="https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs">here</a>.</p>
 <p>You can open a VCD for a Verilated model using the <code>.open_vcd</code> function, which takes in anything that can turn into a <code>Path</code>.
 The <code>.dump</code> and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).</p>
 <p>The VCD is automatically closed and deallocated when out of scope.
