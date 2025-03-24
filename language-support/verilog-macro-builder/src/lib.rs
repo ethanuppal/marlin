@@ -268,7 +268,13 @@ pub fn build_verilated_struct(
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
                     let vcd_ptr = (vcd_api.open_trace)(self.model, c_path.as_ptr());
                     self.opened_vcd = true;
-                    #crate_name::__reexports::verilator::vcd::__private::new_vcd(vcd_ptr, vcd_api.dump, vcd_api.close_and_delete)
+                    #crate_name::__reexports::verilator::vcd::__private::new_vcd(
+                        vcd_ptr,
+                        vcd_api.dump,
+                        vcd_api.open_next,
+                        vcd_api.flush,
+                        vcd_api.close_and_delete
+                    )
                 } else {
                     #crate_name::__reexports::verilator::vcd::__private::new_vcd_useless()
                 }
@@ -302,9 +308,13 @@ pub fn build_verilated_struct(
                             *unsafe { library.get(concat!("ffi_V", #top_name, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
                         let dump: extern "C" fn(*mut std::ffi::c_void, u64) =
                             *unsafe { library.get(b"ffi_VerilatedVcdC_dump").expect("failed to get dump symbol") };
+                        let open_next: extern "C" fn(*mut std::ffi::c_void, bool) =
+                            *unsafe { library.get(b"ffi_VerilatedVcdC_open_next").expect("failed to get open_next symbol") };
+                        let flush: extern "C" fn(*mut std::ffi::c_void) =
+                            *unsafe { library.get(b"ffi_VerilatedVcdC_flush").expect("failed to get flush symbol") };
                         let close_and_delete: extern "C" fn(*mut std::ffi::c_void) =
                             *unsafe { library.get(b"ffi_VerilatedVcdC_close_and_delete").expect("failed to get close_and_delete symbol") };
-                        Some(VcdApi { open_trace, dump, close_and_delete })
+                        Some(VcdApi { open_trace, dump, open_next, flush, close_and_delete })
                     } else {
                         None
                     };

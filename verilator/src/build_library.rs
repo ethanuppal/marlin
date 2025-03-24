@@ -43,6 +43,14 @@ fn build_ffi_for_tracing(
         vcd->dump(timestamp);
     }}
 
+    void ffi_VerilatedVcdC_open_next(VerilatedVcdC* vcd, bool increment_filename) {{
+        vcd->openNext(increment_filename);
+    }}
+
+    void ffi_VerilatedVcdC_flush(VerilatedVcdC* vcd) {{
+        vcd->flush();
+    }}
+
     void ffi_VerilatedVcdC_close_and_delete(VerilatedVcdC* vcd) {{
         vcd->close();
         delete vcd;

@@ -4,3 +4,4 @@ target/
 **/artifacts3/
 docs/
 version.txt
+*.vcd
