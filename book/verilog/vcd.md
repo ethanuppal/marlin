@@ -1,5 +1,7 @@
 # Waveform Tracing
 
+Example [here](https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs).
+
 You can open a VCD for a Verilated model using the `.open_vcd` function, which takes in anything that can turn into a `Path`.
 The `.dump` and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).
 

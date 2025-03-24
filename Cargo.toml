@@ -21,6 +21,8 @@ edition = "2024"
 rust-version = "1.85"
 description = "🦀 No nonsense hardware testing in Rust 🛠️"
 repository = "https://github.com/ethanuppal/marlin"
+documentation = "https://docs.rs/marlin/latest/marlin/"
+homepage = "https://www.ethanuppal.com/marlin/"
 readme = "README.md"
 license = "MPL-2.0"
 
