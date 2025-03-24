@@ -277,7 +277,7 @@ pub fn build_verilated_struct(
             #(#other_impl)*
         }
 
-        impl<'ctx> #crate_name::__reexports::verilator::VerilatedModel for #struct_name<'ctx> {
+        impl<'ctx> #crate_name::__reexports::verilator::VerilatedModel<'ctx> for #struct_name<'ctx> {
             fn name() -> &'static str {
                 #top_name
             }
@@ -291,7 +291,7 @@ pub fn build_verilated_struct(
                 &PORTS
             }
 
-            fn init_from(library: &#crate_name::__reexports::libloading::Library, tracing_enabled: bool) -> Self {
+            fn init_from(library: &'ctx #crate_name::__reexports::libloading::Library, tracing_enabled: bool) -> Self {
                 #(#verilated_model_init_impl)*
 
                 let vcd_api =

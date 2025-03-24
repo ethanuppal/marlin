@@ -29,25 +29,21 @@ fn forwards_correctly() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    let mut vcd = {
-        let mut main = runtime.create_model::<Main>(&VerilatedModelConfig {
-            enable_tracing: true,
-            ..Default::default()
-        })?;
+    let mut main = runtime.create_model::<Main>(&VerilatedModelConfig {
+        enable_tracing: true,
+        ..Default::default()
+    })?;
 
-        let mut vcd = main.open_vcd("foo.vcd", Vcd::from);
+    let mut vcd = main.open_vcd("foo.vcd");
 
-        vcd.dump(0);
+    vcd.dump(0);
 
-        main.medium_input = u32::MAX;
-        println!("{}", main.medium_output);
-        assert_eq!(main.medium_output, 0);
-        main.eval();
-        println!("{}", main.medium_output);
-        assert_eq!(main.medium_output, u32::MAX);
-
-        vcd
-    };
+    main.medium_input = u32::MAX;
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, 0);
+    main.eval();
+    println!("{}", main.medium_output);
+    assert_eq!(main.medium_output, u32::MAX);
 
     vcd.dump(1);
     vcd.dump(2);

@@ -133,7 +133,9 @@ impl VerylRuntime {
 
     /// Instantiates a new Veryl module. This function simply wraps
     /// [`VerilatorRuntime::create_model`].
-    pub fn create_model<M: VerilatedModel>(&self) -> Result<M, Whatever> {
+    pub fn create_model<'ctx, M: VerilatedModel<'ctx>>(
+        &'ctx self,
+    ) -> Result<M, Whatever> {
         self.verilator_runtime.create_model_simple()
     }
 }

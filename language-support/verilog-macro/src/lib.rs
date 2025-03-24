@@ -7,7 +7,7 @@
 use std::{env, fmt, path::PathBuf};
 
 use marlin_verilog_macro_builder::{
-    MacroArgs, build_verilated_struct, parse_verilog_ports,
+    build_verilated_struct, parse_verilog_ports, MacroArgs,
 };
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
@@ -340,8 +340,8 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
                 &[#(#c_signature),*]
             }
 
-            fn pointer(&self) -> *const verilog::__reexports::ffi::c_void {
-                #struct_name::call as extern "C" fn(#(#parameter_types),*) as *const verilog::__reexports::ffi::c_void
+            fn pointer(&self) -> *const std::ffi::c_void {
+                #struct_name::call as extern "C" fn(#(#parameter_types),*) as *const std::ffi::c_void
             }
         }
 

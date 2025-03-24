@@ -101,7 +101,7 @@ pub struct VerilatedModelConfig {
 
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
-pub trait VerilatedModel {
+pub trait VerilatedModel<'ctx>: 'ctx {
     /// The source-level name of the module.
     fn name() -> &'static str;
 
@@ -113,7 +113,7 @@ pub trait VerilatedModel {
 
     /// Use [`VerilatorRuntime::create_model`] or similar function for another
     /// runtime.
-    fn init_from(library: &Library, tracing_enabled: bool) -> Self;
+    fn init_from(library: &'ctx Library, tracing_enabled: bool) -> Self;
 
     #[doc(hidden)]
     unsafe fn model(&self) -> *mut ffi::c_void;
@@ -309,8 +309,8 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model_simple<M: VerilatedModel>(
-        &self,
+    pub fn create_model_simple<'ctx, M: VerilatedModel<'ctx>>(
+        &'ctx self,
     ) -> Result<M, Whatever> {
         self.create_model(&VerilatedModelConfig::default())
     }
@@ -319,8 +319,8 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model<M: VerilatedModel>(
-        &self,
+    pub fn create_model<'ctx, M: VerilatedModel<'ctx>>(
+        &'ctx self,
         config: &VerilatedModelConfig,
     ) -> Result<M, Whatever> {
         let library = self
