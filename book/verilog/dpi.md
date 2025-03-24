@@ -106,7 +106,7 @@ fn main() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default(),
     )?;
 
-    let mut main = runtime.create_model::<Main>()?;
+    let mut main = runtime.create_model_simple::<Main>()?;
     main.eval();
     assert_eq!(main.out, 3);
 

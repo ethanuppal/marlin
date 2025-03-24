@@ -84,7 +84,7 @@ vi tests/dynamic_test.rs
 // file: tests/simple_test.rs
 use snafu::Whatever;
 use marlin::verilator::{
-    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions,
+    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions, VerilatedModelConfig
 };
 
 //#[snafu::report]
@@ -104,6 +104,7 @@ fn main() -> Result<(), Whatever> {
             ("medium_input", 31, 0, PortDirection::Input),
             ("medium_output", 31, 0, PortDirection::Output),
         ],
+        VerilatedModelConfig::default(),
     )?;
 
     main.pin("medium_input", u32::MAX).whatever_context("pin")?;
