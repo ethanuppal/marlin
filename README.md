@@ -113,11 +113,11 @@ Verilator is licensed under the Lesser GNU General Public License 3.0. However,
 Marlin will `dlopen` Verilated code, which is permitted via this clause:
 
 > 1) Use a suitable shared library mechanism for linking with the
-> Library.  A suitable mechanism is one that (a) uses at run time
-> a copy of the Library already present on the user's computer
-> system, and (b) will operate properly with a modified version
-> of the Library that is interface-compatible with the Linked
-> Version.
+>   Library.  A suitable mechanism is one that (a) uses at run time
+>   a copy of the Library already present on the user's computer
+>   system, and (b) will operate properly with a modified version
+>   of the Library that is interface-compatible with the Linked
+>   Version.
 
 Through [`VerilatorRuntimeOptions::verilator_executable`](https://docs.rs/marlin/latest/marlin/verilator/struct.VerilatorRuntimeOptions.html#structfield.verilator_executable),
 you can specify your own interface-compatible Verilator wrapper, enabling (b).
