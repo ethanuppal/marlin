@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/ethanuppal/marlin/compare/v0.4.0...v0.5.0) (2025-03-24)
+
+
+### Features
+
+* **verilator:** VCD tracing 🔥 ([#113](https://github.com/ethanuppal/marlin/issues/113)) ([f3ad49a](https://github.com/ethanuppal/marlin/commit/f3ad49a6e0fe10dda25b04f88364331f647f7591))
+
 ## [0.4.0](https://github.com/ethanuppal/marlin/compare/v0.3.4...v0.4.0) (2025-03-18)
 
 
