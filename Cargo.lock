@@ -524,7 +524,6 @@ version = "0.3.4"
 dependencies = [
  "camino",
  "glob",
- "libc",
  "libloading",
  "log",
  "marlin-spade-macro",
@@ -555,7 +554,6 @@ dependencies = [
  "camino",
  "dashmap",
  "file-guard",
- "libc",
  "libloading",
  "log",
  "owo-colors",
@@ -566,7 +564,6 @@ dependencies = [
 name = "marlin-verilog"
 version = "0.3.4"
 dependencies = [
- "libc",
  "libloading",
  "marlin-verilator",
  "marlin-verilog-macro",
@@ -598,7 +595,6 @@ name = "marlin-veryl"
 version = "0.3.4"
 dependencies = [
  "camino",
- "libc",
  "libloading",
  "log",
  "marlin-verilator",

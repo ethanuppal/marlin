@@ -95,22 +95,16 @@ pub fn build_verilated_struct(
     let mut verilated_model_init_self = vec![];
 
     verilated_model_init_impl.push(quote! {
-        let new_model: extern "C" fn() -> *mut #crate_name::__reexports::libc::c_void =
+        let new_model: extern "C" fn() -> *mut #crate_name::__reexports::ffi::c_void =
             *unsafe { library.get(concat!("ffi_new_V", #top_name).as_bytes()) }
                 .expect("failed to get symbol");
         let model = (new_model)();
 
-
-        let delete_model: extern "C" fn(*mut #crate_name::__reexports::libc::c_void) =
-            *unsafe { library.get(concat!("ffi_delete_V", #top_name).as_bytes()) }
-                .expect("failed to get symbol");
-
-        let eval_model: extern "C" fn(*mut #crate_name::__reexports::libc::c_void) =
+        let eval_model: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void) =
             *unsafe { library.get(concat!("ffi_V", #top_name, "_eval").as_bytes()) }
                 .expect("failed to get symbol");
     });
     verilated_model_init_self.push(quote! {
-        drop_model: delete_model,
         eval_model,
         model,
         _marker: std::marker::PhantomData
@@ -166,7 +160,7 @@ pub fn build_verilated_struct(
                 let setter = format_ident!("pin_{}", port_name);
                 struct_members.push(quote! {
                     #[doc(hidden)]
-                    #setter: extern "C" fn(*mut #crate_name::__reexports::libc::c_void, #port_type)
+                    #setter: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void, #port_type)
                 });
                 preeval_impl.push(quote! {
                     (self.#setter)(self.model, self.#port_name_ident);
@@ -190,7 +184,7 @@ pub fn build_verilated_struct(
                 }
 
                 verilated_model_init_impl.push(quote! {
-                    let #setter: extern "C" fn(*mut #crate_name::__reexports::libc::c_void, #port_type) =
+                    let #setter: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void, #port_type) =
                         *unsafe { library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
@@ -200,14 +194,14 @@ pub fn build_verilated_struct(
                 let getter = format_ident!("read_{}", port_name);
                 struct_members.push(quote! {
                     #[doc(hidden)]
-                    #getter: extern "C" fn(*mut #crate_name::__reexports::libc::c_void) -> #port_type
+                    #getter: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void) -> #port_type
                 });
                 posteval_impl.push(quote! {
                     self.#port_name_ident = (self.#getter)(self.model);
                 });
 
                 verilated_model_init_impl.push(quote! {
-                    let #getter: extern "C" fn(*mut #crate_name::__reexports::libc::c_void) -> #port_type =
+                    let #getter: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void) -> #port_type =
                         *unsafe { library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
@@ -233,9 +227,7 @@ pub fn build_verilated_struct(
 
     struct_members.push(quote! {
         #[doc(hidden)]
-        drop_model: extern "C" fn(*mut #crate_name::__reexports::libc::c_void),
-        #[doc(hidden)]
-        eval_model: extern "C" fn(*mut #crate_name::__reexports::libc::c_void)
+        eval_model: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void)
     });
 
     let struct_name = item.ident;
@@ -244,11 +236,11 @@ pub fn build_verilated_struct(
     quote! {
         #vis struct #struct_name<'ctx> {
             #[doc(hidden)]
-            vcd_api: Option<#crate_name::__reexports::verilator::vcd::VcdApi>,
+            vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
             #(#struct_members),*,
             #[doc = "# Safety\nThe Rust binding to the model will not outlive the dynamic library context (with lifetime `'ctx`) and is dropped when this struct is."]
             #[doc(hidden)]
-            model: *mut #crate_name::__reexports::libc::c_void,
+            model: *mut #crate_name::__reexports::ffi::c_void,
             #[doc(hidden)]
             _marker: std::marker::PhantomData<&'ctx ()>,
             #[doc(hidden)]
@@ -262,33 +254,21 @@ pub fn build_verilated_struct(
                 #(#posteval_impl)*
             }
 
-            pub fn open_vcd<'top>(
-                &'top mut self,
+            pub fn open_vcd(
+                &mut self,
                 path: impl std::convert::AsRef<std::path::Path>,
-                extract: impl FnOnce((
-                    *mut #crate_name::__reexports::libc::c_void,
-                    extern "C" fn(*mut #crate_name::__reexports::libc::c_void, u64),
-                    extern "C" fn(*mut #crate_name::__reexports::libc::c_void),
-                )) -> #crate_name::__reexports::verilator::vcd::Vcd<'top>
-            ) -> #crate_name::__reexports::verilator::vcd::Vcd<'top> {
+            ) -> #crate_name::__reexports::verilator::vcd::Vcd<'ctx> {
                 let path = path.as_ref();
                 if let Some(vcd_api) = &self.vcd_api {
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
                     let vcd_ptr = (vcd_api.open_trace)(self.model, c_path.as_ptr());
-                    extract((vcd_ptr, vcd_api.dump, vcd_api.close_and_delete))
+                    #crate_name::__reexports::verilator::vcd::__private::new_vcd(vcd_ptr, vcd_api.dump, vcd_api.close_and_delete)
                 } else {
-                    #crate_name::__reexports::verilator::vcd::Vcd::new_useless()
+                    #crate_name::__reexports::verilator::vcd::__private::new_vcd_useless()
                 }
             }
 
             #(#other_impl)*
-        }
-
-        impl<'ctx> std::ops::Drop for #struct_name<'ctx> {
-            fn drop(&mut self) {
-                (self.drop_model)(self.model);
-                self.model = std::ptr::null_mut();
-            }
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::VerilatedModel for #struct_name<'ctx> {
@@ -310,13 +290,13 @@ pub fn build_verilated_struct(
 
                 let vcd_api =
                     if tracing_enabled {
-                        use #crate_name::__reexports::verilator::vcd::VcdApi;
+                        use #crate_name::__reexports::verilator::vcd::__private::VcdApi;
 
-                        let open_trace: extern "C" fn(*mut #crate_name::__reexports::libc::c_void, *const #crate_name::__reexports::libc::c_char) -> *mut #crate_name::__reexports::libc::c_void =
+                        let open_trace: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void, *const #crate_name::__reexports::libc::c_char) -> *mut #crate_name::__reexports::ffi::c_void =
                             *unsafe { library.get(concat!("ffi_V", #top_name, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
-                        let dump: extern "C" fn(*mut #crate_name::__reexports::libc::c_void, u64) =
+                        let dump: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void, u64) =
                             *unsafe { library.get(b"ffi_VerilatedVcdC_dump").expect("failed to get dump symbol") };
-                        let close_and_delete: extern "C" fn(*mut #crate_name::__reexports::libc::c_void) =
+                        let close_and_delete: extern "C" fn(*mut #crate_name::__reexports::ffi::c_void) =
                             *unsafe { library.get(b"ffi_VerilatedVcdC_close_and_delete").expect("failed to get close_and_delete symbol") };
                         Some(VcdApi{ open_trace, dump, close_and_delete })
                     } else {

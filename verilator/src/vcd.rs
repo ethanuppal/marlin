@@ -6,16 +6,16 @@
 
 use std::marker::PhantomData;
 
-use __private::VcdImpl;
-
 #[doc(hidden)]
 pub mod __private {
+    use std::{ffi, marker::PhantomData};
+
     use super::Vcd;
 
     pub(crate) struct VcdImpl {
-        pub(crate) handle: *mut libc::c_void,
-        pub(crate) dump: extern "C" fn(*mut libc::c_void, u64),
-        pub(crate) close_and_delete: extern "C" fn(*mut libc::c_void),
+        pub(crate) handle: *mut ffi::c_void,
+        pub(crate) dump: extern "C" fn(*mut ffi::c_void, u64),
+        close_and_delete: extern "C" fn(*mut ffi::c_void),
     }
 
     impl Drop for VcdImpl {
@@ -23,56 +23,46 @@ pub mod __private {
             (self.close_and_delete)(self.handle);
         }
     }
+    #[derive(Clone, Copy)]
+    pub struct VcdApi {
+        pub open_trace: extern "C" fn(
+            *mut ffi::c_void,
+            *const ffi::c_char,
+        ) -> *mut ffi::c_void,
+        pub dump: extern "C" fn(*mut ffi::c_void, u64),
+        pub close_and_delete: extern "C" fn(*mut ffi::c_void),
+    }
 
-    pub fn new_vcd_useless<'top>() -> Vcd<'top> {
+    pub fn new_vcd<'ctx>(
+        handle: *mut ffi::c_void,
+        dump: extern "C" fn(*mut ffi::c_void, u64),
+        close_and_delete: extern "C" fn(*mut ffi::c_void),
+    ) -> Vcd<'ctx> {
         Vcd {
-            inner: None,
+            inner: Some(VcdImpl {
+                handle,
+                dump,
+                close_and_delete,
+            }),
             _marker: std::marker::PhantomData,
         }
     }
-}
 
-#[derive(Clone, Copy)]
-pub struct VcdApi {
-    pub open_trace: extern "C" fn(
-        *mut libc::c_void,
-        *const libc::c_char,
-    ) -> *mut libc::c_void,
-    pub dump: extern "C" fn(*mut libc::c_void, u64),
-    pub close_and_delete: extern "C" fn(*mut libc::c_void),
-}
-
-/// A VCD dump.
-pub struct Vcd<'top> {
-    inner: Option<__private::VcdImpl>,
-    _marker: PhantomData<&'top ()>,
-}
-
-impl Vcd<'_> {
-    pub fn from(
-        input: (
-            *mut libc::c_void,
-            extern "C" fn(*mut libc::c_void, u64),
-            extern "C" fn(*mut libc::c_void),
-        ),
-    ) -> Self {
-        Self {
-            inner: Some(VcdImpl {
-                handle: input.0,
-                dump: input.1,
-                close_and_delete: input.2,
-            }),
-            _marker: PhantomData,
-        }
-    }
-
-    pub fn new_useless() -> Self {
-        Self {
+    pub fn new_vcd_useless<'ctx>() -> Vcd<'ctx> {
+        Vcd {
             inner: None,
             _marker: PhantomData,
         }
     }
+}
 
+/// A VCD dump.
+pub struct Vcd<'ctx> {
+    inner: Option<__private::VcdImpl>,
+    _marker: PhantomData<&'ctx ()>,
+}
+
+impl Vcd<'_> {
     /// Documentation taken from the Verilator header file:
     ///
     /// > Write one cycle of dump data

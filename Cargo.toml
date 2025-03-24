@@ -28,7 +28,6 @@ license = "MPL-2.0"
 # see deny.toml for justification for all dependencies
 snafu = { version = "0.8.5", default-features = false, features = ["std"] }
 camino = { version = "1.1.9", default-features = false }
-libc = { version = "0.2.169", default-features = false }
 libloading = { version = "0.8.6", default-features = false }
 log = { version = "0.4.25", default-features = false }
 env_logger = { version = "0.11.6", default-features = false }

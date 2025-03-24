@@ -16,5 +16,4 @@ marlin-veryl-macro.workspace = true
 camino.workspace = true
 snafu.workspace = true
 log.workspace = true
-libc.workspace = true
 libloading.workspace = true

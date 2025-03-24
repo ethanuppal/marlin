@@ -25,7 +25,6 @@ skip = [
 # allow = [
 #   { crate = "snafu", reason = "Implements ergonomic error handling and error report printing. I should be able to replace this with my own error handling system." },
 #   { crate = "camino", reason = "Complete replacement for native path API but supporting UTF-8. This would be too much effort to rewrite myself and implement all the methods that camino does to make this a drop-in replacement everywhere." },
-#   { crate = "libc", reason = "The canonical source for C types, needed when generating bindings from C to Rust" },
 #   { crate = "libloading", reason = "The canonical dlopen solution with built-in safety" },
 #   { crate = "log", reason = "Standard Rust logging crate" },
 #   { crate = "env_logger", reason = "Logger backend with minimal dependencies. Can probably remove and replace with my own logging backend." },

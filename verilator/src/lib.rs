@@ -12,7 +12,8 @@
 //! which just wraps [`VerilatorRuntime`].
 
 use std::{
-    ffi::OsString,
+    cell::RefCell,
+    ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
     io::Write,
@@ -113,6 +114,9 @@ pub trait VerilatedModel {
     /// Use [`VerilatorRuntime::create_model`] or similar function for another
     /// runtime.
     fn init_from(library: &Library, tracing_enabled: bool) -> Self;
+
+    #[doc(hidden)]
+    unsafe fn model(&self) -> *mut ffi::c_void;
 }
 
 /// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can
@@ -171,6 +175,21 @@ pub struct VerilatorRuntime {
     library_map: DashMap<LibraryArenaKey, usize>,
     /// Verilator implementations arena
     library_arena: BoxcarVec<Library>,
+    /// SAFETY: These are dropped when the runtime is dropped. They will not be
+    /// "borrowed mutably" because the models created for this runtime must
+    /// not outlive it and thus will be all gone before these are dropped.
+    model_deallocators:
+        RefCell<Vec<(*mut ffi::c_void, extern "C" fn(*mut ffi::c_void))>>,
+}
+
+impl Drop for VerilatorRuntime {
+    fn drop(&mut self) {
+        for (model, deallocator) in
+            self.model_deallocators.borrow_mut().drain(..)
+        {
+            deallocator(model);
+        }
+    }
 }
 
 /* <Forgive me father for I have sinned> */
@@ -210,7 +229,7 @@ fn one_time_library_setup(
     options: &VerilatorRuntimeOptions,
 ) -> Result<(), Whatever> {
     if !dpi_functions.is_empty() {
-        let dpi_init_callback: extern "C" fn(*const *const libc::c_void) =
+        let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
             *unsafe { library.get(b"dpi_init_callback") }
                 .whatever_context("Failed to load DPI initializer")?;
 
@@ -282,6 +301,7 @@ impl VerilatorRuntime {
             options,
             library_map: DashMap::new(),
             library_arena: BoxcarVec::new(),
+            model_deallocators: RefCell::new(vec![]),
         })
     }
 
@@ -314,7 +334,20 @@ impl VerilatorRuntime {
                 "Failed to build or retrieve verilator dynamic library. Try removing the build directory if it is corrupted.",
             )?;
 
-        Ok(M::init_from(library, config.enable_tracing))
+        let delete_model: extern "C" fn(*mut ffi::c_void) = *unsafe {
+            library.get(format!("ffi_delete_V{}", M::name()).as_bytes())
+        }
+        .expect("failed to get symbol");
+
+        let model = M::init_from(library, config.enable_tracing);
+
+        self.model_deallocators.borrow_mut().push((
+            // SAFETY: todo
+            unsafe { model.model() },
+            delete_model,
+        ));
+
+        Ok(model)
     }
 
     // TODO: should this be unified with the normal create_model by having
@@ -359,7 +392,7 @@ impl VerilatorRuntime {
                 "Failed to build or retrieve verilator dynamic library. Try removing the build directory if it is corrupted.",
             )?;
 
-        let new_main: extern "C" fn() -> *mut libc::c_void =
+        let new_main: extern "C" fn() -> *mut ffi::c_void =
             *unsafe { library.get(format!("ffi_new_V{name}").as_bytes()) }
                 .whatever_context(format!(
                     "Failed to load constructor for module {}",
@@ -388,11 +421,14 @@ impl VerilatorRuntime {
             })
             .collect();
 
+        self.model_deallocators
+            .borrow_mut()
+            .push((main, delete_main));
+
         Ok(DynamicVerilatedModel {
             ports,
             name: name.to_string(),
             main,
-            delete_main,
             eval_main,
             library,
         })

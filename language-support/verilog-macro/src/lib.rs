@@ -340,8 +340,8 @@ pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
                 &[#(#c_signature),*]
             }
 
-            fn pointer(&self) -> *const verilog::__reexports::libc::c_void {
-                #struct_name::call as extern "C" fn(#(#parameter_types),*) as *const verilog::__reexports::libc::c_void
+            fn pointer(&self) -> *const verilog::__reexports::ffi::c_void {
+                #struct_name::call as extern "C" fn(#(#parameter_types),*) as *const verilog::__reexports::ffi::c_void
             }
         }
 

@@ -16,7 +16,6 @@ use snafu::{whatever, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
-    pub use libc;
     pub use libloading;
     pub use marlin_verilator as verilator;
 }

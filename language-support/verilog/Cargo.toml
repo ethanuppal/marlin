@@ -12,5 +12,4 @@ license.workspace = true
 [dependencies]
 marlin-verilog-macro.workspace = true
 marlin-verilator.workspace = true
-libc.workspace = true
 libloading.workspace = true

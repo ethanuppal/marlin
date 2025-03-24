@@ -4,6 +4,8 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
+use std::ffi;
+
 pub trait DpiFunction: Sync {
     /// The Rust-declared name of the DPI function. This should be taken to be
     /// equivalent to the name given for the DPI C function in Verilog
@@ -16,5 +18,5 @@ pub trait DpiFunction: Sync {
     fn signature(&self) -> &'static [(&'static str, &'static str)];
 
     /// The Rust function as a function pointer.
-    fn pointer(&self) -> *const libc::c_void;
+    fn pointer(&self) -> *const ffi::c_void;
 }

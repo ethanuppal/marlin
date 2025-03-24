@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, ffi, fmt};
 
 use libloading::Library;
 use snafu::Snafu;
@@ -15,16 +15,9 @@ pub struct DynamicVerilatedModel<'ctx> {
     // TODO: add the dlsyms here and remove the library field
     pub(crate) ports: HashMap<String, (usize, PortDirection)>,
     pub(crate) name: String,
-    pub(crate) main: *mut libc::c_void,
-    pub(crate) eval_main: extern "C" fn(*mut libc::c_void),
-    pub(crate) delete_main: extern "C" fn(*mut libc::c_void),
+    pub(crate) main: *mut ffi::c_void,
+    pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
     pub(crate) library: &'ctx Library,
-}
-
-impl Drop for DynamicVerilatedModel<'_> {
-    fn drop(&mut self) {
-        (self.delete_main)(self.main);
-    }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -131,7 +124,7 @@ impl DynamicVerilatedModel<'_> {
         macro_rules! read_value {
             ($self:ident, $port:expr, $value_type:ty) => {{
                 let symbol: libloading::Symbol<
-                    extern "C" fn(*mut libc::c_void) -> $value_type,
+                    extern "C" fn(*mut ffi::c_void) -> $value_type,
                 > = unsafe {
                     self.library.get(
                         format!("ffi_V{}_read_{}", self.name, $port).as_bytes(),
@@ -170,7 +163,7 @@ impl DynamicVerilatedModel<'_> {
         macro_rules! pin_value {
             ($self:ident, $port:expr, $value:expr, $value_type:ty, $low:literal, $high:literal) => {{
                 let symbol: libloading::Symbol<
-                    extern "C" fn(*mut libc::c_void, $value_type),
+                    extern "C" fn(*mut ffi::c_void, $value_type),
                 > = unsafe {
                     self.library.get(
                         format!("ffi_V{}_pin_{}", self.name, $port).as_bytes(),
