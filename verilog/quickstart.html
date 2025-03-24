@@ -517,7 +517,7 @@ use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
 use snafu::Whatever;
 
 #[test]
-#[snafu::report]
+//#[snafu::report]
 fn forwards_u32max_correctly() -&gt; Result&lt;(), Whatever&gt; {
     let runtime = VerilatorRuntime::new(
         "build".into(),
@@ -528,7 +528,7 @@ fn forwards_u32max_correctly() -&gt; Result&lt;(), Whatever&gt; {
         true,
     )?;
 
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
+    let mut main = runtime.create_model_simple::&lt;Main&gt;()?;
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);
@@ -540,6 +540,16 @@ fn forwards_u32max_correctly() -&gt; Result&lt;(), Whatever&gt; {
     Ok(())
 }
 <span class="boring">}</span></code></pre></pre>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Using <code>#[snafu::report]</code> on the function gives error messages that are
+actually useful, but sometimes breaks LSP services like code completion.
+I recommend to only apply it to your test functions when you actually
+encounter an error.</p>
+</div>
 <p>Let's break down the relevant parts of what's going on here.</p>
 <p>We first setup the Verilator runtime configuration. We'll use a build directory
 called "build" in the local directory.</p>
@@ -577,7 +587,7 @@ same as Verilator's evaluation method).</p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../verilog/tutorials.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -591,7 +601,7 @@ same as Verilator's evaluation method).</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../verilog/tutorials.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Spade Quickstart - Marlin Handbook</title>
+        <title>Waveform Tracing - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -421,146 +421,23 @@
 }
 
 </style>
-<h1 id="spade-quickstart"><a class="header" href="#spade-quickstart">Spade Quickstart</a></h1>
-<div class="mdbook-callouts mdbook-callouts-note">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  note
-</p>
-<p>This tutorial is aimed at Unix-like systems like macOS, Linux, and WSL.</p>
-</div>
-<p>In this tutorial, we'll setup a Spade project and test our code with
-Marlin. You can find the full source code for this tutorial <a href="https://github.com/ethanuppal/marlin/tree/main/examples/spade-project">here</a>.</p>
-<p><strong>I'll be assuming you've read the <a href="../verilog/quickstart.html">tutorial on testing Verilog projects</a>; if not, read that first and come back.</strong></p>
-<p>Also, make sure you have a Spade toolchain installed, although we'll only be using the Swim build tool
-(follow the instructions <a href="https://docs.spade-lang.org/swim/install.html">here</a>
-to install it).</p>
-<div class="mdbook-callouts mdbook-callouts-note">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  note
-</p>
-<p>If you already have a Swim project and are looking to integrate Marlin into
-it, you don't need to read Part 1 too carefully.</p>
-</div>
-<h2 id="part-1-making-a-swim-project"><a class="header" href="#part-1-making-a-swim-project">Part 1: Making a Swim Project</a></h2>
-<p>Let's call our project "tutorial-project" (you are free to call it however you
-like):</p>
-<pre><code class="language-shell">swim init tutorial-project
-cd tutorial-project
-git init # optional, if using git
-</code></pre>
-<p>Here's what our project will look like in the end:</p>
-<pre><code>.
-├── swim.toml
-├── swim.lock
-├── Cargo.toml
-├── src
-│   ├── lib.rs
-│   └── main.spade
-└── tests
-    └── simple_test.rs
-</code></pre>
-<p>In <code>main.spade</code> (which should already exist after running <code>swim init</code>), we'll write some simple Spade code:</p>
-<pre><code class="language-spade">// file: src/main.spade
-#[no_mangle(all)]
-entity main(out: inv &amp;int&lt;8&gt;) {
-    set out = 42;
-}}
-</code></pre>
-<p>You can read the <a href="https://docs.spade-lang.org/introduction.html">Spade book</a> for an
-introduction to Spade; this tutorial will not focus on teaching the language.
-Nonetheless, the essence of the above code is to expose an inverted wire which
-we pin to the value <code>42</code> (think of <code>assign</code>ing to an <code>output</code> in Verilog).
-We'll write a very simple SystemVerilog module: one that forwards its inputs to
-its outputs.</p>
-<h2 id="part-2-setting-up-marlin"><a class="header" href="#part-2-setting-up-marlin">Part 2: Setting up Marlin</a></h2>
-<pre><code class="language-shell">cargo init --lib
-cargo add marlin --features spade --dev
-cargo add snafu --dev
-</code></pre>
-<p>The only required crate is <code>marlin</code>, but I strongly recommend at this stage of
-development to use <code>snafu</code>, which will display a human-readable error trace upon
-<code>Result::Err</code>.</p>
-<div class="mdbook-callouts mdbook-callouts-caution">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  caution
-</p>
-<p>Please use <code>snafu</code>! 😂</p>
-</div>
-<p>In the test file, we'll create the binding to our Spade module:</p>
-<pre><code class="language-shell">mkdir tests
-vi tests/simple_test.rs
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// file: tests/simple_test.rs
-use marlin::spade::prelude::*;
-
-#[spade(src = "src/main.spade", name = "main")]
-pub struct Main;
-<span class="boring">}</span></code></pre></pre>
-<p>This tells Marlin that the <code>struct Main</code> should be linked to the <code>main</code> entity
-in our Spade file. You can instead put this in your <code>lib.rs</code> file if you prefer.</p>
-<p>Finally, we'll want to actually write the code that drives our hardware:</p>
-<pre><pre class="playground"><code class="language-rust">// file: tests/simple_test.rs
-use marlin::spade::prelude::*;
-use snafu::Whatever;
-
-#[test]
-//#[snafu::report]
-fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_spade_build: true, /* warning: not thread safe! don't use if you
-                                 * have multiple tests */
-        ..Default::default()
-    })?;
-
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
-
-    main.eval();
-    println!("{}", main.out);
-    assert_eq!(main.out, 42); // hardcoded into Spade source
-
-    Ok(())
-}</code></pre></pre>
-<div class="mdbook-callouts mdbook-callouts-caution">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  caution
-</p>
-<p>Using <code>#[snafu::report]</code> on the function gives error messages that are
-actually useful, but sometimes breaks LSP services like code completion.
-I recommend to only apply it to your test functions when you actually
-encounter an error.</p>
-</div>
-<p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the Spade compiler.</p>
-<div class="mdbook-callouts mdbook-callouts-warning">
-<p class="mdbook-callouts-title">
-  <span class="mdbook-callouts-icon"></span>
-  warning
-</p>
-<p>By default, <code>SpadeRuntime</code> invokes <code>swim build</code>, which is not thread-safe. If
-you have multiple tests, run <code>swim build</code> beforehand and then run <code>cargo test</code>
-after disabling the automatic <code>swim build</code> via
-<code>SpadeRuntimeOptions::call_swim_build</code>.</p>
-</div>
-<p>Note that, unlike the Verilog project tutorial, you don't need to add another
-directory to your <code>.gitignore</code>, if you have one, because the <code>SpadeRuntime</code>
-reuses the existing <code>build/</code> directory managed by Swim. Thus, you should add
-that to your <code>.gitignore</code> instead. <code>swim init</code> should do that automatically,
-though.</p>
+<h1 id="waveform-tracing"><a class="header" href="#waveform-tracing">Waveform Tracing</a></h1>
+<p>You can open a VCD for a Verilated model using the <code>.open_vcd</code> function, which takes in anything that can turn into a <code>Path</code>.
+The <code>.dump</code> and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).</p>
+<p>The VCD is automatically closed and deallocated when out of scope.
+Lifetimes enforce that you cannot use the VCD past the scope of the runtime whence the model you created the VCD came.</p>
+<p>Until <a href="https://github.com/verilator/verilator/issues/5813">https://github.com/verilator/verilator/issues/5813</a> gets fixed, <code>.open_vcd</code> will panic if you call it more than once.</p>
+<p>You can consult the reference documentation for VCDs <a href="https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.VCD.html">here</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../verilog/vcd.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../verilog/usage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../veryl/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -570,11 +447,11 @@ though.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../verilog/vcd.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../verilog/usage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../veryl/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

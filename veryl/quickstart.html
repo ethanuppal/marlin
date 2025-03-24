@@ -521,7 +521,7 @@ use snafu::Whatever;
 pub struct Wire;
 
 #[test]
-#[snafu::report]
+//#[snafu::report]
 fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
     let runtime = VerylRuntime::new(VerylRuntimeOptions {
         call_veryl_build: true, /* warning: not thread safe! don't use if you
@@ -541,6 +541,16 @@ fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
     Ok(())
 }
 <span class="boring">}</span></code></pre></pre>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Using <code>#[snafu::report]</code> on the function gives error messages that are
+actually useful, but sometimes breaks LSP services like code completion.
+I recommend to only apply it to your test functions when you actually
+encounter an error.</p>
+</div>
 <p>Finally, we can simply use <code>cargo test</code> to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Veryl project by invoking the Veryl compiler.</p>
 
                     </main>

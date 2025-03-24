@@ -502,7 +502,7 @@ pub extern "C" fn three(out: &amp;mut u32) {
 #[verilog(src = "src/dpi.sv", name = "main")]
 struct Main;
 
-#[snafu::report]
+//#[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
@@ -512,13 +512,23 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         VerilatorRuntimeOptions::default(),
     )?;
 
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
+    let mut main = runtime.create_model_simple::&lt;Main&gt;()?;
     main.eval();
     assert_eq!(main.out, 3);
 
     Ok(())
 }</code></pre></pre>
-<p>We can <code>cargo run</code> as usual to test.</p>
+<div class="mdbook-callouts mdbook-callouts-caution">
+<p class="mdbook-callouts-title">
+  <span class="mdbook-callouts-icon"></span>
+  caution
+</p>
+<p>Using <code>#[snafu::report]</code> on the function gives error messages that are
+actually useful, but sometimes breaks LSP services like code completion.
+I recommend to only apply it to your test functions when you actually
+encounter an error.</p>
+</div>
+<p>We can <code>cargo test</code> as usual to test.</p>
 <p>The magic happens here:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -555,7 +565,7 @@ whatever Rust code you want!</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../verilog/usage.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -569,7 +579,7 @@ whatever Rust code you want!</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../verilog/usage.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
