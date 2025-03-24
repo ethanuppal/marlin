@@ -14,21 +14,23 @@
 
 use std::env;
 
-use example_verilog_project::DpiMain;
+use example_verilog_project::{DpiMain, MoreDpiMain};
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
 };
 use snafu::Whatever;
 
+const SET_OUT_TO: i32 = 3;
+
 #[verilog::dpi]
-pub extern "C" fn three(out: &mut u32) {
-    *out = 3;
+pub extern "C" fn set_out(output: &mut i32) {
+    *output = SET_OUT_TO;
 }
 
 #[test]
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main_tutorial() -> Result<(), Whatever> {
     if env::var("RUST_LOG").is_ok() {
         env_logger::init();
     }
@@ -37,13 +39,52 @@ fn main() -> Result<(), Whatever> {
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
-        [three],
+        [set_out],
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model_simple::<DpiMain>()?;
     main.eval();
-    assert_eq!(main.out, 3);
+
+    assert_eq!(main.out, SET_OUT_TO as u32);
+
+    Ok(())
+}
+
+const SET_UNSIGNED_INT_OUT_TO: u32 = 5;
+const SET_BOOL_OUT_TO: bool = true;
+
+#[verilog::dpi]
+pub extern "C" fn set_unsigned_int_out(output: &mut u32) {
+    *output = SET_UNSIGNED_INT_OUT_TO;
+}
+
+#[verilog::dpi]
+pub extern "C" fn check_unsigned_int_out(input: u32) {
+    assert_eq!(input, SET_UNSIGNED_INT_OUT_TO);
+}
+
+#[verilog::dpi]
+pub extern "C" fn set_bool_out(output: &mut bool) {
+    *output = SET_BOOL_OUT_TO;
+}
+
+#[test]
+//#[snafu::report]
+fn other_test() -> Result<(), Whatever> {
+    let runtime = VerilatorRuntime::new(
+        "artifacts".into(),
+        &["src/more_dpi.sv".as_ref()],
+        &[],
+        [set_unsigned_int_out, check_unsigned_int_out, set_bool_out],
+        VerilatorRuntimeOptions::default_logging(),
+    )?;
+
+    let mut main = runtime.create_model::<MoreDpiMain>()?;
+    main.eval();
+
+    assert_eq!(main.int_out, SET_UNSIGNED_INT_OUT_TO);
+    assert_eq!(main.bool_out, SET_BOOL_OUT_TO as u8);
 
     Ok(())
 }

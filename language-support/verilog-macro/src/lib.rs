@@ -47,6 +47,7 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 enum DPIPrimitiveType {
+    Bool,
     U8,
     U16,
     U32,
@@ -60,6 +61,7 @@ enum DPIPrimitiveType {
 impl fmt::Display for DPIPrimitiveType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            DPIPrimitiveType::Bool => "bool",
             DPIPrimitiveType::U8 => "u8",
             DPIPrimitiveType::U16 => "u16",
             DPIPrimitiveType::U32 => "u32",
@@ -76,11 +78,11 @@ impl fmt::Display for DPIPrimitiveType {
 impl DPIPrimitiveType {
     fn as_c(&self) -> &'static str {
         match self {
-            // verilator uses signed for everything it seems
-            DPIPrimitiveType::U8 => "int8_t",
-            DPIPrimitiveType::U16 => "int16_t",
-            DPIPrimitiveType::U32 => "int32_t",
-            DPIPrimitiveType::U64 => "int64_t",
+            DPIPrimitiveType::Bool => "svBit",
+            DPIPrimitiveType::U8 => "uint8_t",
+            DPIPrimitiveType::U16 => "uint16_t",
+            DPIPrimitiveType::U32 => "uint32_t",
+            DPIPrimitiveType::U64 => "uint64_t",
             DPIPrimitiveType::I8 => "int8_t",
             DPIPrimitiveType::I16 => "int16_t",
             DPIPrimitiveType::I32 => "int32_t",
@@ -109,6 +111,7 @@ fn parse_dpi_primitive_type(
         .to_string()
         .as_str()
     {
+        "bool" => Ok(DPIPrimitiveType::Bool),
         "u8" => Ok(DPIPrimitiveType::U8),
         "u16" => Ok(DPIPrimitiveType::U16),
         "u32" => Ok(DPIPrimitiveType::U32),
@@ -169,6 +172,44 @@ fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
     }
 }
 
+/// Marlin allows you to import Rust functions into (System)Verilog over DPI.
+/// The function must have "C" linkage and be imported into SystemVerilog with
+/// "DPI-C" linkage.
+///
+/// For example:
+/// ```ignore
+/// // in Rust
+/// #[verilog::dpi]
+/// pub extern "C" fn three(out: &mut u32) {
+///     *out = 3;
+/// }
+/// ```
+/// ```systemverilog
+/// // in SystemVerilog
+/// import "DPI-C" function void three(output int out);
+/// ```
+///
+/// The Rust function can only take in primitive integer types at or below
+/// 64-bit width and booleans. The order and count of parameters must correspond
+/// exactly with the SystemVerilog import declaration.
+///
+/// Any `input` parameter on the Verilog side should correspond to a plain
+/// argument on the Rust side. Any `output` or `inout` parmaeter on the Verilog
+/// side should corresponding to a mutable reference on the Rust side. Note that
+/// the names of parmaeters on either side are irrelevant and need not
+/// correspond.
+///
+/// Here are some examples:
+///
+/// | SystemVerilog parameter | Rust parameter |
+/// | --- | --- |
+/// | `output int foo` | `foo: &mut i32` |
+/// | `input bit bar` | `bar: bool` |
+///
+/// ## More
+///
+/// Please reference the [Verilator docs on VPI](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi) for further information.
+/// You can also see the [corresponding page in the Marlin handbook](https://www.ethanuppal.com/marlin/verilog/dpi.html).
 #[proc_macro_attribute]
 pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {
     let item_fn = parse_macro_input!(item as syn::ItemFn);

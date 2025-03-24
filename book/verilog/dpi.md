@@ -151,3 +151,5 @@ Then, we told the runtime about this function:
     )?;
 
 ```
+
+See the [documentation for the `#[verilog::dpi]`](https://docs.rs/marlin/latest/marlin/verilog/attr.dpi.html) macro for more details.
