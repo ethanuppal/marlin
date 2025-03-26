@@ -10,4 +10,4 @@ Lifetimes enforce that you cannot use the VCD past the scope of the runtime when
 
 Until <https://github.com/verilator/verilator/issues/5813> gets fixed, `.open_vcd` will panic if you call it more than once.
 
-You can consult the reference documentation for VCDs [here](https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.VCD.html).
+You can consult the reference documentation for VCDs [here](https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.Vcd.html).
