@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/ethanuppal/marlin/compare/v0.5.0...v0.6.0) (2025-03-27)
+
+
+### Features
+
+* **verilator:** Expose dynamic API on all models ([#123](https://github.com/ethanuppal/marlin/issues/123)) ([5a1477f](https://github.com/ethanuppal/marlin/commit/5a1477fd6745f762504ded98cc5e4d54844c1351))
+
 ## [0.5.0](https://github.com/ethanuppal/marlin/compare/v0.4.0...v0.5.0) (2025-03-24)
 
 
