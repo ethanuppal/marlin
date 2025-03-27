@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -32,7 +32,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -103,7 +103,7 @@ pub struct VerilatedModelConfig {
 
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
-pub trait VerilatedModel<'ctx>: 'ctx {
+pub trait AsVerilatedModel<'ctx>: 'ctx {
     /// The source-level name of the module.
     fn name() -> &'static str;
 
@@ -311,7 +311,7 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model_simple<'ctx, M: VerilatedModel<'ctx>>(
+    pub fn create_model_simple<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
     ) -> Result<M, Whatever> {
         self.create_model(&VerilatedModelConfig::default())
@@ -321,7 +321,7 @@ impl VerilatorRuntime {
     /// efficiency.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
-    pub fn create_model<'ctx, M: VerilatedModel<'ctx>>(
+    pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
         config: &VerilatedModelConfig,
     ) -> Result<M, Whatever> {

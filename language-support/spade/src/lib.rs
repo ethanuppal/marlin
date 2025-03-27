@@ -10,9 +10,9 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    VerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -202,7 +202,7 @@ impl SpadeRuntime {
 
     /// Instantiates a new Spade unit. This function simply wraps
     /// [`VerilatorRuntime::create_model`].
-    pub fn create_model<'ctx, M: VerilatedModel<'ctx>>(
+    pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
     ) -> Result<M, Whatever> {
         self.verilator_runtime.create_model_simple()

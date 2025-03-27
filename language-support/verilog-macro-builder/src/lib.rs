@@ -9,7 +9,7 @@ use std::{collections::HashMap, path::Path};
 use marlin_verilator::PortDirection;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
+use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 
 mod util;
 
@@ -283,7 +283,7 @@ pub fn build_verilated_struct(
             #(#other_impl)*
         }
 
-        impl<'ctx> #crate_name::__reexports::verilator::VerilatedModel<'ctx> for #struct_name<'ctx> {
+        impl<'ctx> #crate_name::__reexports::verilator::AsVerilatedModel<'ctx> for #struct_name<'ctx> {
             fn name() -> &'static str {
                 #top_name
             }
