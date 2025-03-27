@@ -65,7 +65,7 @@ jobs:
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
-        run: cargo test --package example-spade-project
+        run: RUST_LOG=trace cargo test --package example-spade-project
 
   test_veryl:
     strategy:
@@ -86,4 +86,4 @@ jobs:
       - name: Install Veryl
         uses: veryl-lang/setup-veryl@v1
       - name: Test
-        run: cargo test --package example-veryl-project
+        run: RUST_LOG=trace cargo test --package example-veryl-project
