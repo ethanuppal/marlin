@@ -9,7 +9,7 @@ use std::{collections::HashMap, path::Path};
 use marlin_verilator::PortDirection;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
+use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 
 mod util;
 
@@ -124,7 +124,7 @@ pub fn build_verilated_struct(
 
         let port_width = port_msb + 1 - port_lsb;
 
-        let port_type_name = if port_width < 8 {
+        let port_type_name = if port_width <= 8 {
             quote! { CData }
         } else if port_width <= 16 {
             quote! { SData }
