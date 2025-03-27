@@ -4,6 +4,8 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
+//! Support for dynamic models.
+
 use std::{collections::HashMap, ffi, fmt};
 
 use libloading::Library;
@@ -11,6 +13,7 @@ use snafu::Snafu;
 
 use crate::{PortDirection, types};
 
+/// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum VerilatorValue {
     CData(types::CData),
@@ -20,6 +23,7 @@ pub enum VerilatorValue {
 }
 
 impl VerilatorValue {
+    /// The maximum number of bits this value takes up.
     pub fn width(&self) -> usize {
         match self {
             Self::CData(_) => 8,
@@ -64,12 +68,17 @@ impl From<types::QData> for VerilatorValue {
     }
 }
 
+/// Access model ports at runtime.
 pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
+    /// If `port` is a valid port name for this model, returns the current value
+    /// of the port.
     fn read(
         &self,
         port: impl Into<String>,
     ) -> Result<VerilatorValue, DynamicVerilatedModelError>;
 
+    /// If `port` is a valid port name for this model, and the port's width is
+    /// `<=` `value.into().width()`, sets the port to `value`.
     fn pin(
         &mut self,
         port: impl Into<String>,
@@ -77,6 +86,8 @@ pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
     ) -> Result<(), DynamicVerilatedModelError>;
 }
 
+/// A hardware model constructed at runtime. See
+/// [`super::VerilatorRuntime::create_dyn_model`].
 pub struct DynamicVerilatedModel<'ctx> {
     // TODO: add the dlsyms here and remove the library field
     pub(crate) ports: HashMap<String, (usize, PortDirection)>,
@@ -87,11 +98,13 @@ pub struct DynamicVerilatedModel<'ctx> {
 }
 
 impl DynamicVerilatedModel<'_> {
+    /// Equivalent to the Verilator `eval` method.
     pub fn eval(&mut self) {
         (self.eval_main)(self.main);
     }
 }
 
+/// Runtime port read/write error.
 #[derive(Debug, Snafu)]
 pub enum DynamicVerilatedModelError {
     #[snafu(display(

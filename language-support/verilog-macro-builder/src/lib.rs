@@ -278,6 +278,7 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #struct_name<'ctx> {
+            #[doc = "Equivalent to the Verilator `eval` method."]
             pub fn eval(&mut self) {
                 #(#preeval_impl)*
                 (self.eval_model)(self.model);
