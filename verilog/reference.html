@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Waveform Tracing - Marlin Handbook</title>
+        <title>Reference - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -421,24 +421,18 @@
 }
 
 </style>
-<h1 id="waveform-tracing"><a class="header" href="#waveform-tracing">Waveform Tracing</a></h1>
-<p>Example <a href="https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs">here</a>.</p>
-<p>You can open a VCD for a Verilated model using the <code>.open_vcd</code> function, which takes in anything that can turn into a <code>Path</code>.
-The <code>.dump</code> and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).</p>
-<p>The VCD is automatically closed and deallocated when out of scope.
-Lifetimes enforce that you cannot use the VCD past the scope of the runtime whence the model you created the VCD came.</p>
-<p>Until <a href="https://github.com/verilator/verilator/issues/5813">https://github.com/verilator/verilator/issues/5813</a> gets fixed, <code>.open_vcd</code> will panic if you call it more than once.</p>
-<p>You can consult the reference documentation for VCDs <a href="https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.Vcd.html">here</a>.</p>
+<h1 id="reference"><a class="header" href="#reference">Reference</a></h1>
+<p>This section contains practical information for using Marlin.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../verilog/usage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../verilog/dpi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../verilog/reference/vcd.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -448,11 +442,11 @@ Lifetimes enforce that you cannot use the VCD past the scope of the runtime when
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../verilog/usage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../verilog/dpi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../verilog/reference/vcd.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

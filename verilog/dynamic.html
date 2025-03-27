@@ -488,10 +488,11 @@ using Marlin as a library (e.g., writing an interpreter).</p>
 vi tests/dynamic_test.rs
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">// file: tests/simple_test.rs
-use snafu::Whatever;
 use marlin::verilator::{
-    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions, VerilatedModelConfig
+    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
+use snafu::Whatever;
 
 //#[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
@@ -544,6 +545,7 @@ If you're using <code>git</code>, remember to add <code>build2/</code> to your <
 You only need to pass in a correct <em>subset</em> of the ports.</p>
 <p>You can use <code>create_dyn_model</code> again with different ports. Of course, if you use
 the same ports, the model will just be loaded from the cache.</p>
+<p>You need to bring the <code>AsDynamicVerilatedModel</code> trait into scope to use any methods on a dynamic model.</p>
 
                     </main>
 
