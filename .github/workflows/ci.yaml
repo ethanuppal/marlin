@@ -62,6 +62,7 @@ jobs:
           else
             sudo apt-get install -y verilator
           fi
+          verilator --version
       - name: Install swim
         run: cargo install --locked --git https://gitlab.com/spade-lang/swim --rev 639c5d88db76ef3454af4feef842c37985ca1943
       - name: Test
