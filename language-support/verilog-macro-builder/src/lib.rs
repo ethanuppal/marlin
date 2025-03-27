@@ -9,7 +9,7 @@ use std::{collections::HashMap, path::Path};
 use marlin_verilator::PortDirection;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
+use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
 
 mod util;
 
@@ -94,6 +94,9 @@ pub fn build_verilated_struct(
     let mut verilated_model_init_impl = vec![];
     let mut verilated_model_init_self = vec![];
 
+    let mut dynamic_read_arms = vec![];
+    let mut dynamic_pin_arms = vec![];
+
     verilated_model_init_impl.push(quote! {
         let new_model: extern "C" fn() -> *mut std::ffi::c_void =
             *unsafe { library.get(concat!("ffi_new_V", #top_name).as_bytes()) }
@@ -121,14 +124,14 @@ pub fn build_verilated_struct(
 
         let port_width = port_msb + 1 - port_lsb;
 
-        let port_type = if port_width <= 8 {
-            quote! { #crate_name::__reexports::verilator::types::CData }
+        let port_type_name = if port_width < 8 {
+            quote! { CData }
         } else if port_width <= 16 {
-            quote! { #crate_name::__reexports::verilator::types::SData }
+            quote! { SData }
         } else if port_width <= 32 {
-            quote! { #crate_name::__reexports::verilator::types::IData }
+            quote! { IData }
         } else if port_width <= 64 {
-            quote! { #crate_name::__reexports::verilator::types::QData }
+            quote! { QData }
         } else {
             return syn::Error::new_spanned(
                 source_path,
@@ -139,6 +142,7 @@ pub fn build_verilated_struct(
             )
             .into_compile_error();
         };
+        let port_type = quote! { #crate_name::__reexports::verilator::types::#port_type_name };
 
         let port_name_ident = format_ident!("{}", port_name);
         let port_documentation = syn::LitStr::new(
@@ -154,6 +158,8 @@ pub fn build_verilated_struct(
         verilated_model_init_self.push(quote! {
             #port_name_ident: 0 as _
         });
+
+        let port_name_literal = syn::LitStr::new(&port_name, top_name.span());
 
         match port_direction {
             PortDirection::Input => {
@@ -189,6 +195,24 @@ pub fn build_verilated_struct(
                             .expect("failed to get symbol");
                 });
                 verilated_model_init_self.push(quote! { #setter });
+
+                dynamic_pin_arms.push(quote! {
+                    #port_name_literal => {
+                        if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#port_type_name(inner) = value {
+                            self.#port_name_ident = inner;
+                        } else {
+                            return Err(
+                                #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
+                                    top_module: Self::name().to_string(),
+                                    port: port,
+                                    width: #port_width as _,
+                                    attempted_lower: 0,
+                                    attempted_higher: value.width()
+                                },
+                            );
+                        }
+                    }
+                });
             }
             PortDirection::Output => {
                 let getter = format_ident!("read_{}", port_name);
@@ -206,6 +230,10 @@ pub fn build_verilated_struct(
                             .expect("failed to get symbol");
                 });
                 verilated_model_init_self.push(quote! { #getter });
+
+                dynamic_read_arms.push(quote! {
+                    #port_name_literal => Ok(self.#port_name_ident.into())
+                });
             }
             _ => todo!("Unhandled port direction"),
         }
@@ -329,6 +357,51 @@ pub fn build_verilated_struct(
 
             unsafe fn model(&self) -> *mut std::ffi::c_void {
                 self.model
+            }
+        }
+
+        impl<'ctx> #crate_name::__reexports::verilator::AsDynamicVerilatedModel<'ctx> for #struct_name<'ctx> {
+            fn read(
+                &self,
+                port: impl Into<String>,
+            ) -> Result<#crate_name::__reexports::verilator::dynamic::VerilatorValue, #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError> {
+                use #crate_name::__reexports::verilator::AsVerilatedModel;
+
+                let port = port.into();
+
+                match port.as_str() {
+                    #(#dynamic_read_arms,)*
+                    _ => Err(#crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::NoSuchPort {
+                        top_module: Self::name().to_string(),
+                        port,
+                        source: None,
+                    })
+                }
+            }
+
+            fn pin(
+                &mut self,
+                port: impl Into<String>,
+                value: impl Into<#crate_name::__reexports::verilator::dynamic::VerilatorValue>,
+            ) -> Result<(), #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError> {
+                use #crate_name::__reexports::verilator::AsVerilatedModel;
+
+                let port = port.into();
+                let value = value.into();
+
+                match port.as_str() {
+                    #(#dynamic_pin_arms,)*
+                    _ => {
+                        return Err(#crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::NoSuchPort {
+                            top_module: Self::name().to_string(),
+                            port,
+                            source: None,
+                        });
+                    }
+                }
+
+                #[allow(unreachable_code)]
+                Ok(())
             }
         }
     }

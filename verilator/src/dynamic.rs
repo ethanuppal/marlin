@@ -11,21 +11,23 @@ use snafu::Snafu;
 
 use crate::{PortDirection, types};
 
-pub struct DynamicVerilatedModel<'ctx> {
-    // TODO: add the dlsyms here and remove the library field
-    pub(crate) ports: HashMap<String, (usize, PortDirection)>,
-    pub(crate) name: String,
-    pub(crate) main: *mut ffi::c_void,
-    pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
-    pub(crate) library: &'ctx Library,
-}
-
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum VerilatorValue {
     CData(types::CData),
     SData(types::SData),
     IData(types::IData),
     QData(types::QData),
+}
+
+impl VerilatorValue {
+    pub fn width(&self) -> usize {
+        match self {
+            Self::CData(_) => 8,
+            Self::SData(_) => 16,
+            Self::IData(_) => 32,
+            Self::QData(_) => 64,
+        }
+    }
 }
 
 impl fmt::Display for VerilatorValue {
@@ -62,6 +64,34 @@ impl From<types::QData> for VerilatorValue {
     }
 }
 
+pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
+    fn read(
+        &self,
+        port: impl Into<String>,
+    ) -> Result<VerilatorValue, DynamicVerilatedModelError>;
+
+    fn pin(
+        &mut self,
+        port: impl Into<String>,
+        value: impl Into<VerilatorValue>,
+    ) -> Result<(), DynamicVerilatedModelError>;
+}
+
+pub struct DynamicVerilatedModel<'ctx> {
+    // TODO: add the dlsyms here and remove the library field
+    pub(crate) ports: HashMap<String, (usize, PortDirection)>,
+    pub(crate) name: String,
+    pub(crate) main: *mut ffi::c_void,
+    pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
+    pub(crate) library: &'ctx Library,
+}
+
+impl DynamicVerilatedModel<'_> {
+    pub fn eval(&mut self) {
+        (self.eval_main)(self.main);
+    }
+}
+
 #[derive(Debug, Snafu)]
 pub enum DynamicVerilatedModelError {
     #[snafu(display(
@@ -94,12 +124,8 @@ pub enum DynamicVerilatedModelError {
     },
 }
 
-impl DynamicVerilatedModel<'_> {
-    pub fn eval(&mut self) {
-        (self.eval_main)(self.main);
-    }
-
-    pub fn read(
+impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
+    fn read(
         &self,
         port: impl Into<String>,
     ) -> Result<VerilatorValue, DynamicVerilatedModelError> {
@@ -155,7 +181,7 @@ impl DynamicVerilatedModel<'_> {
         }
     }
 
-    pub fn pin(
+    fn pin(
         &mut self,
         port: impl Into<String>,
         value: impl Into<VerilatorValue>,

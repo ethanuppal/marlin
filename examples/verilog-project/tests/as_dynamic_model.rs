@@ -14,14 +14,14 @@
 
 use std::env;
 
+use example_verilog_project::Main;
 use marlin::verilator::{
-    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
-    VerilatorRuntime, VerilatorRuntimeOptions,
+    AsDynamicVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use snafu::{ResultExt, Whatever};
 
 #[test]
-#[snafu::report]
+//#[snafu::report]
 fn main() -> Result<(), Whatever> {
     if env::var("RUST_LOG").is_ok() {
         env_logger::init();
@@ -35,32 +35,7 @@ fn main() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    let mut main = runtime.create_dyn_model(
-        "main",
-        "src/main.sv",
-        &[
-            ("medium_input", 31, 0, PortDirection::Input),
-            //("medium_output", 31, 0, PortDirection::Output),
-        ],
-        VerilatedModelConfig::default(),
-    )?;
-
-    main.pin("medium_input", u32::MAX).whatever_context("pin")?;
-    assert!(
-        main.read("medium_output").is_err(),
-        "We didn't specify the `medium_output` port"
-    );
-    main.eval();
-
-    let mut main = runtime.create_dyn_model(
-        "main",
-        "src/main.sv",
-        &[
-            ("medium_input", 31, 0, PortDirection::Input),
-            ("medium_output", 31, 0, PortDirection::Output),
-        ],
-        VerilatedModelConfig::default(),
-    )?;
+    let mut main = runtime.create_model_simple::<Main>()?;
 
     main.pin("medium_input", u32::MAX).whatever_context("pin")?;
     println!("{}", main.read("medium_output").whatever_context("read")?);

@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -32,12 +32,14 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
 pub mod vcd;
+
+pub use dynamic::AsDynamicVerilatedModel;
 
 /// Verilator-defined types for C FFI.
 pub mod types {

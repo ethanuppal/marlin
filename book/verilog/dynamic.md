@@ -82,10 +82,11 @@ vi tests/dynamic_test.rs
 
 ```rust
 // file: tests/simple_test.rs
-use snafu::Whatever;
 use marlin::verilator::{
-    PortDirection, VerilatorRuntime, VerilatorRuntimeOptions, VerilatedModelConfig
+    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
+use snafu::Whatever;
 
 //#[snafu::report]
 fn main() -> Result<(), Whatever> {
@@ -138,3 +139,5 @@ You only need to pass in a correct _subset_ of the ports.
 
 You can use `create_dyn_model` again with different ports. Of course, if you use
 the same ports, the model will just be loaded from the cache.
+
+You need to bring the `AsDynamicVerilatedModel` trait into scope to use any methods on a dynamic model.
