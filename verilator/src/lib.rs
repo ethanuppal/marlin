@@ -14,6 +14,7 @@
 
 use std::{
     cell::RefCell,
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -26,7 +27,7 @@ use std::{
 use boxcar::Vec as BoxcarVec;
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
-use dashmap::{DashMap, Entry};
+use dashmap::DashMap;
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
@@ -173,7 +174,7 @@ pub struct VerilatorRuntime {
     options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and arena index of Verilator
     /// implementations
-    library_map: DashMap<LibraryArenaKey, usize>,
+    library_map: RefCell<HashMap<LibraryArenaKey, usize>>,
     /// Verilator implementations arena
     library_arena: BoxcarVec<Library>,
     /// SAFETY: These are dropped when the runtime is dropped. They will not be
@@ -300,7 +301,7 @@ impl VerilatorRuntime {
                 .collect(),
             dpi_functions: dpi_functions.into_iter().collect(),
             options,
-            library_map: DashMap::new(),
+            library_map: RefCell::new(HashMap::new()),
             library_arena: BoxcarVec::new(),
             model_deallocators: RefCell::new(vec![]),
         })
@@ -518,7 +519,11 @@ impl VerilatorRuntime {
             hash: hasher.finish(),
         };
 
-        let library_idx = match self.library_map.entry(library_key.clone()) {
+        let library_idx = match self
+            .library_map
+            .borrow_mut()
+            .entry(library_key.clone())
+        {
             Entry::Occupied(entry) => *entry.get(),
             Entry::Vacant(entry) => {
                 let local_directory_name = format!(
