@@ -115,8 +115,7 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     /// The module's interface.
     fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
 
-    /// Use [`VerilatorRuntime::create_model`] or similar function for another
-    /// runtime.
+    #[doc(hidden)]
     fn init_from(library: &'ctx Library, tracing_enabled: bool) -> Self;
 
     #[doc(hidden)]
