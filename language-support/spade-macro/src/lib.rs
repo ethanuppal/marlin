@@ -8,9 +8,13 @@ use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::PortDirection;
-use marlin_verilog_macro_builder::{MacroArgs, build_verilated_struct};
+use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
 use proc_macro::TokenStream;
+use quote::quote;
 use spade_parser::logos::Logos;
+
+mod parse_spade;
+mod swim;
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {
@@ -250,4 +254,9 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
             panic!("Invalid type for Verilog-exposed Spade top")
         }
     }
+}
+
+#[proc_macro]
+pub fn spade_type(_input: TokenStream) -> TokenStream {
+    quote! {}.into()
 }
