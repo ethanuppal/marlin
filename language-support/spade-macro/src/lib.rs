@@ -349,7 +349,13 @@ pub fn spade_types(_input: TokenStream) -> TokenStream {
             let child_tokens = render(child_index, tree, depth + 1);
             let ident =
                 syn::Ident::new(child_name, proc_macro2::Span::call_site());
-            tokens.extend(quote! { pub mod #ident { #child_tokens } });
+            tokens.extend(quote! {
+                pub mod #ident {
+                    use super::{ReadFromPorts, PinToPorts};
+
+                    #child_tokens
+                }
+            });
         }
         tokens
     }
@@ -378,7 +384,7 @@ fn spade_type_to_tokens(
                     match generic_argument.meta {
                         spade_types::meta_types::MetaType::Any => todo!(),
                         spade_types::meta_types::MetaType::Type => {
-                            quote! { #name: WriteToPorts + ReadFromPorts }
+                            quote! { #name: ReadFromPorts + PinToPorts }
                         }
                         spade_types::meta_types::MetaType::Number => {
                             quote! { const #name: _  }
@@ -403,8 +409,8 @@ fn spade_type_to_tokens(
                 &enum_declaration.documentation,
                 proc_macro2::Span::call_site(),
             );
-            let variants = enum_declaration.options.iter().map(
-                |(variant_name, parameters)| {
+            let variants = enum_declaration.options.iter().enumerate().map(
+                |(i, (variant_name, parameters))| {
                     let fields = if parameters.0.is_empty() {
                         syn::Fields::Unit
                     } else {
@@ -432,7 +438,11 @@ fn spade_type_to_tokens(
                         })
                     };
                     syn::Variant {
-                        attrs: vec![],
+                        attrs: if i == 0 {
+                            vec![syn::parse_quote! { #[default] }]
+                        } else {
+                            vec![]
+                        },
                         ident: format_ident!("{}", variant_name.1.tail().0),
                         fields,
                         discriminant: None,
@@ -440,6 +450,7 @@ fn spade_type_to_tokens(
                 },
             );
             quote! {
+                #[derive(Default)]
                 #[doc = #docs]
                 pub enum #name #generic_arguments_option {
                     #(#variants),*
