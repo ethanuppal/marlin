@@ -526,15 +526,10 @@ fn spade_type_to_syn_type(
         }
         spade_hir::TypeSpec::Generic(name) => {
             let mut segments = syn::punctuated::Punctuated::new();
-            for segment in name.1.as_strings() {
-                segments.push(syn::PathSegment {
-                    ident: format_ident!("{}", segment),
-                    arguments: syn::PathArguments::None,
-                });
-            }
-            for i in 0..module_nesting {
-                segments.get_mut(i).unwrap().ident = format_ident!("super");
-            }
+            segments.push(syn::PathSegment {
+                ident: format_ident!("{}", name.1.tail().0),
+                arguments: syn::PathArguments::None,
+            });
             let path = syn::Path {
                 leading_colon: None,
                 segments,
