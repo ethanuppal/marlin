@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/ethanuppal/marlin/compare/v0.6.0...v0.6.1) (2025-03-30)
+
+
+### Bug Fixes
+
+* **verilog:** Parse `input var` ports ([#125](https://github.com/ethanuppal/marlin/issues/125)) ([db56767](https://github.com/ethanuppal/marlin/commit/db56767ee7b0c156dae77f0ff1e3f4b524c9d0cd))
+
 ## [0.6.0](https://github.com/ethanuppal/marlin/compare/v0.5.0...v0.6.0) (2025-03-27)
 
 
