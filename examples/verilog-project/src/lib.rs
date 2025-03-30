@@ -23,6 +23,10 @@ pub struct DpiMain;
 #[verilog(src = "src/more_dpi.sv", name = "dpi_main")]
 pub struct MoreDpiMain;
 
+// Compiles if we can parse the `var` keyword.
+#[verilog(src = "src/parse_var.sv", name = "main")]
+pub struct ParsesVarTest;
+
 pub mod enclosed {
     use marlin::verilog::prelude::*;
 
