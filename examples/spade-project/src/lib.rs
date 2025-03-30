@@ -14,5 +14,11 @@
 
 use marlin::spade::prelude::*;
 
+mod t {
+    use marlin::spade::prelude::*;
+
+    spade_types!();
+}
+
 #[spade(src = "src/main.spade", name = "main")]
 pub struct Main;

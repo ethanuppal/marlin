@@ -52,6 +52,8 @@ spade-lang = { version = "0.13.0", default-features = false }
 spade-common = { version = "0.13.0", default-features = false }
 spade-diagnostics = { version = "0.13.0", default-features = false }
 spade-codespan-reporting = { version = "0.12.0", default-features = false }
+spade-hir = { version = "0.13.0", default-features = false }
+spade-types = { version = "0.13.0", default-features = false }
 
 marlin-verilator = { path = "verilator", version = "0.6.0" }
 marlin-verilog = { path = "language-support/verilog", version = "0.6.0" }
@@ -82,22 +84,23 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-verilog = []
-spade = []
-veryl = []
+verilog = ["dep:marlin-verilator", "dep:marlin-verilog"]
+spade = ["dep:marlin-verilator", "dep:marlin-spade"]
+veryl = ["dep:marlin-verilator", "dep:marlin-veryl"]
 
 default = ["build"]
 build = ["dep:snafu", "dep:ignore"]
 
 [dependencies]
-marlin-verilator.workspace = true
-marlin-verilog.workspace = true
-marlin-verilog-macro.workspace = true
-marlin-verilog-macro-builder.workspace = true
-marlin-spade.workspace = true
-marlin-spade-macro.workspace = true
-marlin-veryl.workspace = true
-marlin-veryl-macro.workspace = true
+# these are synced via .github/release-please-config.json
+marlin-verilator = { path = "verilator", version = "0.6.0", optional = true }
+marlin-verilog = { path = "language-support/verilog", version = "0.6.0", optional = true }
+marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.6.0", optional = true }
+marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.6.0", optional = true }
+marlin-spade = { path = "language-support/spade", version = "0.6.0", optional = true }
+marlin-spade-macro = { path = "language-support/spade-macro", version = "0.6.0", optional = true }
+marlin-veryl = { path = "language-support/veryl", version = "0.6.0", optional = true }
+marlin-veryl-macro = { path = "language-support/veryl-macro", version = "0.6.0", optional = true }
 
 [build-dependencies]
 snafu = { version = "0.8.5", default-features = false, features = [

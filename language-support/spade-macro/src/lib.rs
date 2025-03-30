@@ -4,17 +4,19 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{env, fs};
+use std::{collections::HashMap, env, fs};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::PortDirection;
 use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
+use parse_spade::parse_spade;
 use proc_macro::TokenStream;
 use quote::quote;
+use spade_hir::TypeDeclaration;
 use spade_parser::logos::Logos;
+use swim::config::Config;
 
 mod parse_spade;
-mod swim;
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while !start.as_str().is_empty() {
@@ -257,6 +259,122 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
 }
 
 #[proc_macro]
-pub fn spade_type(_input: TokenStream) -> TokenStream {
-    quote! {}.into()
+pub fn spade_types(_input: TokenStream) -> TokenStream {
+    let manifest_directory = Utf8PathBuf::from(
+        env::var("CARGO_MANIFEST_DIR").expect("Please use CARGO"),
+    );
+    let Some(swim_toml_path) = search_for_swim_toml(manifest_directory) else {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "Could not find swim.toml",
+        )
+        .into_compile_error()
+        .into();
+    };
+
+    let root = {
+        let mut root = swim_toml_path.clone();
+        root.pop();
+        root
+    };
+
+    let swim_toml_contents = match fs::read_to_string(&swim_toml_path) {
+        Ok(contents) => contents,
+        Err(error) => {
+            return syn::Error::new(proc_macro2::Span::call_site(), format!("Could not read contents of swim.toml at project root {}: {}", swim_toml_path, error)).into_compile_error().into();
+        }
+    };
+    let config: Config = match toml::from_str(&swim_toml_contents) {
+        Ok(toml) => toml,
+        Err(error) => {
+            return syn::Error::new(proc_macro2::Span::call_site(), format!("Could not parse contents of Veryl.toml at project root {} as a TOML file: {}", swim_toml_path, error)).into_compile_error().into();
+        }
+    };
+
+    let types = match parse_spade(&root, &config) {
+        Ok(types) => types,
+        Err(error) => {
+            return syn::Error::new(
+                proc_macro2::Span::call_site(),
+                format!(
+                    "Failed to parse Spade files and determine types: {:?}",
+                    error
+                ),
+            )
+            .into_compile_error()
+            .into();
+        }
+    };
+
+    struct Module {
+        types: Vec<TypeDeclaration>,
+        children: HashMap<String, usize>,
+    }
+
+    let mut tree = vec![Module {
+        types: vec![],
+        children: HashMap::new(),
+    }];
+
+    for (name_id, type_declaration) in types {
+        let path = name_id.1.prelude().as_strings();
+        let mut current = 0;
+        for part in path {
+            current = if let Some(&child) = tree[current].children.get(&part) {
+                child
+            } else {
+                let new_index = tree.len();
+                tree.push(Module {
+                    types: vec![],
+                    children: HashMap::new(),
+                });
+                tree[current].children.insert(part, new_index);
+                new_index
+            };
+        }
+        tree[current].types.push(type_declaration.inner);
+    }
+
+    fn render(index: usize, tree: &[Module]) -> proc_macro2::TokenStream {
+        let module = &tree[index];
+        let mut tokens = proc_macro2::TokenStream::new();
+        for type_decl in &module.types {
+            tokens.extend(spade_type_to_tokens(type_decl));
+        }
+        for (child_name, &child_index) in &module.children {
+            let child_tokens = render(child_index, tree);
+            let ident =
+                syn::Ident::new(child_name, proc_macro2::Span::call_site());
+            tokens.extend(quote! { pub mod #ident { #child_tokens } });
+        }
+        tokens
+    }
+
+    render(0, &tree).into()
+}
+
+fn spade_type_to_tokens(
+    type_declaration: &TypeDeclaration,
+) -> proc_macro2::TokenStream {
+    let name = type_declaration.name.1.tail();
+
+    //if !type_declaration.generic_args.is_empty() {
+    //    return quote! {};
+    //}
+
+    match &type_declaration.kind {
+        spade_hir::TypeDeclKind::Enum(enum_declaration) => quote! {},
+        spade_hir::TypeDeclKind::Primitive(primitive_type) => {
+            match primitive_type {
+                spade_types::PrimitiveType::Int => quote! {},
+                spade_types::PrimitiveType::Uint => quote! {},
+                spade_types::PrimitiveType::Clock => quote! {},
+                spade_types::PrimitiveType::Bool => quote! {},
+                spade_types::PrimitiveType::Bit => quote! {},
+                spade_types::PrimitiveType::Memory => quote! {},
+                spade_types::PrimitiveType::InOut => quote! {},
+            }
+        }
+        spade_hir::TypeDeclKind::Struct(struct_declaration) => quote! {},
+    }
 }

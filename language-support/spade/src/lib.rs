@@ -12,7 +12,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -23,7 +23,7 @@ pub mod __reexports {
 pub mod prelude {
     pub use crate as spade;
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
-    pub use marlin_spade_macro::spade;
+    pub use marlin_spade_macro::{spade, spade_types};
 }
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {

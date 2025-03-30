@@ -17,6 +17,7 @@ marlin-verilog-macro-builder.workspace = true
 marlin-verilator.workspace = true
 camino.workspace = true
 snafu.workspace = true
+toml.workspace = true
 
 proc-macro2.workspace = true
 syn.workspace = true
@@ -28,3 +29,7 @@ spade-common.workspace = true
 spade-lang.workspace = true
 spade-diagnostics.workspace = true
 spade-codespan-reporting.workspace = true
+spade-hir.workspace = true
+spade-types.workspace = true
+
+swim = { git = "https://gitlab.com/ethanuppal/swim/", rev = "136dd3c951c21ce27bef0cf2c33786b34481c5e0" }
