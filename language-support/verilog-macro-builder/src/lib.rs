@@ -9,7 +9,7 @@ use std::{collections::HashMap, path::Path};
 use marlin_verilator::PortDirection;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
+use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 
 mod util;
 
@@ -576,7 +576,24 @@ pub fn parse_verilog_ports(
                             other => todo!("Unsupported data type {:?}", other),
                         }
                     }
-                    _ => todo!("Unhandled variable data type"),
+                    sv::VarDataType::Var(var_data_type_var) => {
+                        match &var_data_type_var.nodes.1 {
+                            sv::DataTypeOrImplicit::DataType(data_type) => {
+                                match &**data_type {
+                                    sv::DataType::Vector(data_type_vector) => {
+                                        &data_type_vector.nodes.2
+                                    }
+                                    other => todo!(
+                                        "Unsupported data type (in the VarDataType>DataTypeOrImplicit>DataType branch) {:?}",
+                                        other
+                                    ),
+                                }
+                            }
+                            sv::DataTypeOrImplicit::ImplicitDataType(
+                                implicit_data_type,
+                            ) => &implicit_data_type.nodes.1,
+                        }
+                    }
                 };
 
                 let port_info = match process_port_common(
