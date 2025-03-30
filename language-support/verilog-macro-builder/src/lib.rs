@@ -421,10 +421,11 @@ pub fn parse_verilog_ports(
             Ok(result) => result,
             Err(error) => {
                 return Err(syn::Error::new_spanned(
-                    source_path,
-                    error.to_string(),
-                )
-                .into_compile_error());
+                source_path,
+                error.to_string()
+                    + " (Try checking, for instance, that the file exists.)",
+            )
+            .into_compile_error());
             }
         };
 
@@ -479,31 +480,28 @@ pub fn parse_verilog_ports(
                     "Port identifier could not be traced back to source code",
                 );
 
-                if port_name.chars().any(|c| c == '\\' || c == ' ') {
-                    return Err(syn::Error::new_spanned(
-                        top_name,
-                        "Escaped module names are not supported",
-                    )
-                    .into_compile_error());
-                }
+                let (port_direction_node, port_type) = net
+                    .nodes
+                    .0
+                    .as_ref()
+                    .and_then(|maybe_net_header| match maybe_net_header {
+                        sv::NetPortHeaderOrInterfacePortHeader::NetPortHeader(net_port_header) => {
+                            net_port_header.nodes.0.as_ref().map(|d| (d, &net_port_header.nodes.1))
+                        }
+                        _ => todo!("Other port header"),
+                    })
+                    .ok_or_else(|| {
+                        syn::Error::new_spanned(
+                            source_path,
+                            format!(
+                                "Port `{}` has no supported direction (`input` or `output`)",
+                                port_name
+                            ),
+                        )
+                        .into_compile_error()
+                    })?;
 
-                let Some((port_direction, port_type ))= net.nodes.0.as_ref().and_then(|maybe_net_header| match maybe_net_header {
-                    sv::NetPortHeaderOrInterfacePortHeader::NetPortHeader(net_port_header) => {
-                        net_port_header.nodes.0.as_ref().map(|port_direction| (port_direction, &net_port_header.nodes.1))
-                    },
-                    _ => todo!("Other port header")
-                }) else {
-                    return Err(syn::Error::new_spanned(
-                        source_path,
-                        format!(
-                            "Port `{}` has no supported direction (`input` or `output`)",
-                            port_name
-                        ),
-                    )
-                    .into_compile_error())
-                };
-
-                let port_dimensions = match port_type {
+                let dimensions: &[sv::PackedDimension] = match port_type {
                     sv::NetPortType::DataType(net_port_type_data_type) => {
                         match &net_port_type_data_type.nodes.1 {
                             sv::DataTypeOrImplicit::DataType(data_type) => {
@@ -522,51 +520,140 @@ pub fn parse_verilog_ports(
                             ) => &implicit_data_type.nodes.1,
                         }
                     }
-                    sv::NetPortType::NetTypeIdentifier(
-                        _net_type_identifier,
-                    ) => todo!("bklk"),
-                    sv::NetPortType::Interconnect(
-                        _net_port_type_interconnect,
-                    ) => todo!("ckl"),
+                    sv::NetPortType::NetTypeIdentifier(_)
+                    | sv::NetPortType::Interconnect(_) => {
+                        todo!("Port type not yet implemented for net ports")
+                    }
                 };
 
-                let (port_msb, port_lsb) = match port_dimensions.len() {
-                    0 => (0, 0),
-                    1 => match &port_dimensions[0] {
-                        sv::PackedDimension::Range(packed_dimension_range) => {
-                            let range =
-                                &packed_dimension_range.nodes.0.nodes.1.nodes;
-                            (
-                                util::evaluate_numeric_constant_expression(
-                                    &ast, &range.0,
-                                ),
-                                util::evaluate_numeric_constant_expression(
-                                    &ast, &range.2,
-                                ),
-                            )
+                let port_info = match process_port_common(
+                    &ast,
+                    top_name,
+                    port_name,
+                    dimensions,
+                    port_direction_node,
+                ) {
+                    Ok(port_info) => port_info,
+                    Err(error) => {
+                        return Err(error.into_compile_error());
+                    }
+                };
+                ports.push(port_info);
+            }
+
+            sv::AnsiPortDeclaration::Variable(var) => {
+                let port_name = ast.get_str_trim(&var.nodes.1.nodes.0).expect(
+                    "Port identifier could not be traced back to source code",
+                );
+
+                let (port_direction_node, port_type) = var
+                    .nodes
+                    .0
+                    .as_ref()
+                    .and_then(|header| {
+                        header.nodes.0.as_ref().map(|d| (d, &header.nodes.1))
+                    })
+                    .ok_or_else(|| {
+                        syn::Error::new_spanned(
+                            source_path,
+                            format!(
+                                "Port `{}` has no supported direction (`input` or `output`)",
+                                port_name
+                            ),
+                        )
+                        .into_compile_error()
+                    })?;
+
+                let dimensions: &[sv::PackedDimension] = match &port_type
+                    .nodes
+                    .0
+                {
+                    sv::VarDataType::DataType(data_type) => {
+                        match &**data_type {
+                            sv::DataType::Vector(data_type_vector) => {
+                                &data_type_vector.nodes.2
+                            }
+                            other => todo!("Unsupported data type {:?}", other),
                         }
-                        _ => todo!(),
-                    },
-                    _ => todo!("Don't support multidimensional ports yet"),
+                    }
+                    sv::VarDataType::Var(var_data_type_var) => {
+                        match &var_data_type_var.nodes.1 {
+                            sv::DataTypeOrImplicit::DataType(data_type) => {
+                                match &**data_type {
+                                    sv::DataType::Vector(data_type_vector) => {
+                                        &data_type_vector.nodes.2
+                                    }
+                                    other => todo!(
+                                        "Unsupported data type (in the VarDataType>DataTypeOrImplicit>DataType branch) {:?}",
+                                        other
+                                    ),
+                                }
+                            }
+                            sv::DataTypeOrImplicit::ImplicitDataType(
+                                implicit_data_type,
+                            ) => &implicit_data_type.nodes.1,
+                        }
+                    }
                 };
 
-                let port_direction = match port_direction {
-                    sv::PortDirection::Input(_) => PortDirection::Input,
-                    sv::PortDirection::Output(_) => PortDirection::Output,
-                    sv::PortDirection::Inout(_) => PortDirection::Inout,
-                    sv::PortDirection::Ref(_) => todo!(),
+                let port_info = match process_port_common(
+                    &ast,
+                    top_name,
+                    port_name,
+                    dimensions,
+                    port_direction_node,
+                ) {
+                    Ok(port_info) => port_info,
+                    Err(error) => {
+                        return Err(error.into_compile_error());
+                    }
                 };
-
-                ports.push((
-                    port_name.to_string(),
-                    port_msb,
-                    port_lsb,
-                    port_direction,
-                ));
+                ports.push(port_info);
             }
             _ => todo!("Other types of ports"),
         }
     }
 
     Ok(ports)
+}
+
+fn process_port_common(
+    ast: &sv::SyntaxTree,
+    top_name: &syn::LitStr,
+    port_name: &str,
+    dimensions: &[sv::PackedDimension],
+    port_direction_node: &sv::PortDirection,
+) -> Result<(String, usize, usize, PortDirection), syn::Error> {
+    if port_name.chars().any(|c| c == '\\' || c == ' ') {
+        return Err(syn::Error::new_spanned(
+            top_name,
+            "Escaped module names are not supported",
+        ));
+    }
+
+    let (port_msb, port_lsb) = match dimensions.len() {
+        0 => (0, 0),
+        1 => match &dimensions[0] {
+            sv::PackedDimension::Range(packed_dimension_range) => {
+                let range = &packed_dimension_range.nodes.0.nodes.1.nodes;
+                (
+                    util::evaluate_numeric_constant_expression(ast, &range.0),
+                    util::evaluate_numeric_constant_expression(ast, &range.2),
+                )
+            }
+            _ => todo!("Unsupported dimension type"),
+        },
+        _ => todo!("Don't support multidimensional ports yet"),
+    };
+
+    let port_direction = match port_direction_node {
+        sv::PortDirection::Input(_) => PortDirection::Input,
+        sv::PortDirection::Output(_) => PortDirection::Output,
+        sv::PortDirection::Inout(_) => PortDirection::Inout,
+        sv::PortDirection::Ref(_) => {
+            todo!("Reference port direction is not supported")
+        }
+    };
+
+    Ok((port_name.to_string(), port_msb, port_lsb, port_direction))
 }

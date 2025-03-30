@@ -29,3 +29,22 @@ pub mod enclosed {
     #[verilog(src = "src/main.sv", name = "main")]
     pub struct Main2;
 }
+
+/// Compiles if we can parse the `var` keyword.
+mod parses_var_test {
+    use marlin::{verilator::types, verilog::prelude::*};
+
+    #[verilog(src = "src/parse_var.sv", name = "main")]
+    pub struct ParsesVarTest;
+
+    #[allow(unused)]
+    const fn size_of_return_type<T, U>(f: impl FnOnce(T) -> U) -> usize {
+        std::mem::forget(f);
+        size_of::<U>()
+    }
+
+    const _: () = assert!(
+        size_of_return_type::<ParsesVarTest, _>(|dut| dut.clk)
+            == size_of::<types::CData>()
+    );
+}
