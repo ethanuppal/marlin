@@ -13,7 +13,7 @@ use proc_macro::TokenStream;
 use spade_parser::logos::Logos;
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
-    while !start.as_str().is_empty() {
+    while !start.parent().is_none() {
         if start.join("swim.toml").is_file() {
             return Some(start.join("swim.toml"));
         }
