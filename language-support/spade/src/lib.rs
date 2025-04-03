@@ -10,9 +10,10 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+    AsDynamicVerilatedModel, AsVerilatedModel, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -22,8 +23,10 @@ pub mod __reexports {
 
 pub mod prelude {
     pub use crate as spade;
-    pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
-    pub use marlin_spade_macro::spade;
+    pub use crate::{
+        PinToPorts, ReadFromPorts, SpadeRuntime, SpadeRuntimeOptions,
+    };
+    pub use marlin_spade_macro::{spade, spade_types};
 }
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
@@ -34,6 +37,22 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
         start.pop();
     }
     None
+}
+
+pub trait ReadFromPorts: Default {
+    fn read<'ctx>(
+        &mut self,
+        model: &impl AsDynamicVerilatedModel<'ctx>,
+        port: &str,
+    );
+}
+
+pub trait PinToPorts: Default {
+    fn pin<'ctx>(
+        &self,
+        model: &mut impl AsDynamicVerilatedModel<'ctx>,
+        port: &str,
+    );
 }
 
 /// Optional configuration for creating a [`SpadeRuntime`]. Usually, you can
