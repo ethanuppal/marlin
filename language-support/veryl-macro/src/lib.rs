@@ -20,7 +20,7 @@ use veryl_parser::{
 };
 
 fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
-    while !start.parent().is_none() {
+    while start.parent().is_some() {
         if start.join("Veryl.toml").is_file() {
             return Some(start.join("Veryl.toml"));
         }

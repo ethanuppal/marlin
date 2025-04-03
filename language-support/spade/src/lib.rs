@@ -27,7 +27,7 @@ pub mod prelude {
 }
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
-    while !start.parent().is_none() {
+    while start.parent().is_some() {
         if start.join("swim.toml").is_file() {
             return Some(start.join("swim.toml"));
         }
