@@ -46,6 +46,10 @@ pub struct VerylRuntimeOptions {
     /// called `veryl build`.
     pub call_veryl_build: bool,
 
+    /// The path to your `Veryl.toml` file. Use if your veryl project isn't
+    /// kept somewhere marlin can automatically find it.
+    pub manifest_path: Option<String>,
+
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,
 }
@@ -55,6 +59,7 @@ impl Default for VerylRuntimeOptions {
         Self {
             veryl_executable: "veryl".into(),
             call_veryl_build: false,
+            manifest_path: None,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
@@ -74,14 +79,18 @@ impl VerylRuntime {
         if options.verilator_options.log {
             log::info!("Searching for Veryl project root");
         }
-        let Some(veryl_toml_path) = search_for_veryl_toml(
-            current_dir()
-                .whatever_context("Failed to get current directory")?
-                .try_into()
-                .whatever_context(
-                    "Failed to convert current directory to UTF-8",
-                )?,
-        ) else {
+        let Some(veryl_toml_path) = options
+            .manifest_path
+            .map(Utf8PathBuf::from)
+            .or(search_for_veryl_toml(
+                current_dir()
+                    .whatever_context("Failed to get current directory")?
+                    .try_into()
+                    .whatever_context(
+                        "Failed to convert current directory to UTF-8",
+                    )?,
+            ))
+        else {
             whatever!(
                 "Failed to find Veryl.toml searching from current directory"
             );

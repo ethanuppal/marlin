@@ -19,6 +19,8 @@ pub struct MacroArgs {
 
     pub clock_port: Option<syn::LitStr>,
     pub reset_port: Option<syn::LitStr>,
+
+    pub proj_path: Option<syn::LitStr>,
 }
 
 impl syn::parse::Parse for MacroArgs {
@@ -28,6 +30,9 @@ impl syn::parse::Parse for MacroArgs {
 
         syn::custom_keyword!(clock);
         syn::custom_keyword!(reset);
+
+        syn::custom_keyword!(manifest);
+
         input.parse::<src>()?;
         input.parse::<syn::Token![=]>()?;
         let source_path = input.parse::<syn::LitStr>()?;
@@ -40,6 +45,9 @@ impl syn::parse::Parse for MacroArgs {
 
         let mut clock_port = None;
         let mut reset_port = None;
+
+        let mut proj_path = None;
+
         while input.peek(syn::Token![,]) {
             input.parse::<syn::Token![,]>()?;
 
@@ -52,6 +60,10 @@ impl syn::parse::Parse for MacroArgs {
                 input.parse::<reset>()?;
                 input.parse::<syn::Token![=]>()?;
                 reset_port = Some(input.parse::<syn::LitStr>()?);
+            } else if lookahead.peek(manifest) {
+                input.parse::<manifest>()?;
+                input.parse::<syn::Token![=]>()?;
+                proj_path = Some(input.parse::<syn::LitStr>()?);
             } else {
                 return Err(lookahead.error());
             }
@@ -62,6 +74,7 @@ impl syn::parse::Parse for MacroArgs {
             name,
             clock_port,
             reset_port,
+            proj_path,
         })
     }
 }

@@ -197,7 +197,11 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
     let manifest_directory = Utf8PathBuf::from(
         env::var("CARGO_MANIFEST_DIR").expect("Please use CARGO"),
     );
-    let Some(veryl_toml_path) = search_for_veryl_toml(manifest_directory)
+    let Some(veryl_toml_path) = args
+        .proj_path
+        .clone()
+        .map(|l| Utf8PathBuf::from(l.value()))
+        .or(search_for_veryl_toml(manifest_directory))
     else {
         return syn::Error::new_spanned(
             args.source_path,

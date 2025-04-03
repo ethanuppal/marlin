@@ -48,6 +48,10 @@ pub struct SpadeRuntimeOptions {
     /// called `swim build`.
     pub call_swim_build: bool,
 
+    /// The path to your `swim.toml` file. Use if your spade project isn't
+    /// kept somewhere marlin can automatically find it.
+    pub manifest_path: Option<String>,
+
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,
 }
@@ -57,6 +61,7 @@ impl Default for SpadeRuntimeOptions {
         Self {
             swim_executable: "swim".into(),
             call_swim_build: false,
+            manifest_path: None,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
@@ -87,14 +92,18 @@ impl SpadeRuntime {
         if options.verilator_options.log {
             log::info!("Searching for swim project root");
         }
-        let Some(swim_toml_path) = search_for_swim_toml(
-            current_dir()
-                .whatever_context("Failed to get current directory")?
-                .try_into()
-                .whatever_context(
-                    "Failed to convert current directory to UTF-8",
-                )?,
-        ) else {
+        let Some(swim_toml_path) = options
+            .manifest_path
+            .map(Utf8PathBuf::from)
+            .or(search_for_swim_toml(
+                current_dir()
+                    .whatever_context("Failed to get current directory")?
+                    .try_into()
+                    .whatever_context(
+                        "Failed to convert current directory to UTF-8",
+                    )?,
+            ))
+        else {
             whatever!(
                 "Failed to find swim.toml searching from current directory"
             );
