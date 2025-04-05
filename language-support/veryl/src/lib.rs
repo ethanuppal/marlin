@@ -10,7 +10,7 @@ use camino::Utf8PathBuf;
 use marlin_verilator::{
     AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
