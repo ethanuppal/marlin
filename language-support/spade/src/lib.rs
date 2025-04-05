@@ -94,17 +94,17 @@ impl SpadeRuntime {
         if options.verilator_options.log {
             log::info!("Searching for swim project root");
         }
-        let Some(swim_toml_path) = options
-            .manifest_path
-            .map(Utf8PathBuf::from)
-            .or(search_for_swim_toml(
-                current_dir()
-                    .whatever_context("Failed to get current directory")?
-                    .try_into()
-                    .whatever_context(
-                        "Failed to convert current directory to UTF-8",
-                    )?,
-            ))
+        let Some(swim_toml_path) =
+            options.manifest_path.map(Utf8PathBuf::from).or_else(|| {
+                search_for_swim_toml(
+                    current_dir()
+                        .whatever_context("Failed to get current directory")?
+                        .try_into()
+                        .whatever_context(
+                            "Failed to convert current directory to UTF-8",
+                        )?,
+                )
+            })
         else {
             whatever!(
                 "Failed to find swim.toml searching from current directory"

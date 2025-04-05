@@ -201,7 +201,7 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
         .manifest_path
         .clone()
         .map(|manifest_path| Utf8PathBuf::from(manifest_path.value()))
-        .or(search_for_veryl_toml(manifest_directory))
+        .or_else(|| search_for_veryl_toml(manifest_directory))
     else {
         return syn::Error::new_spanned(
             args.source_path,
