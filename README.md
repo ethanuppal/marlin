@@ -76,6 +76,7 @@ dependency for your tests (`dev-dependencies`).
 
 I'll write more on this once I get further in the development process.
 The TLDR is procedural macros + `dlopen`.
+There are some stub pages in the work-in-progress internal section of the documentation, such as [this page](https://www.ethanuppal.com/marlin/internal/how-it-works.html).
 
 ### Hardware simulation tools are slow! How does Marlin deal with that?
 
