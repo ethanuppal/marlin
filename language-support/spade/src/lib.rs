@@ -6,7 +6,9 @@
 
 //! Spade integration for Marlin.
 
-use std::{env::current_dir, ffi::OsString, fs, process::Command};
+use std::{
+    env::current_dir, ffi::OsString, fs, path::PathBuf, process::Command,
+};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
@@ -48,6 +50,10 @@ pub struct SpadeRuntimeOptions {
     /// called `swim build`.
     pub call_swim_build: bool,
 
+    /// The path to your `swim.toml` file. Use if your Spade project isn't
+    /// kept somewhere Marlin can automatically find it.
+    pub manifest_path: Option<PathBuf>,
+
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,
 }
@@ -57,6 +63,7 @@ impl Default for SpadeRuntimeOptions {
         Self {
             swim_executable: "swim".into(),
             call_swim_build: false,
+            manifest_path: None,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
@@ -87,16 +94,23 @@ impl SpadeRuntime {
         if options.verilator_options.log {
             log::info!("Searching for swim project root");
         }
-        let Some(swim_toml_path) = search_for_swim_toml(
+        let swim_toml_path = if let Some(manifest_path) =
+            options.manifest_path.and_then(|manifest_path| {
+                Utf8PathBuf::from_path_buf(manifest_path).ok()
+            }) {
+            manifest_path
+        } else if let Some(manifest_path) = search_for_swim_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
                 .try_into()
                 .whatever_context(
                     "Failed to convert current directory to UTF-8",
                 )?,
-        ) else {
+        ) {
+            manifest_path
+        } else {
             whatever!(
-                "Failed to find swim.toml searching from current directory"
+                "Failed to find Veryl.toml searching from current directory"
             );
         };
         let mut swim_project_path = swim_toml_path.clone();

@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{env::current_dir, ffi::OsString, process::Command};
+use std::{env::current_dir, ffi::OsString, path::PathBuf, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
@@ -46,6 +46,10 @@ pub struct VerylRuntimeOptions {
     /// called `veryl build`.
     pub call_veryl_build: bool,
 
+    /// The path to your `Veryl.toml` file. Use if your Veryl project isn't
+    /// kept somewhere Marlin can automatically find it.
+    pub manifest_path: Option<PathBuf>,
+
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,
 }
@@ -55,6 +59,7 @@ impl Default for VerylRuntimeOptions {
         Self {
             veryl_executable: "veryl".into(),
             call_veryl_build: false,
+            manifest_path: None,
             verilator_options: VerilatorRuntimeOptions::default(),
         }
     }
@@ -74,14 +79,21 @@ impl VerylRuntime {
         if options.verilator_options.log {
             log::info!("Searching for Veryl project root");
         }
-        let Some(veryl_toml_path) = search_for_veryl_toml(
+        let veryl_toml_path = if let Some(manifest_path) =
+            options.manifest_path.and_then(|manifest_path| {
+                Utf8PathBuf::from_path_buf(manifest_path).ok()
+            }) {
+            manifest_path
+        } else if let Some(manifest_path) = search_for_veryl_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
                 .try_into()
                 .whatever_context(
                     "Failed to convert current directory to UTF-8",
                 )?,
-        ) else {
+        ) {
+            manifest_path
+        } else {
             whatever!(
                 "Failed to find Veryl.toml searching from current directory"
             );
