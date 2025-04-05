@@ -141,7 +141,7 @@ extern "C" {{
                 msb,
                 lsb,
                 if width > 64 {
-                    format!(", {}", (width + 31) / 32) // words are 32 bits
+                    format!(", {}", width.div_ceil(32)) // words are 32 bits
                 // according to header
                 // file
                 } else {

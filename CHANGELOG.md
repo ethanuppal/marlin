@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/ethanuppal/marlin/compare/v0.6.1...v0.6.2) (2025-04-05)
+
+
+### Bug Fixes
+
+* clippy::manual_div_ceil ([#133](https://github.com/ethanuppal/marlin/issues/133)) ([9a3555e](https://github.com/ethanuppal/marlin/commit/9a3555e13c6f94189ad7f68fd7ee0a42f13add11))
+* Prevent `#[spade]` and `#[veryl]` from hanging in absence of manifest ([#129](https://github.com/ethanuppal/marlin/issues/129)) ([020620f](https://github.com/ethanuppal/marlin/commit/020620f94059d81b650ed263a97b18e70cfd8c5d))
+
 ## [0.6.1](https://github.com/ethanuppal/marlin/compare/v0.6.0...v0.6.1) (2025-03-30)
 
 
