@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Name - Marlin Handbook</title>
+        <title>Model Traits - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -424,22 +424,32 @@
 }
 
 </style>
-<h1 id="name"><a class="header" href="#name">Name</a></h1>
-<p>Marlin are fish that can swim pretty fast<sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup>.</p>
-<hr>
-<ol class="footnote-definition"><li id="footnote-1">
-<p>https://pmc.ncbi.nlm.nih.gov/articles/PMC5087677/ <a href="#fr-1-1">↩</a></p>
+<h1 id="model-traits"><a class="header" href="#model-traits">Model Traits</a></h1>
+<p>There are two main traits for Verilated models:</p>
+<ul>
+<li>
+<p><code>AsVerilatedModel</code>:</p>
+<p>This trait is implemented for types derived using <code>#[verilog]</code> or <code>#[spade]</code>, etc.
+It should not be manually derived.
+You can use the type-level functions provided by this trait to get information about the model.</p>
 </li>
-</ol>
+<li>
+<p><code>AsDynamicVerilatedModel</code>:</p>
+<p>This trait is implemented for all models, derived and dynamic.
+It provides a safe runtime API for accessing ports by strings (instead of using the actual <code>struct</code> fields).
+For derived models, you typically won't need to use it because you'll just be able to set and read fields directly.</p>
+</li>
+</ul>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../internal/about-internal.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../reference/vcd.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../internal/release-process.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../internal/about-internal.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -449,11 +459,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../internal/about-internal.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../reference/vcd.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../internal/release-process.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../internal/about-internal.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

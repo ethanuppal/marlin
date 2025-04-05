@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Reference - Marlin Handbook</title>
+        <title>Bridging Macros - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -424,18 +424,33 @@
 }
 
 </style>
-<h1 id="reference"><a class="header" href="#reference">Reference</a></h1>
-<p>This section contains practical information for using Marlin.</p>
+<h1 id="bridging-macros"><a class="header" href="#bridging-macros">Bridging Macros</a></h1>
+<p>Marlin uses "bridging" macros to define bindings between Rust <code>struct</code>s and hardware modules:</p>
+<ul>
+<li><a href="https://docs.rs/marlin/latest/marlin/verilog/prelude/attr.verilog.html"><code>#[verilog]</code></a></li>
+<li><a href="https://docs.rs/marlin/latest/marlin/spade/prelude/attr.spade.html"><code>#[spade]</code></a></li>
+<li><a href="https://docs.rs/marlin/latest/marlin/veryl/prelude/attr.veryl.html"><code>#[veryl]</code></a></li>
+</ul>
+<p>Under the Verilator backend, these take a common interface:</p>
+<ul>
+<li><code>name = "&lt;name&gt;"</code>: The name of the module.</li>
+<li><code>src = "&lt;file&gt;"</code>: The file where the module is defined relative to the manifest directory.</li>
+</ul>
+<p>Optionally, they take:</p>
+<ul>
+<li><code>clock = "&lt;port&gt;"</code>: The name of the clock port on the model. This generates a method called <code>.tick()</code> which performs a single clock cycle. It does NOT log to any VCDs that may be open, so consider <code>impl</code>ing your own <code>tick</code> method on the model instead if you want this behavior.</li>
+</ul>
+<p>See <a href="../../internal/how-it-works.html">the relevant internal documentation</a> for technical explanation.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../verilog/dpi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../veryl/quickstart.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../verilog/reference/vcd.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../reference/vcd.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -445,11 +460,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../verilog/dpi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../veryl/quickstart.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../verilog/reference/vcd.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../reference/vcd.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
