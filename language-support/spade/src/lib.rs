@@ -14,7 +14,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -94,20 +94,23 @@ impl SpadeRuntime {
         if options.verilator_options.log {
             log::info!("Searching for swim project root");
         }
-        let Some(swim_toml_path) =
-            options.manifest_path.map(Utf8PathBuf::from).or_else(|| {
-                search_for_swim_toml(
-                    current_dir()
-                        .whatever_context("Failed to get current directory")?
-                        .try_into()
-                        .whatever_context(
-                            "Failed to convert current directory to UTF-8",
-                        )?,
-                )
-            })
-        else {
+        let swim_toml_path = if let Some(manifest_path) =
+            options.manifest_path.and_then(|manifest_path| {
+                Utf8PathBuf::from_path_buf(manifest_path).ok()
+            }) {
+            manifest_path
+        } else if let Some(manifest_path) = search_for_swim_toml(
+            current_dir()
+                .whatever_context("Failed to get current directory")?
+                .try_into()
+                .whatever_context(
+                    "Failed to convert current directory to UTF-8",
+                )?,
+        ) {
+            manifest_path
+        } else {
             whatever!(
-                "Failed to find swim.toml searching from current directory"
+                "Failed to find Veryl.toml searching from current directory"
             );
         };
         let mut swim_project_path = swim_toml_path.clone();
