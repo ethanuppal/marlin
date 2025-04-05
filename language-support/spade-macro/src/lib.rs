@@ -31,8 +31,8 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     );
 
     let Some(swim_toml) = args
-        .proj_path
-        .map(|l| Utf8PathBuf::from(l.value()))
+        .manifest_path
+        .map(|manifest_path| Utf8PathBuf::from(manifest_path.value()))
         .or(search_for_swim_toml(manifest_directory))
     else {
         return syn::Error::new_spanned(

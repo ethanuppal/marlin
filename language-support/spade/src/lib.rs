@@ -6,7 +6,9 @@
 
 //! Spade integration for Marlin.
 
-use std::{env::current_dir, ffi::OsString, fs, process::Command};
+use std::{
+    env::current_dir, ffi::OsString, fs, path::PathBuf, process::Command,
+};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
@@ -48,9 +50,9 @@ pub struct SpadeRuntimeOptions {
     /// called `swim build`.
     pub call_swim_build: bool,
 
-    /// The path to your `swim.toml` file. Use if your spade project isn't
-    /// kept somewhere marlin can automatically find it.
-    pub manifest_path: Option<String>,
+    /// The path to your `swim.toml` file. Use if your Spade project isn't
+    /// kept somewhere Marlin can automatically find it.
+    pub manifest_path: Option<PathBuf>,
 
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,

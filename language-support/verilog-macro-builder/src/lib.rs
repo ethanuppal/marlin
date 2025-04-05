@@ -20,7 +20,7 @@ pub struct MacroArgs {
     pub clock_port: Option<syn::LitStr>,
     pub reset_port: Option<syn::LitStr>,
 
-    pub proj_path: Option<syn::LitStr>,
+    pub manifest_path: Option<syn::LitStr>,
 }
 
 impl syn::parse::Parse for MacroArgs {
@@ -74,7 +74,7 @@ impl syn::parse::Parse for MacroArgs {
             name,
             clock_port,
             reset_port,
-            proj_path,
+            manifest_path: proj_path,
         })
     }
 }

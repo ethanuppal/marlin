@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{env::current_dir, ffi::OsString, process::Command};
+use std::{env::current_dir, ffi::OsString, path::PathBuf, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
@@ -46,9 +46,9 @@ pub struct VerylRuntimeOptions {
     /// called `veryl build`.
     pub call_veryl_build: bool,
 
-    /// The path to your `Veryl.toml` file. Use if your veryl project isn't
-    /// kept somewhere marlin can automatically find it.
-    pub manifest_path: Option<String>,
+    /// The path to your `Veryl.toml` file. Use if your Veryl project isn't
+    /// kept somewhere Marlin can automatically find it.
+    pub manifest_path: Option<PathBuf>,
 
     /// See [`VerilatorRuntimeOptions`].
     pub verilator_options: VerilatorRuntimeOptions,
