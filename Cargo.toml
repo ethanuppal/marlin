@@ -82,6 +82,10 @@ verilog = []
 spade = []
 veryl = []
 
+[[bench]]
+name = "repeatedly_build_verilog"
+harness = false
+
 [dependencies]
 marlin-verilator.workspace = true
 marlin-verilog.workspace = true
@@ -91,3 +95,9 @@ marlin-spade.workspace = true
 marlin-spade-macro.workspace = true
 marlin-veryl.workspace = true
 marlin-veryl-macro.workspace = true
+
+[dev-dependencies]
+camino.workspace = true
+criterion = { version = "2.9.1", package = "codspeed-criterion-compat" }
+marlin-verilator.workspace = true
+marlin-verilog.workspace = true
