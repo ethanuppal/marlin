@@ -139,9 +139,6 @@ unknown-registry = "deny"
 unknown-git = "deny"
 required-git-spec = "rev"
 
-[sources.allow-org]
-github = ["veryl-lang"]
-
 [licenses]
 allow = ["MIT", "Apache-2.0", "MPL-2.0", "EUPL-1.2", "ISC", "Unicode-3.0"]
 confidence-threshold = 1.0
