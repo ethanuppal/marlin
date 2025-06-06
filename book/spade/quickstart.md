@@ -104,7 +104,7 @@ fn main() -> Result<(), Whatever> {
         ..Default::default()
     })?;
 
-    let mut main = runtime.create_model::<Main>()?;
+    let mut main = runtime.create_model_simple::<Main>()?;
 
     main.eval();
     println!("{}", main.out);
@@ -123,9 +123,9 @@ fn main() -> Result<(), Whatever> {
 Finally, we can simply use `cargo test` to drive our design! It will take a while before it starts doing Marlin dynamic compilation because it needs to first build the Spade project by invoking the Spade compiler.
 
 > [!WARNING]
-> By default, `SpadeRuntime` invokes `swim build`, which is not thread-safe. If
+> By default, `SpadeRuntime` does not `swim build` because it is not thread-safe. If
 > you have multiple tests, run `swim build` beforehand and then run `cargo test`
-> after disabling the automatic `swim build` via
+> if you have disabled the automatic `swim build` via
 > `SpadeRuntimeOptions::call_swim_build`.
 
 Note that, unlike the Verilog project tutorial, you don't need to add another

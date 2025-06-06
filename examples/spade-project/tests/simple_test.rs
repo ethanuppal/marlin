@@ -31,7 +31,7 @@ fn main() -> Result<(), Whatever> {
         ..SpadeRuntimeOptions::default_logging()
     })?;
 
-    let mut main = runtime.create_model::<Main>()?;
+    let mut main = runtime.create_model_simple::<Main>()?;
 
     main.eval();
     println!("{}", main.out);

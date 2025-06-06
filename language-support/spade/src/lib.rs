@@ -10,7 +10,8 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
 use snafu::{ResultExt, Whatever, whatever};
 
@@ -71,6 +72,14 @@ impl SpadeRuntimeOptions {
             ..Default::default()
         }
     }
+}
+
+/// Optional configuration for creating an [`AsVerilatedModel`]. Usually, you
+/// can just use [`SpadeModelConfig::default()`].
+#[derive(Default)]
+pub struct SpadeModelConfig {
+    /// See [`VerilatedModelConfig`].
+    pub verilator_config: VerilatedModelConfig,
 }
 
 /// Runtime for Spade code.
@@ -201,10 +210,20 @@ impl SpadeRuntime {
     }
 
     /// Instantiates a new Spade unit. This function simply wraps
-    /// [`VerilatorRuntime::create_model`].
-    pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
+    /// [`VerilatorRuntime::create_model_simple`].
+    pub fn create_model_simple<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
     ) -> Result<M, Whatever> {
         self.verilator_runtime.create_model_simple()
+    }
+
+    /// Instantiates a new Spade unit. This function simply wraps
+    /// [`VerilatorRuntime::create_model`].
+    pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
+        &'ctx self,
+        config: SpadeModelConfig,
+    ) -> Result<M, Whatever> {
+        self.verilator_runtime
+            .create_model(&config.verilator_config)
     }
 }
