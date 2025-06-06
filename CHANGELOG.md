@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/ethanuppal/marlin/compare/v0.6.2...v0.7.0) (2025-06-06)
+
+
+### Features
+
+* **verilator:** Allow specifying C++ standard used by Verilator ([#136](https://github.com/ethanuppal/marlin/issues/136)) ([f051842](https://github.com/ethanuppal/marlin/commit/f0518428ba51fb9320dffc8da39108e68beece7e))
+
 ## [0.6.2](https://github.com/ethanuppal/marlin/compare/v0.6.1...v0.6.2) (2025-04-05)
 
 
