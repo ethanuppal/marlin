@@ -5,3 +5,4 @@ target/
 docs/
 version.txt
 *.vcd
+*.DS_Store
