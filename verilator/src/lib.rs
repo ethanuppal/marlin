@@ -87,6 +87,8 @@ impl fmt::Display for PortDirection {
     }
 }
 
+/// Based off of the [C++ standards supported by GCC](https://gcc.gnu.org/projects/cxx-status.html) as
+/// of June 6th, 2025.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CxxStandard {
     Cxx98,
