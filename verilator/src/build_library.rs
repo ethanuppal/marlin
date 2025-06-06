@@ -14,11 +14,11 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    dpi::DpiFunction,
+    dpi::DpiFunction, PortDirection, VerilatedModelConfig,
+    VerilatorRuntimeOptions,
 };
 
 fn build_ffi_for_tracing(
@@ -142,8 +142,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", width.div_ceil(32)) // words are 32 bits
-                // according to header
-                // file
+                                                        // according to header
+                                                        // file
                 } else {
                     "".into()
                 }
@@ -432,7 +432,7 @@ pub fn build_library(
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
         .args(["--cc", "-sv", "-j", "0", "--build"])
-        .args(["-CFLAGS", "-shared -fpic"])
+        .args(["-CFLAGS", "-shared -fpic -std=c++17"])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
