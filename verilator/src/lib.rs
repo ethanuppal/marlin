@@ -87,7 +87,7 @@ impl fmt::Display for PortDirection {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CxxStandard {
     Cxx98,
     Cxx11,

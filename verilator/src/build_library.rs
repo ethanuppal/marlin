@@ -431,18 +431,16 @@ pub fn build_library(
 
     let mut cflags = "-shared -fpic".to_string();
     if let Some(cxx_standard) = config.cxx_standard {
-        cflags += format!(
-            " -std={}",
-            match cxx_standard {
-                crate::CxxStandard::Cxx98 => "c++98",
-                crate::CxxStandard::Cxx11 => "c++11",
-                crate::CxxStandard::Cxx14 => "c++14",
-                crate::CxxStandard::Cxx17 => "c++17",
-                crate::CxxStandard::Cxx20 => "c++20",
-                crate::CxxStandard::Cxx23 => "c++23",
-                crate::CxxStandard::Cxx26 => "c++26",
-            }
-        );
+        cflags += " -std=";
+        cflags += match cxx_standard {
+            crate::CxxStandard::Cxx98 => "c++98",
+            crate::CxxStandard::Cxx11 => "c++11",
+            crate::CxxStandard::Cxx14 => "c++14",
+            crate::CxxStandard::Cxx17 => "c++17",
+            crate::CxxStandard::Cxx20 => "c++20",
+            crate::CxxStandard::Cxx23 => "c++23",
+            crate::CxxStandard::Cxx26 => "c++26",
+        };
     }
 
     let mut verilator_command = Command::new(&options.verilator_executable);
