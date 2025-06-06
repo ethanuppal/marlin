@@ -2356,7 +2356,7 @@ fn main() -&gt; Result&lt;(), Whatever&gt; {
         ..Default::default()
     })?;
 
-    let mut main = runtime.create_model::&lt;Main&gt;()?;
+    let mut main = runtime.create_model_simple::&lt;Main&gt;()?;
 
     main.eval();
     println!("{}", main.out);
@@ -2380,9 +2380,9 @@ encounter an error.</p>
   <span class="mdbook-callouts-icon"></span>
   warning
 </p>
-<p>By default, <code>SpadeRuntime</code> invokes <code>swim build</code>, which is not thread-safe. If
+<p>By default, <code>SpadeRuntime</code> does not <code>swim build</code> because it is not thread-safe. If
 you have multiple tests, run <code>swim build</code> beforehand and then run <code>cargo test</code>
-after disabling the automatic <code>swim build</code> via
+if you have disabled the automatic <code>swim build</code> via
 <code>SpadeRuntimeOptions::call_swim_build</code>.</p>
 </div>
 <p>Note that, unlike the Verilog project tutorial, you don't need to add another
