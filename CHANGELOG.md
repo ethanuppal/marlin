@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/ethanuppal/marlin/compare/v0.7.0...v0.7.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* **spade:** Support `VerilatedRuntimeConfig` for Spade units ([#138](https://github.com/ethanuppal/marlin/issues/138)) ([24c96f8](https://github.com/ethanuppal/marlin/commit/24c96f87d4645148fab8999ce7374be2a8b4796a))
+
 ## [0.7.0](https://github.com/ethanuppal/marlin/compare/v0.6.2...v0.7.0) (2025-06-06)
 
 
