@@ -66,6 +66,7 @@ Still, a lot of these are less than optimal.
 - [Rust](https://rustup.rs), 2021 edition
 - [`verilator`](https://verilator.org/guide/latest/install.html), 5.025 or later
    - `make`, e.g. [GNU Make](https://www.gnu.org/software/make/)
+- A C++ compiler that `verilator` can find; may need to [support at least C++14](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4296.pdf).
 
 ## 📦 Install
 
