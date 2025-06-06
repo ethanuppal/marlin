@@ -429,10 +429,26 @@ pub fn build_library(
     // bug in verilator#5226 means the directory must be relative to -Mdir
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
+    let mut cflags = "-shared -fpic".to_string();
+    if let Some(cxx_standard) = config.cxx_standard {
+        cflags += format!(
+            " -std={}",
+            match cxx_standard {
+                crate::CxxStandard::Cxx98 => "c++98",
+                crate::CxxStandard::Cxx11 => "c++11",
+                crate::CxxStandard::Cxx14 => "c++14",
+                crate::CxxStandard::Cxx17 => "c++17",
+                crate::CxxStandard::Cxx20 => "c++20",
+                crate::CxxStandard::Cxx23 => "c++23",
+                crate::CxxStandard::Cxx26 => "c++26",
+            }
+        );
+    }
+
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
         .args(["--cc", "-sv", "-j", "0", "--build"])
-        .args(["-CFLAGS", "-shared -fpic -std=c++17"])
+        .args(["-CFLAGS", &cflags])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
