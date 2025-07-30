@@ -114,7 +114,6 @@ fn forwards_u32max_correctly() -> Result<(), Whatever> {
         &[],
         [],
         VerilatorRuntimeOptions::default(),
-        true,
     )?;
 
     let mut main = runtime.create_model_simple::<Main>()?;
