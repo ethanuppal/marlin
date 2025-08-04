@@ -135,9 +135,7 @@ pub fn build_verilated_struct(
         } else {
             return syn::Error::new_spanned(
                 source_path,
-                format!(
-                    "Port `{port_name}` is wider than supported right now"
-                ),
+                format!("Port `{port_name}` is wider than supported right now"),
             )
             .into_compile_error();
         };
