@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/ethanuppal/marlin/compare/v0.7.1...v0.7.2) (2025-08-04)
+
+
+### Bug Fixes
+
+* New clippy lints ([#143](https://github.com/ethanuppal/marlin/issues/143)) ([a97469f](https://github.com/ethanuppal/marlin/commit/a97469f70102a67e329dc8563b835634bfa7e625))
+
 ## [0.7.1](https://github.com/ethanuppal/marlin/compare/v0.7.0...v0.7.1) (2025-06-06)
 
 
