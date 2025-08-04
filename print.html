@@ -2313,8 +2313,8 @@ git init # optional, if using git
 <pre><code class="language-spade">// file: src/main.spade
 #[no_mangle(all)]
 entity main(out: inv &amp;int&lt;8&gt;) {
-    set out = 42;
-}}
+    set out = &amp;42;
+}
 </code></pre>
 <p>You can read the <a href="https://docs.spade-lang.org/introduction.html">Spade book</a> for an
 introduction to Spade; this tutorial will not focus on teaching the language.
@@ -2360,7 +2360,7 @@ use snafu::Whatever;
 //#[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
     let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_spade_build: true, /* warning: not thread safe! don't use if you
+        call_swim_build: true, /* warning: not thread safe! don't use if you
                                  * have multiple tests */
         ..Default::default()
     })?;
