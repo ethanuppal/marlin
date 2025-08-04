@@ -56,8 +56,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
             return syn::Error::new_spanned(
                 &args.source_path,
                 format!(
-                    "Failed to read source code file at {}: {}",
-                    spade_source_path, error
+                    "Failed to read source code file at {spade_source_path}: {error}"
                 ),
             )
             .into_compile_error()
