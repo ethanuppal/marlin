@@ -46,8 +46,8 @@ In `main.spade` (which should already exist after running `swim init`), we'll wr
 // file: src/main.spade
 #[no_mangle(all)]
 entity main(out: inv &int<8>) {
-    set out = 42;
-}}
+    set out = &42;
+}
 ```
 
 You can read the [Spade book](https://docs.spade-lang.org/introduction.html) for an
@@ -99,7 +99,7 @@ use snafu::Whatever;
 //#[snafu::report]
 fn main() -> Result<(), Whatever> {
     let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_spade_build: true, /* warning: not thread safe! don't use if you
+        call_swim_build: true, /* warning: not thread safe! don't use if you
                                  * have multiple tests */
         ..Default::default()
     })?;
