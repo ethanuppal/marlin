@@ -29,7 +29,12 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     let manifest_directory = Utf8PathBuf::from(
         env::var("CARGO_MANIFEST_DIR").expect("Please use CARGO"),
     );
-    let Some(swim_toml) = search_for_swim_toml(manifest_directory) else {
+
+    let Some(swim_toml) = args
+        .manifest_path
+        .map(|manifest_path| Utf8PathBuf::from(manifest_path.value()))
+        .or_else(|| search_for_swim_toml(manifest_directory))
+    else {
         return syn::Error::new_spanned(
             args.source_path,
             "Could not find swim.toml",
