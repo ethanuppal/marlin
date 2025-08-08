@@ -1,0 +1,54 @@
+name: CodSpeed
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  benchmarks:
+    name: Run benchmarks
+    runs-on: codspeed-macro
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup rust toolchain, cache and cargo-codspeed binary
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: 1.85
+          cache-target: release
+          bins: cargo-codspeed
+
+      - name: Install Verilator
+        run: |
+            sudo apt-get update
+            sudo apt-get install git help2man perl python3 make autoconf g++ flex bison ccache
+            sudo apt-get install libgoogle-perftools-dev numactl perl-doc
+            sudo apt-get install libfl2  || echo "Ubuntu only (ignore if gives error)"
+            sudo apt-get install libfl-dev  || echo "Ubuntu only (ignore if gives error)"
+            sudo apt-get install zlibc zlib1g zlib1g-dev || echo "Ubuntu only (ignore if gives error)"
+
+            git clone https://github.com/verilator/verilator
+
+            unset VERILATOR_ROOT
+            cd verilator
+            git pull
+            git checkout v5.034
+
+            autoconf
+            ./configure
+            make -j `nproc`
+            sudo make install
+
+            verilator --version
+
+      - name: Build the benchmark target(s)
+        run: cargo codspeed build
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@v3
+        with:
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}
