@@ -1,17 +1,17 @@
 [workspace]
 resolver = "3"
 members = [
-    "verilator",
-    "language-support/verilog",
-    "language-support/verilog-macro",
-    "language-support/verilog-macro-builder",
-    "language-support/spade",
-    "language-support/spade-macro",
-    "language-support/veryl",
-    "language-support/veryl-macro",
-    "examples/verilog-project",
-    "examples/spade-project",
-    "examples/veryl_project",
+  "verilator",
+  "language-support/verilog",
+  "language-support/verilog-macro",
+  "language-support/verilog-macro-builder",
+  "language-support/spade",
+  "language-support/spade-macro",
+  "language-support/veryl",
+  "language-support/veryl-macro",
+  "examples/verilog-project",
+  "examples/spade-project",
+  "examples/veryl_project",
 ]
 
 [workspace.package]
