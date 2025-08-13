@@ -218,8 +218,7 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
             return syn::Error::new_spanned(
                 &args.source_path,
                 format!(
-                    "Failed to read source code file at {}: {}",
-                    veryl_source_path, error
+                    "Failed to read source code file at {veryl_source_path}: {error}"
                 ),
             )
             .into_compile_error()
@@ -233,8 +232,7 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
             return syn::Error::new_spanned(
                 &args.source_path,
                 format!(
-                    "[veryl-parser] Failed to parser source code file at {}: {}",
-                    veryl_source_path, error
+                    "[veryl-parser] Failed to parser source code file at {veryl_source_path}: {error}"
                 ),
             )
             .into_compile_error()
@@ -269,14 +267,14 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
     let veryl_toml_contents = match fs::read_to_string(&veryl_toml_path) {
         Ok(contents) => contents,
         Err(error) => {
-            return syn::Error::new_spanned(&args.source_path, format!("Could not read contents of Veryl.toml at project root {}: {}", veryl_toml_path, error)).into_compile_error().into();
+            return syn::Error::new_spanned(&args.source_path, format!("Could not read contents of Veryl.toml at project root {veryl_toml_path}: {error}")).into_compile_error().into();
         }
     };
 
     let veryl_toml: toml::Value = match toml::from_str(&veryl_toml_contents) {
         Ok(toml) => toml,
         Err(error) => {
-            return syn::Error::new_spanned(&args.source_path, format!("Could not parse contents of Veryl.toml at project root {} as a TOML file: {}", veryl_toml_path, error)).into_compile_error().into();
+            return syn::Error::new_spanned(&args.source_path, format!("Could not parse contents of Veryl.toml at project root {veryl_toml_path} as a TOML file: {error}")).into_compile_error().into();
         }
     };
 
@@ -285,7 +283,7 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
         .and_then(|project| project.get("name"))
         .and_then(|name| name.as_str())
     else {
-        return syn::Error::new_spanned(&args.source_path, format!("Could not read the project.name field of Veryl.toml at project root {}", veryl_toml_path)).into_compile_error().into();
+        return syn::Error::new_spanned(&args.source_path, format!("Could not read the project.name field of Veryl.toml at project root {veryl_toml_path}")).into_compile_error().into();
     };
 
     let verilog_module_name = syn::LitStr::new(

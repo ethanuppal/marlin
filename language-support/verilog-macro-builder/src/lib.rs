@@ -135,10 +135,7 @@ pub fn build_verilated_struct(
         } else {
             return syn::Error::new_spanned(
                 source_path,
-                format!(
-                    "Port `{}` is wider than supported right now",
-                    port_name
-                ),
+                format!("Port `{port_name}` is wider than supported right now"),
             )
             .into_compile_error();
         };
@@ -494,8 +491,7 @@ pub fn parse_verilog_ports(
                         syn::Error::new_spanned(
                             source_path,
                             format!(
-                                "Port `{}` has no supported direction (`input` or `output`)",
-                                port_name
+                                "Port `{port_name}` has no supported direction (`input` or `output`)"
                             ),
                         )
                         .into_compile_error()
@@ -557,8 +553,7 @@ pub fn parse_verilog_ports(
                         syn::Error::new_spanned(
                             source_path,
                             format!(
-                                "Port `{}` has no supported direction (`input` or `output`)",
-                                port_name
+                                "Port `{port_name}` has no supported direction (`input` or `output`)"
                             ),
                         )
                         .into_compile_error()

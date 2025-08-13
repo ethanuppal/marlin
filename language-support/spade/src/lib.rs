@@ -135,8 +135,7 @@ impl SpadeRuntime {
 
         let swim_toml_contents = fs::read_to_string(&swim_toml_path)
             .whatever_context(format!(
-                "Failed to read contents of swim.toml at {}",
-                swim_toml_path
+                "Failed to read contents of swim.toml at {swim_toml_path}"
             ))?;
         let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
             .whatever_context(

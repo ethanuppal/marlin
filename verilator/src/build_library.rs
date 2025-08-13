@@ -108,8 +108,7 @@ extern "C" {{
         let width = msb - lsb + 1;
         if width > 64 {
             let underlying = format!(
-                "Port `{}` on top module `{}` was larger than 64 bits wide",
-                port, top_module
+                "Port `{port}` on top module `{top_module}` was larger than 64 bits wide"
             );
             whatever!(
                 Err(underlying),
@@ -229,7 +228,7 @@ extern \"C\" void dpi_init_callback(void** callbacks) {{
                 let signature = dpi_function
                     .signature()
                     .iter()
-                    .map(|(name, ty)| format!("{} {}", ty, name))
+                    .map(|(name, ty)| format!("{ty} {name}"))
                     .collect::<Vec<_>>()
                     .join(", ");
                 let arguments = dpi_function
@@ -239,11 +238,10 @@ extern \"C\" void dpi_init_callback(void** callbacks) {{
                     .collect::<Vec<_>>()
                     .join(",");
                 format!(
-                    "static void (*rust_{})({});
-extern \"C\" void {}({}) {{
-    rust_{}({});
-}}",
-                    name, signature, name, signature, name, arguments
+                    "static void (*rust_{name})({signature});
+extern \"C\" void {name}({signature}) {{
+    rust_{name}({arguments});
+}}"
                 )
             })
             .collect::<Vec<_>>()
@@ -255,7 +253,7 @@ extern \"C\" void {}({}) {{
                 let signature = dpi_function
                     .signature()
                     .iter()
-                    .map(|(name, ty)| format!("{} {}", ty, name))
+                    .map(|(name, ty)| format!("{ty} {name}"))
                     .collect::<Vec<_>>()
                     .join(", ");
                 format!(
@@ -286,8 +284,7 @@ extern \"C\" void {}({}) {{
 
     fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
         .whatever_context(format!(
-            "Failed to write DPI function wrapper code to {}",
-            dpi_file_absolute_path
+            "Failed to write DPI function wrapper code to {dpi_file_absolute_path}"
         ))?;
 
     Ok((Some(dpi_file), true))
@@ -305,25 +302,21 @@ fn needs_verilator_rebuild(
 
     let last_built = fs::metadata(library_path)
         .whatever_context(format!(
-            "Failed to read file metadata for dynamic library {}",
-            library_path
+            "Failed to read file metadata for dynamic library {library_path}"
         ))?
         .modified()
         .whatever_context(format!(
-            "Failed to determine last-modified time for dynamic library {}",
-            library_path
+            "Failed to determine last-modified time for dynamic library {library_path}"
         ))?;
 
     for source_file in source_files {
         let last_edited = fs::metadata(source_file)
             .whatever_context(format!(
-                "Failed to read file metadata for source file {}",
-                source_file
+                "Failed to read file metadata for source file {source_file}"
             ))?
             .modified()
             .whatever_context(format!(
-                "Failed to determine last-modified time for source file {}",
-                source_file
+                "Failed to determine last-modified time for source file {source_file}"
             ))?;
         if last_edited > last_built {
             return Ok(true);
@@ -388,9 +381,9 @@ pub fn build_library(
     fs::create_dir_all(&dpi_artifact_directory).whatever_context(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
-    let library_name = format!("marlin_V{}", top_module);
+    let library_name = format!("marlin_V{top_module}");
     let library_path =
-        verilator_artifact_directory.join(format!("lib{}.so", library_name));
+        verilator_artifact_directory.join(format!("lib{library_name}.so"));
 
     let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
         top_module,
@@ -453,7 +446,7 @@ pub fn build_library(
         .args(source_files)
         .arg(ffi_wrappers);
     for include_directory in include_directories {
-        verilator_command.arg(format!("-I{}", include_directory));
+        verilator_command.arg(format!("-I{include_directory}"));
     }
     if let Some(dpi_file) = dpi_file {
         verilator_command.arg(dpi_file);
@@ -461,13 +454,13 @@ pub fn build_library(
     if config.verilator_optimization != 0 {
         let level = config.verilator_optimization;
         if (1..=3).contains(&level) {
-            verilator_command.arg(format!("-O{}", level));
+            verilator_command.arg(format!("-O{level}"));
         } else {
             whatever!("Invalid Verilator optimization level: {}", level);
         }
     }
     for ignored_warning in &config.ignored_warnings {
-        verilator_command.arg(format!("-Wno-{}", ignored_warning));
+        verilator_command.arg(format!("-Wno-{ignored_warning}"));
     }
     if config.enable_tracing {
         verilator_command.arg("--trace");

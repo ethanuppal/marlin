@@ -425,20 +425,17 @@ impl VerilatorRuntime {
         let new_main: extern "C" fn() -> *mut ffi::c_void =
             *unsafe { library.get(format!("ffi_new_V{name}").as_bytes()) }
                 .whatever_context(format!(
-                    "Failed to load constructor for module {}",
-                    name
+                    "Failed to load constructor for module {name}"
                 ))?;
         let delete_main =
             *unsafe { library.get(format!("ffi_delete_V{name}").as_bytes()) }
                 .whatever_context(format!(
-                "Failed to load destructor for module {}",
-                name
+                "Failed to load destructor for module {name}"
             ))?;
         let eval_main =
             *unsafe { library.get(format!("ffi_V{name}_eval").as_bytes()) }
                 .whatever_context(format!(
-                    "Failed to load evalulator for module {}",
-                    name
+                    "Failed to load evalulator for module {name}"
                 ))?;
 
         let main = new_main();
@@ -570,8 +567,7 @@ impl VerilatorRuntime {
                 }
                 fs::create_dir_all(&local_artifacts_directory)
                     .whatever_context(format!(
-                        "Failed to create artifacts directory {}",
-                        local_artifacts_directory,
+                        "Failed to create artifacts directory {local_artifacts_directory}",
                     ))?;
 
                 //eprintln_nocapture!(
