@@ -1,17 +1,17 @@
 [workspace]
 resolver = "3"
 members = [
-  "verilator",
-  "language-support/verilog",
-  "language-support/verilog-macro",
-  "language-support/verilog-macro-builder",
-  "language-support/spade",
-  "language-support/spade-macro",
-  "language-support/veryl",
-  "language-support/veryl-macro",
-  "examples/verilog-project",
-  "examples/spade-project",
-  "examples/veryl_project",
+    "verilator",
+    "language-support/verilog",
+    "language-support/verilog-macro",
+    "language-support/verilog-macro-builder",
+    "language-support/spade",
+    "language-support/spade-macro",
+    "language-support/veryl",
+    "language-support/veryl-macro",
+    "examples/verilog-project",
+    "examples/spade-project",
+    "examples/veryl_project",
 ]
 
 [workspace.package]
@@ -78,16 +78,12 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-verilog = []
-spade = []
-veryl = []
+verilog = ["dep:marlin-verilog"]
+spade = ["dep:marlin-spade"]
+veryl = ["dep:marlin-veryl"]
 
 [dependencies]
 marlin-verilator.workspace = true
-marlin-verilog.workspace = true
-marlin-verilog-macro.workspace = true
-marlin-verilog-macro-builder.workspace = true
-marlin-spade.workspace = true
-marlin-spade-macro.workspace = true
-marlin-veryl.workspace = true
-marlin-veryl-macro.workspace = true
+marlin-verilog = { workspace = true, optional = true }
+marlin-spade = { workspace = true, optional = true }
+marlin-veryl = { workspace = true, optional = true }

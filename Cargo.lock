@@ -509,13 +509,9 @@ name = "marlin"
 version = "0.7.1"
 dependencies = [
  "marlin-spade",
- "marlin-spade-macro",
  "marlin-verilator",
  "marlin-verilog",
- "marlin-verilog-macro",
- "marlin-verilog-macro-builder",
  "marlin-veryl",
- "marlin-veryl-macro",
 ]
 
 [[package]]
