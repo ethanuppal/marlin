@@ -173,17 +173,25 @@ pub fn build_verilated_struct(
                     if clock_port.value().as_str() == port_name {
                         other_impl.push(quote! {
                             pub fn tick(&mut self) {
-                                self.#port_name = 1 as _;
+                                self.#port_name_ident = 0 as _;
                                 self.eval();
-                                self.#port_name = 0 as _;
+                                self.#port_name_ident = 1 as _;
                                 self.eval();
                             }
                         });
                     }
                 }
 
-                if let Some(_reset_port) = &reset_port {
-                    todo!("reset ports");
+                if let Some(reset_port) = &reset_port {
+                    if reset_port.value().as_str() == port_name {
+                        other_impl.push(quote! {
+                            pub fn reset(&mut self) {
+                                self.#port_name_ident = 1 as _;
+                                            self.tick();
+                                            self.#port_name_ident = 0 as _;
+                                        }
+                        });
+                    }
                 }
 
                 verilated_model_init_impl.push(quote! {
