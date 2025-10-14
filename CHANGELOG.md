@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/ethanuppal/marlin/compare/v0.7.2...v0.8.0) (2025-10-14)
+
+
+### Features
+
+* **spade:** Support `bool` and `clock` on tops ([#149](https://github.com/ethanuppal/marlin/issues/149)) ([fffe648](https://github.com/ethanuppal/marlin/commit/fffe648ce96fa3b6f8ebcf23088c27eeeac4df29))
+
 ## [0.7.2](https://github.com/ethanuppal/marlin/compare/v0.7.1...v0.7.2) (2025-08-14)
 
 
