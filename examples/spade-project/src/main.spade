@@ -2,3 +2,20 @@
 entity main(out: inv &int<8>) {
     set out = &42;
 }
+
+#[no_mangle(all)]
+entity vga(
+  clk: clock,
+  hsync: inv &bool,
+  vsync: inv &bool,
+  r: inv &uint<8>,
+  g: inv &uint<8>,
+  b: inv &uint<8>,
+  sw: [bool; 8]
+) {
+    set hsync = &true;
+    set vsync = &true;
+    set r = &0;
+    set g = &0;
+    set b = &0;
+}
