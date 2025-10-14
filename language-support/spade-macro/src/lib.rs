@@ -226,15 +226,19 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
             match name.inner.0[0].inner.0.as_str() {
                 "int" | "uint" => {
                     if args.is_none() {
-                        panic!("I don't want to write error messages");
+                        panic!(
+                            "Found an integer without a size in the top module head"
+                        );
                     }
                     if args.as_ref().unwrap().len() != 1 {
-                        panic!("I don't want to write error messages");
+                        panic!(
+                            "Found an integer with more than one argument in the top module"
+                        );
                     }
                     get_constant(&args.as_ref().unwrap().inner[0])
                 }
                 "clock" | "bool" => 1,
-                _ => panic!("I DONT WANT TO WRITE ERROR MESSAGES"),
+                other => panic!("Unsupported type in the top module: {other}"),
             }
         }
         spade_ast::TypeSpec::Array { inner, size } => {
