@@ -19,6 +19,7 @@ use snafu::{Whatever, prelude::*};
 use crate::{
     BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
     VerilatorVersion, compute_edata_word_count_from_width_not_msb,
+    demangle_verilator_name,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
@@ -507,7 +508,7 @@ pub fn build_library(
         .args(["-CFLAGS", &cflags_string])
         .args(["-MAKEFLAGS", &makeflags])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
-        .args(["--top-module", top_module])
+        .args(["--top-module", &demangle_verilator_name(top_module)])
         .args(source_files)
         .arg(ffi_wrappers);
     for include_directory in include_directories {

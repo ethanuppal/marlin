@@ -58,6 +58,60 @@ pub mod reexports {
 
 pub use marlin_verilator_stable::types;
 
+const VERILATOR_MANGLED_PREFIX: &str = "__0";
+const VERILATOR_MANGLED_DOUBLE_UNDERSCORE: &str = "___05F";
+
+/// Performs Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
+pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
+    if !name.is_ascii() {
+        whatever!(
+            "Non-ascii names are not supported for name demangling. Got {name}"
+        )
+    }
+
+    // Every character _except_ double underscore can be handled as a single
+    // character, so we'll split on those, and then join them with
+    // their replacement
+    Ok(name
+        .split("__")
+        .map(|segment| {
+            let mut result = String::new();
+            for c in segment.chars() {
+                if c.is_ascii_alphanumeric() || c == '_' {
+                    result.push(c);
+                } else {
+                    // We already checked that everything is ASCII, so this
+                    // encoding trick will not panic
+                    let mut buffer = [0];
+                    c.encode_utf8(&mut buffer);
+                    result.push_str(&format!("__0{:02X}", buffer[0]));
+                }
+            }
+            result
+        })
+        .collect::<Vec<_>>()
+        .join(VERILATOR_MANGLED_DOUBLE_UNDERSCORE))
+}
+
+/// Performs the inverse of Verilator's [name manglging](https://verilator.org/guide/latest/languages.html#signal-naming).
+pub fn demangle_verilator_name(name: &str) -> String {
+    name.split(VERILATOR_MANGLED_PREFIX)
+        .enumerate()
+        .map(|(i, segment)| {
+            if i != 0 {
+                // After the prefix, we have 2 hexadecimal digits representing
+                // the char
+                let c = u8::from_str_radix(&segment[0..2], 16).unwrap();
+                let unescaped = c as char;
+                format!("{unescaped}{}", &segment[2..])
+            } else {
+                segment.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("")
+}
+
 /// Computes the length of the [`types::EData`] array that Verilator generates
 /// for a given wide port of bit width `width`.
 ///
@@ -982,5 +1036,38 @@ impl VerilatorRuntime {
             .library_arena
             .get(library_idx)
             .expect("bug: We just inserted the library"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{demangle_verilator_name, mangle_verilator_name};
+
+    #[test]
+    fn name_mangling_works() {
+        assert_eq!(
+            mangle_verilator_name("double__underscore").unwrap(),
+            "double___05Funderscore"
+        );
+        assert_eq!(
+            mangle_verilator_name("*Symbols+").unwrap(),
+            "__02ASymbols__02B"
+        )
+    }
+
+    #[test]
+    fn name_mangling_and_demangling_is_noop() {
+        assert_eq!(
+            demangle_verilator_name(
+                &mangle_verilator_name("double__underscore").unwrap()
+            ),
+            "double__underscore"
+        );
+        assert_eq!(
+            demangle_verilator_name(
+                &mangle_verilator_name("*Symbols+").unwrap()
+            ),
+            "*Symbols+"
+        );
     }
 }
