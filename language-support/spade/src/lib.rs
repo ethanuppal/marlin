@@ -11,7 +11,7 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture, nocapture,
+    VerilatorRuntimeOptions, eprintln_nocapture,
 };
 use owo_colors::OwoColorize;
 use snafu::{OptionExt, ResultExt, Whatever, whatever};

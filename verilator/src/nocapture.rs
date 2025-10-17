@@ -26,7 +26,7 @@ pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
         .write_all(contents.as_bytes())
         .whatever_context("Failed to write to non-captured stderr")?;
     stderr
-        .write_all(&[b'\n'])
+        .write_all(b"\n")
         .whatever_context("Failed to write to non-captured stderr")?;
     Ok(())
 }
