@@ -14,12 +14,11 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
     io::Write,
-    os::fd::FromRawFd,
     sync::{LazyLock, Mutex},
     time::Instant,
 };
@@ -32,11 +31,13 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+#[macro_use]
+pub mod nocapture;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
@@ -223,22 +224,6 @@ impl Drop for VerilatorRuntime {
 }
 
 /* <Forgive me father for I have sinned> */
-
-// TODO: make cross-platform
-static STDERR: LazyLock<Mutex<fs::File>> =
-    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
-
-macro_rules! eprintln_nocapture {
-    ($($contents:tt)*) => {{
-        use snafu::ResultExt;
-
-        writeln!(
-            &mut STDERR.lock().expect("poisoned"),
-            $($contents)*
-        )
-        .whatever_context("Failed to write to non-captured stderr")
-    }};
-}
 
 #[derive(Default)]
 struct ThreadLocalFileLock;
