@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    eprintln_nocapture, nocapture, AsVerilatedModel, VerilatedModelConfig,
-    VerilatorRuntime, VerilatorRuntimeOptions,
+    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions, eprintln_nocapture, nocapture,
 };
 use owo_colors::OwoColorize;
-use snafu::{whatever, OptionExt, ResultExt, Whatever};
+use snafu::{OptionExt, ResultExt, Whatever, whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
