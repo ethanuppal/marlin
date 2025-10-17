@@ -35,7 +35,6 @@ use snafu::{whatever, ResultExt, Whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
-#[macro_use]
 pub mod nocapture;
 pub mod vcd;
 
@@ -674,12 +673,17 @@ impl VerilatorRuntime {
 
                 if was_rebuilt {
                     eprintln_nocapture!(
-                        "{} `verilator-{}` profile target in {}.{:02}s",
+                        "{} `verilator-{}` profile [{}] target in {}.{:02}s",
                         "    Finished".bold().green(),
                         if config.verilator_optimization == 0 {
-                            "unoptimized".into()
+                            "O0".into()
                         } else {
                             format!("O{}", config.verilator_optimization)
+                        },
+                        if config.verilator_optimization == 0 {
+                            "unoptimized"
+                        } else {
+                            "optimized"
                         },
                         duration.as_secs(),
                         duration.subsec_millis() / 10

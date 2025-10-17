@@ -19,6 +19,7 @@ static STDERR: LazyLock<Mutex<ManuallyDrop<fs::File>>> = LazyLock::new(|| {
     Mutex::new(ManuallyDrop::new(unsafe { fs::File::from_raw_fd(2) }))
 });
 
+#[doc(hidden)]
 pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
     let mut stderr = STDERR.lock().expect("poisoned");
     stderr
@@ -30,6 +31,7 @@ pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
     Ok(())
 }
 
+#[macro_export]
 macro_rules! eprintln_nocapture {
     ($($contents:tt)*) => {{
         $crate::nocapture::eprintln_nocapture_impl(&format!($($contents)*))

@@ -10,10 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions,
+    eprintln_nocapture, nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use owo_colors::OwoColorize;
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -27,10 +28,12 @@ pub mod prelude {
     pub use marlin_spade_macro::spade;
 }
 
+const SWIM_TOML: &str = "swim.toml";
+
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while start.parent().is_some() {
-        if start.join("swim.toml").is_file() {
-            return Some(start.join("swim.toml"));
+        if start.join("{SWIM_TOML}").is_file() {
+            return Some(start.join("{SWIM_TOML}"));
         }
         start.pop();
     }
@@ -105,16 +108,38 @@ impl SpadeRuntime {
                 )?,
         ) else {
             whatever!(
-                "Failed to find swim.toml searching from current directory"
+                "Failed to find {SWIM_TOML} searching from current directory"
             );
         };
         let mut swim_project_path = swim_toml_path.clone();
         swim_project_path.pop();
 
+        let swim_toml_contents = fs::read_to_string(&swim_toml_path)
+            .whatever_context(format!(
+                "Failed to read contents of {SWIM_TOML} at {swim_toml_path}"
+            ))?;
+        let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
+            .whatever_context(
+                "Failed to parse {SWIM_TOML} as a valid TOML file",
+            )?;
+
         if options.call_swim_build {
             if options.verilator_options.log {
                 log::info!("Invoking `swim build` (this may take a while)");
             }
+
+            let swim_project_name = swim_toml
+                .get("name")
+                .and_then(|name| name.as_str())
+                .whatever_context(
+                    "{SWIM_TOML} missing top-level `name` field",
+                )?;
+
+            eprintln_nocapture!(
+                "{} {swim_project_name} ({swim_project_path})",
+                "   Compiling".bold().green()
+            )?;
+
             let swim_output = Command::new(options.swim_executable)
                 .arg("build")
                 .current_dir(&swim_project_path)
@@ -132,15 +157,6 @@ impl SpadeRuntime {
         }
 
         let spade_sv_path = swim_project_path.join("build/spade.sv");
-
-        let swim_toml_contents = fs::read_to_string(&swim_toml_path)
-            .whatever_context(format!(
-                "Failed to read contents of swim.toml at {swim_toml_path}"
-            ))?;
-        let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
-            .whatever_context(
-                "Failed to parse swim.toml as a valid TOML file",
-            )?;
 
         let extra_verilog = swim_toml.get("verilog").map(|verilog| {
             (
