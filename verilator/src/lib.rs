@@ -47,6 +47,54 @@ use crate::{
     ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
 };
 
+
+/// Performs Verilator's name manglging https://verilator.org/guide/latest/languages.html#signal-naming
+pub fn mangle(s: &str) -> Result<String, String> {
+    if !s.is_ascii() {
+        Err(format!(
+            "{s} is a non-ascii name which is unsupported for name demangling."
+        ))
+    } else {
+        // Every character _except_ double _ can be handled as a single c haracter, so we'll
+        // split on those, and then join them with their replacement
+        Ok(s.split("__")
+            .map(|segment| {
+                let mut result = String::new();
+                for c in segment.chars() {
+                    if c.is_ascii_alphanumeric() || c == '_' {
+                        result.push(c);
+                    } else {
+                        // We already checked that everything is ASCII, so this encoding trick
+                        // will not panic
+                        let mut buf = [0];
+                        c.encode_utf8(&mut buf);
+                        result.push_str(&format!("__0{:02x}", buf[0]));
+                    }
+                }
+                result
+            })
+            .collect::<Vec<_>>()
+            .join("_05F"))
+    }
+}
+
+/// Performs the inverse of Verilator's name manglging
+/// https://verilator.org/guide/latest/languages.html#signal-naming
+pub fn demangle(s: &str) -> String {
+    s.split("__")
+        .map(|s| {
+            if s.starts_with('0') {
+                let c = u8::from_str_radix(&s[1..3], 16).unwrap();
+                let unescaped = if c == b'_' { '_' } else { c as char };
+                format!("{unescaped}{}", &s[3..])
+            } else {
+                s.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("")
+}
+
 /// Verilator-defined types for C FFI.
 pub mod types {
     /// From the Verilator documentation: "Data representing 'bit' of 1-8 packed
