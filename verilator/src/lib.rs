@@ -31,7 +31,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{ResultExt, Snafu, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;
@@ -46,6 +46,68 @@ use crate::{
     dynamic::DynamicPortInfo,
     ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
 };
+
+const VERILATOR_MANGLED_PREFIX: &str = "__0";
+const VERILATOR_MANGLED_DOUBLE_UNDERSCORE: &str = "___05F";
+
+#[derive(Debug, Snafu)]
+pub enum ManglingError {
+    #[snafu(display(
+        "Non-scii names are not supported for name demangling. Got {name}"
+    ))]
+    NonAsciiName { name: String },
+}
+
+/// Performs Verilator's [name manglging](https://verilator.org/guide/latest/languages.html#signal-naming).
+pub fn mangle_verilator_name(name: &str) -> Result<String, ManglingError> {
+    if name.is_ascii() {
+        // Every character _except_ double underscore can be handled as a single
+        // character, so we'll split on those, and then join them with
+        // their replacement
+        Ok(name
+            .split("__")
+            .map(|segment| {
+                let mut result = String::new();
+                for c in segment.chars() {
+                    if c.is_ascii_alphanumeric() || c == '_' {
+                        result.push(c);
+                    } else {
+                        // We already checked that everything is ASCII, so this
+                        // encoding trick will not panic
+                        let mut buffer = [0];
+                        c.encode_utf8(&mut buffer);
+                        result.push_str(&format!("__0{:02X}", buffer[0]));
+                    }
+                }
+                result
+            })
+            .collect::<Vec<_>>()
+            .join(VERILATOR_MANGLED_DOUBLE_UNDERSCORE))
+    } else {
+        Err(ManglingError::NonAsciiName {
+            name: name.to_string(),
+        })
+    }
+}
+
+/// Performs the inverse of Verilator's [name manglging](https://verilator.org/guide/latest/languages.html#signal-naming).
+pub fn demangle_verilator_name(name: &str) -> String {
+    name.split(VERILATOR_MANGLED_PREFIX)
+        .enumerate()
+        .map(|(i, s)| {
+            if i != 0 {
+                // After the prefix, we have 2 hexadecimal digits representing
+                // the char
+                let c = u8::from_str_radix(&s[0..2], 16).unwrap();
+                let unescaped = c as char;
+                format!("{unescaped}{}", &s[2..])
+            } else {
+                s.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("")
+}
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -794,5 +856,38 @@ impl VerilatorRuntime {
             .library_arena
             .get(library_idx)
             .expect("bug: We just inserted the library"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{demangle_verilator_name, mangle_verilator_name};
+
+    #[test]
+    fn name_mangling_works() {
+        assert_eq!(
+            mangle_verilator_name("double__underscore").unwrap(),
+            "double___05Funderscore"
+        );
+        assert_eq!(
+            mangle_verilator_name("*Symbols+").unwrap(),
+            "__02ASymbols__02B"
+        )
+    }
+
+    #[test]
+    fn name_mangling_and_demangling_is_noop() {
+        assert_eq!(
+            demangle_verilator_name(
+                &mangle_verilator_name("double__underscore").unwrap()
+            ),
+            "double__underscore"
+        );
+        assert_eq!(
+            demangle_verilator_name(
+                &mangle_verilator_name("*Symbols+").unwrap()
+            ),
+            "*Symbols+"
+        );
     }
 }
