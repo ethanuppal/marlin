@@ -18,7 +18,6 @@ use std::{
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
-    io::Write,
     sync::{LazyLock, Mutex},
     time::Instant,
 };

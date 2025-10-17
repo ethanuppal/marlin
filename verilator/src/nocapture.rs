@@ -7,6 +7,7 @@
 use std::{
     fs,
     io::Write,
+    mem::ManuallyDrop,
     os::fd::FromRawFd,
     sync::{LazyLock, Mutex},
 };
@@ -14,8 +15,9 @@ use std::{
 use snafu::{ResultExt, Whatever};
 
 // TODO: make cross-platform
-static STDERR: LazyLock<Mutex<fs::File>> =
-    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
+static STDERR: LazyLock<Mutex<ManuallyDrop<fs::File>>> = LazyLock::new(|| {
+    Mutex::new(ManuallyDrop::new(unsafe { fs::File::from_raw_fd(2) }))
+});
 
 pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
     let mut stderr = STDERR.lock().expect("poisoned");
