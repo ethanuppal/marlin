@@ -14,10 +14,11 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
+    slice,
     sync::{LazyLock, Mutex},
     time::Instant,
 };
@@ -30,7 +31,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -39,6 +40,8 @@ pub mod nocapture;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
+
+use crate::dynamic::DynamicPortInfo;
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -65,6 +68,94 @@ pub mod types {
     /// From the Verilator documentation: "Data representing >64 packed bits
     /// (used as pointer)."
     pub type WData = EData;
+
+    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// input to a function."
+    pub type WDataInP = *const WData;
+
+    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// output from a function."
+    pub type WDataOutP = *mut WData;
+}
+
+#[doc(hidden)]
+pub const fn compute_wdata_length_from_width_not_msb(width: usize) -> usize {
+    width.div_ceil(types::WData::BITS as usize)
+}
+
+/// Computes the width upper bound for the given `length`.
+#[doc(hidden)]
+pub const fn compute_approx_width_from_wdata_length(length: usize) -> usize {
+    length * (types::WData::BITS as usize)
+}
+
+/// `LOW` is the index of the least significant bit. `HIGH` is the index of the
+/// most significant bit. `LENGTH` must equal
+/// `compute_wdata_length_from_width_not_msb(HIGH + 1)`.
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+    inner: [types::WData; LENGTH],
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    WideIn<LOW, HIGH, LENGTH>
+{
+    pub fn new(value: [types::WData; LENGTH]) -> Self {
+        Self { inner: value }
+    }
+
+    pub fn value(&self) -> &[types::WData; LENGTH] {
+        &self.inner
+    }
+
+    /// # Safety
+    ///
+    /// The returned pointer may not outlive `self`.
+    #[doc(hidden)]
+    pub fn as_ptr(&self) -> types::WDataInP {
+        self.inner.as_ptr()
+    }
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
+    for WideIn<LOW, HIGH, LENGTH>
+{
+    fn default() -> Self {
+        Self { inner: [0; LENGTH] }
+    }
+}
+
+/// See [`WideIn`].
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+    inner: [types::WData; LENGTH],
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    WideOut<LOW, HIGH, LENGTH>
+{
+    pub fn value(&self) -> &[types::WData; LENGTH] {
+        &self.inner
+    }
+
+    /// # Safety
+    ///
+    /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    #[doc(hidden)]
+    pub fn from_ptr(raw: types::WDataOutP) -> Self {
+        let mut inner = [0; LENGTH];
+        inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, LENGTH) });
+        Self { inner }
+    }
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
+    for WideOut<LOW, HIGH, LENGTH>
+{
+    fn default() -> Self {
+        Self { inner: [0; LENGTH] }
+    }
 }
 
 /// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
@@ -426,8 +517,14 @@ impl VerilatorRuntime {
         let ports = ports
             .iter()
             .copied()
-            .map(|(port, high, low, direction)| {
-                (port.to_string(), (high - low + 1, direction))
+            .map(|(port, high, _low, direction)| {
+                (
+                    port.to_string(),
+                    DynamicPortInfo {
+                        width: high + 1,
+                        direction,
+                    },
+                )
             })
             .collect();
 
@@ -504,15 +601,6 @@ impl VerilatorRuntime {
         {
             whatever!(
                 "Port {} on module {} was specified with the high bit less than the low bit",
-                port,
-                name
-            );
-        }
-        if let Some((port, _, _, _)) =
-            ports.iter().find(|(_, high, low, _)| high + 1 - low > 64)
-        {
-            whatever!(
-                "Port {} on module {} is greater than 64 bits",
                 port,
                 name
             );

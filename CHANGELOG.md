@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/ethanuppal/marlin/compare/v0.8.0...v0.9.0) (2025-10-25)
+
+
+### Features
+
+* **verilator:** Support wide ports ([#153](https://github.com/ethanuppal/marlin/issues/153)) ([832bc1f](https://github.com/ethanuppal/marlin/commit/832bc1f4a10378856b9f24573678d72317e6d6ca))
+
 ## [0.8.0](https://github.com/ethanuppal/marlin/compare/v0.7.2...v0.8.0) (2025-10-14)
 
 
