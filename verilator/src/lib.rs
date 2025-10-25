@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -32,7 +32,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -66,6 +66,14 @@ pub mod types {
     /// From the Verilator documentation: "Data representing >64 packed bits
     /// (used as pointer)."
     pub type WData = EData;
+
+    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// input to a function."
+    pub type WDataInP = *const WData;
+
+    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// output from a function."
+    pub type WDataOutP = *mut WData;
 }
 
 /// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
