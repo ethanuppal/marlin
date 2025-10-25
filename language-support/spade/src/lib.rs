@@ -32,8 +32,8 @@ const SWIM_TOML: &str = "swim.toml";
 
 fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while start.parent().is_some() {
-        if start.join("{SWIM_TOML}").is_file() {
-            return Some(start.join("{SWIM_TOML}"));
+        if start.join(SWIM_TOML).is_file() {
+            return Some(start.join(SWIM_TOML));
         }
         start.pop();
     }
@@ -108,7 +108,7 @@ impl SpadeRuntime {
                 )?,
         ) else {
             whatever!(
-                "Failed to find {SWIM_TOML} searching from current directory"
+                format!("Failed to find {SWIM_TOML} searching from current directory"))
             );
         };
         let mut swim_project_path = swim_toml_path.clone();
@@ -120,7 +120,7 @@ impl SpadeRuntime {
             ))?;
         let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
             .whatever_context(
-                "Failed to parse {SWIM_TOML} as a valid TOML file",
+                format!("Failed to parse {SWIM_TOML} as a valid TOML file")),
             )?;
 
         if options.call_swim_build {
@@ -132,7 +132,7 @@ impl SpadeRuntime {
                 .get("name")
                 .and_then(|name| name.as_str())
                 .whatever_context(
-                    "{SWIM_TOML} missing top-level `name` field",
+                    format!("{SWIM_TOML} missing top-level `name` field")),
                 )?;
 
             eprintln_nocapture!(

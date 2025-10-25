@@ -8,11 +8,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
-    eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -30,8 +30,8 @@ const VERYL_TOML: &str = "Veryl.toml";
 
 fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while start.parent().is_some() {
-        if start.join("{VERYL_TOML}").is_file() {
-            return Some(start.join("{VERYL_TOML}"));
+        if start.join(VERYL_TOML).is_file() {
+            return Some(start.join(VERYL_TOML));
         }
         start.pop();
     }
@@ -87,7 +87,7 @@ impl VerylRuntime {
                 )?,
         ) else {
             whatever!(
-                "Failed to find {VERYL_TOML} searching from current directory"
+                format!("Failed to find {VERYL_TOML} searching from current directory"))
             );
         };
         let mut veryl_project_path = veryl_toml_path.clone();
@@ -104,7 +104,7 @@ impl VerylRuntime {
             ))?;
             let veryl_toml: toml::Value = toml::from_str(&veryl_toml_contents)
                 .whatever_context(
-                    "Failed to parse {VERYL_TOML} as a valid TOML file",
+                    format!("Failed to parse {VERYL_TOML} as a valid TOML file")),
                 )?;
             let veryl_project_name = veryl_toml
                 .get("project")
@@ -112,7 +112,7 @@ impl VerylRuntime {
                 .and_then(|project| project.get("name"))
                 .and_then(|name| name.as_str())
                 .whatever_context(
-                    "{VERYL_TOML} missing `project.name` field",
+                    format!("{VERYL_TOML} missing `project.name` field")),
                 )?;
 
             eprintln_nocapture!(
