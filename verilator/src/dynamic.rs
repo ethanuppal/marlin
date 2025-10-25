@@ -11,7 +11,7 @@ use std::{collections::HashMap, ffi, fmt, slice};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{types, PortDirection, WideOut};
+use crate::{PortDirection, WideOut, types};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
