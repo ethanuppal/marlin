@@ -4,13 +4,15 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{env::current_dir, ffi::OsString, process::Command};
+use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
     AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+    eprintln_nocapture,
 };
-use snafu::{ResultExt, Whatever, whatever};
+use owo_colors::OwoColorize;
+use snafu::{OptionExt, ResultExt, Whatever, whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -24,10 +26,12 @@ pub mod prelude {
     pub use marlin_veryl_macro::veryl;
 }
 
+const VERYL_TOML: &str = "Veryl.toml";
+
 fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
     while start.parent().is_some() {
-        if start.join("Veryl.toml").is_file() {
-            return Some(start.join("Veryl.toml"));
+        if start.join(VERYL_TOML).is_file() {
+            return Some(start.join(VERYL_TOML));
         }
         start.pop();
     }
@@ -83,16 +87,39 @@ impl VerylRuntime {
                 )?,
         ) else {
             whatever!(
-                "Failed to find Veryl.toml searching from current directory"
+                "Failed to find {VERYL_TOML} searching from current directory"
             );
         };
-        let mut veryl_project_path = veryl_toml_path;
+        let mut veryl_project_path = veryl_toml_path.clone();
         veryl_project_path.pop();
 
         if options.call_veryl_build {
             if options.verilator_options.log {
                 log::info!("Invoking `veryl build` (this may take a while)");
             }
+
+            let veryl_toml_contents = fs::read_to_string(&veryl_toml_path)
+                .whatever_context(format!(
+                "Failed to read contents of {VERYL_TOML} at {veryl_toml_path}"
+            ))?;
+            let veryl_toml: toml::Value = toml::from_str(&veryl_toml_contents)
+                .whatever_context(format!(
+                    "Failed to parse {VERYL_TOML} as a valid TOML file"
+                ))?;
+            let veryl_project_name = veryl_toml
+                .get("project")
+                .and_then(|project| project.as_table())
+                .and_then(|project| project.get("name"))
+                .and_then(|name| name.as_str())
+                .whatever_context(format!(
+                    "{VERYL_TOML} missing `project.name` field"
+                ))?;
+
+            eprintln_nocapture!(
+                "{} {veryl_project_name} ({veryl_project_path})",
+                "   Compiling".bold().green()
+            )?;
+
             let veryl_output = Command::new(options.veryl_executable)
                 .arg("build")
                 .current_dir(&veryl_project_path)

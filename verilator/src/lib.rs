@@ -18,8 +18,6 @@ use std::{
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
-    io::Write,
-    os::fd::FromRawFd,
     slice,
     sync::{LazyLock, Mutex},
     time::Instant,
@@ -38,6 +36,7 @@ use snafu::{ResultExt, Whatever, whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+pub mod nocapture;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
@@ -314,22 +313,6 @@ impl Drop for VerilatorRuntime {
 }
 
 /* <Forgive me father for I have sinned> */
-
-// TODO: make cross-platform
-static STDERR: LazyLock<Mutex<fs::File>> =
-    LazyLock::new(|| Mutex::new(unsafe { fs::File::from_raw_fd(2) }));
-
-macro_rules! eprintln_nocapture {
-    ($($contents:tt)*) => {{
-        use snafu::ResultExt;
-
-        writeln!(
-            &mut STDERR.lock().expect("poisoned"),
-            $($contents)*
-        )
-        .whatever_context("Failed to write to non-captured stderr")
-    }};
-}
 
 #[derive(Default)]
 struct ThreadLocalFileLock;
@@ -778,12 +761,17 @@ impl VerilatorRuntime {
 
                 if was_rebuilt {
                     eprintln_nocapture!(
-                        "{} `verilator-{}` profile target in {}.{:02}s",
+                        "{} `verilator-{}` profile [{}] target in {}.{:02}s",
                         "    Finished".bold().green(),
                         if config.verilator_optimization == 0 {
-                            "unoptimized".into()
+                            "O0".into()
                         } else {
                             format!("O{}", config.verilator_optimization)
+                        },
+                        if config.verilator_optimization == 0 {
+                            "unoptimized"
+                        } else {
+                            "optimized"
                         },
                         duration.as_secs(),
                         duration.subsec_millis() / 10
