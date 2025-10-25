@@ -79,9 +79,20 @@ pub mod types {
     pub type WDataOutP = *mut WData;
 }
 
+#[doc(hidden)]
+pub const fn compute_wdata_length_from_width_not_msb(width: usize) -> usize {
+    width.div_ceil(types::WData::BITS as usize)
+}
+
+/// Computes the width upper bound for the given `length`.
+#[doc(hidden)]
+pub const fn compute_approx_width_from_wdata_length(length: usize) -> usize {
+    length * (types::WData::BITS as usize)
+}
+
 /// `LOW` is the index of the least significant bit. `HIGH` is the index of the
-/// most significant bit. `LENGTH` must equal `(HIGH +
-/// 1).div_ceil(size_of::<types::WData>() * 8)`.
+/// most significant bit. `LENGTH` must equal
+/// `compute_wdata_length_from_width_not_msb(HIGH + 1)`.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
     inner: [types::WData; LENGTH],

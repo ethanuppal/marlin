@@ -11,7 +11,9 @@ use std::{collections::HashMap, ffi, fmt, slice};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, WideOut, types};
+use crate::{
+    PortDirection, WideOut, compute_approx_width_from_wdata_length, types,
+};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -34,9 +36,11 @@ impl VerilatorValue<'_> {
             Self::SData(_) => 16,
             Self::IData(_) => 32,
             Self::QData(_) => 64,
-            Self::WDataInP(values) => std::mem::size_of_val(*values) * 8,
+            Self::WDataInP(values) => {
+                compute_approx_width_from_wdata_length(values.len())
+            }
             Self::WDataOutP(values) => {
-                values.len() * size_of::<types::WData>() * 8
+                compute_approx_width_from_wdata_length(values.len())
             }
         }
     }
