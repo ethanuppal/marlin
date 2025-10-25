@@ -39,7 +39,6 @@ glob = { version = "0.3.2", default-features = false }
 file-guard = { version = "0.2.0", default-features = false }
 dashmap = { version = "6.1.0", default-features = false }
 boxcar = { version = "0.2.10", default-features = false }
-veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
 proc-macro2 = { version = "1.0.93", default-features = false }
 syn = { version = "2.0.96", features = ["full"] }
@@ -48,6 +47,7 @@ quote = { version = "1.0.38", default-features = false }
 sv-parser = { version = "0.13.3", default-features = false }
 spade-parser = { version = "0.14.0", default-features = false }
 spade-ast = { version = "0.14.0", default-features = false }
+veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
 marlin-verilator = { path = "verilator", version = "0.9.1" }
 marlin-verilog = { path = "language-support/verilog", version = "0.9.1" }
