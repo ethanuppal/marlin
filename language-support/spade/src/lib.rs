@@ -108,7 +108,7 @@ impl SpadeRuntime {
                 )?,
         ) else {
             whatever!(
-                format!("Failed to find {SWIM_TOML} searching from current directory"))
+                "Failed to find {SWIM_TOML} searching from current directory"
             );
         };
         let mut swim_project_path = swim_toml_path.clone();
@@ -119,9 +119,9 @@ impl SpadeRuntime {
                 "Failed to read contents of {SWIM_TOML} at {swim_toml_path}"
             ))?;
         let swim_toml: toml::Value = toml::from_str(&swim_toml_contents)
-            .whatever_context(
-                format!("Failed to parse {SWIM_TOML} as a valid TOML file")),
-            )?;
+            .whatever_context(format!(
+                "Failed to parse {SWIM_TOML} as a valid TOML file"
+            ))?;
 
         if options.call_swim_build {
             if options.verilator_options.log {
@@ -131,9 +131,9 @@ impl SpadeRuntime {
             let swim_project_name = swim_toml
                 .get("name")
                 .and_then(|name| name.as_str())
-                .whatever_context(
-                    format!("{SWIM_TOML} missing top-level `name` field")),
-                )?;
+                .whatever_context(format!(
+                    "{SWIM_TOML} missing top-level `name` field"
+                ))?;
 
             eprintln_nocapture!(
                 "{} {swim_project_name} ({swim_project_path})",
