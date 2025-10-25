@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -32,7 +32,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -76,14 +76,17 @@ pub mod types {
     pub type WDataOutP = *mut WData;
 }
 
-pub struct WideIn<const LOW: usize, const HIGH: usize> {
-    inner: types::WDataInP,
+/// `LENGTH` must equal `HIGH.div_ceil(size_of::<types::WData>() * 8)`.
+pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+    inner: [types::WData; LENGTH],
 }
 
-impl<const LOW: usize, const HIGH: usize> WideIn<LOW, HIGH> {
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    WideIn<LOW, HIGH, LENGTH>
+{
     #[doc(hidden)]
     pub fn inner(&self) -> types::WDataInP {
-        self.inner
+        self.inner.as_ptr()
     }
 }
 

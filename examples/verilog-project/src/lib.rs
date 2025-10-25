@@ -17,6 +17,9 @@ use marlin::verilog::prelude::*;
 #[verilog(src = "src/main.sv", name = "main")]
 pub struct Main;
 
+#[verilog(src = "src/main.sv", name = "wide_main")]
+pub struct WideMain;
+
 #[verilog(src = "src/dpi.sv", name = "dpi_main")]
 pub struct DpiMain;
 

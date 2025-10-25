@@ -11,7 +11,7 @@ use std::{collections::HashMap, ffi, fmt};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, types};
+use crate::{types, PortDirection};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -20,6 +20,8 @@ pub enum VerilatorValue {
     SData(types::SData),
     IData(types::IData),
     QData(types::QData),
+    // WDataInP(types::WDataInP),
+    // WDataInP(types::WDataOutP),
 }
 
 impl VerilatorValue {
