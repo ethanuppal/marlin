@@ -59,9 +59,7 @@ Still, a lot of these are less than optimal.
 - 📈 Safe VCD tracing support
 - 🪙 Declarative API for usability + Dynamic API for programmability
 - 🔄 DPI support in Rust: call Rust functions from (System)Verilog
-- 👔 Integration with modern HDLs
-
-  ![Supported Spade version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.spade-parser.version&label=Spade)
+- 👔 Integration with modern HDLs ![Supported Spade version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.spade-parser.version&label=Spade)
 ![Supported Veryl version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.veryl-parser.version&label=Veryl)
 - 🦀 Rust. Did I say Rust?
 
