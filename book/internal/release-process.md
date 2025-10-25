@@ -3,8 +3,8 @@
 1. After a `feat`, `feat!`, `fix`, or `fix!`, merge the [release-please] PR
    after running `/bin/sh prepare-release.sh` from a named branch at project
    root.
-2. After any further fixes are required and commited, `git pull` the main
-   branch, switch to it, and run `cargo release --workspace --execute` from the
+2. After any further fixes are required and commited, switch to and `git pull`
+   the main branch and run `cargo release --workspace --execute` from the
    project root.
 
 ## Multiple semantic changes in one release
