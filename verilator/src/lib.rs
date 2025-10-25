@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -31,7 +31,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -283,6 +283,11 @@ struct LibraryArenaKey {
     hash: u64,
 }
 
+struct ModelDeallocator {
+    model: *mut ffi::c_void,
+    deallocator: extern "C" fn(*mut ffi::c_void),
+}
+
 /// Runtime for (System)Verilog code.
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
@@ -298,13 +303,12 @@ pub struct VerilatorRuntime {
     /// SAFETY: These are dropped when the runtime is dropped. They will not be
     /// "borrowed mutably" because the models created for this runtime must
     /// not outlive it and thus will be all gone before these are dropped.
-    model_deallocators:
-        RefCell<Vec<(*mut ffi::c_void, extern "C" fn(*mut ffi::c_void))>>,
+    model_deallocators: RefCell<Vec<ModelDeallocator>>,
 }
 
 impl Drop for VerilatorRuntime {
     fn drop(&mut self) {
-        for (model, deallocator) in
+        for ModelDeallocator { model, deallocator } in
             self.model_deallocators.borrow_mut().drain(..)
         {
             deallocator(model);
@@ -445,11 +449,11 @@ impl VerilatorRuntime {
 
         let model = M::init_from(library, config.enable_tracing);
 
-        self.model_deallocators.borrow_mut().push((
+        self.model_deallocators.borrow_mut().push(ModelDeallocator {
             // SAFETY: todo
-            unsafe { model.model() },
-            delete_model,
-        ));
+            model: unsafe { model.model() },
+            deallocator: delete_model,
+        });
 
         Ok(model)
     }
@@ -528,9 +532,10 @@ impl VerilatorRuntime {
             })
             .collect();
 
-        self.model_deallocators
-            .borrow_mut()
-            .push((main, delete_main));
+        self.model_deallocators.borrow_mut().push(ModelDeallocator {
+            model: main,
+            deallocator: delete_main,
+        });
 
         Ok(DynamicVerilatedModel {
             ports,
