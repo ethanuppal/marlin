@@ -152,7 +152,7 @@ pub fn build_verilated_struct(
         let port_type_with_generics = if port_width <= 64 {
             verilator_interface_port_type.clone()
         } else {
-            let length = port_width.div_ceil(size_of::<WData>() * 8);
+            let length = port_width.div_ceil(WData::BITS as usize);
             match port_direction {
                 PortDirection::Input => {
                     quote! { #crate_name::__reexports::verilator::WideIn<#port_lsb, #port_msb, #length> }

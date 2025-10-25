@@ -123,6 +123,7 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     /// # Safety
     ///
     /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     #[doc(hidden)]
     pub fn from_ptr(raw: types::WDataOutP) -> Self {
         let mut inner = [0; LENGTH];
@@ -514,7 +515,7 @@ impl VerilatorRuntime {
         let ports = ports
             .iter()
             .copied()
-            .map(|(port, high, low, direction)| {
+            .map(|(port, high, _low, direction)| {
                 (
                     port.to_string(),
                     DynamicPortInfo {

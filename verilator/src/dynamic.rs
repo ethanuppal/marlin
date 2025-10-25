@@ -6,7 +6,7 @@
 
 //! Support for dynamic models.
 
-use std::{collections::HashMap, ffi, fmt, slice, usize};
+use std::{collections::HashMap, ffi, fmt, slice};
 
 use libloading::Library;
 use snafu::Snafu;
@@ -32,9 +32,7 @@ impl VerilatorValue<'_> {
             Self::SData(_) => 16,
             Self::IData(_) => 32,
             Self::QData(_) => 64,
-            Self::WDataInP(values) => {
-                values.len() * size_of::<types::WData>() * 8
-            }
+            Self::WDataInP(values) => std::mem::size_of_val(*values) * 8,
             Self::WDataOutP(values) => {
                 values.len() * size_of::<types::WData>() * 8
             }
@@ -49,8 +47,8 @@ impl fmt::Display for VerilatorValue<'_> {
             VerilatorValue::SData(sdata) => sdata.fmt(f),
             VerilatorValue::IData(idata) => idata.fmt(f),
             VerilatorValue::QData(qdata) => qdata.fmt(f),
-            Self::WDataInP(values) => "wide (fmt is todo)".fmt(f),
-            Self::WDataOutP(values) => "wide (fmt is todo)".fmt(f),
+            Self::WDataInP(_values) => "wide (fmt is todo)".fmt(f),
+            Self::WDataOutP(_values) => "wide (fmt is todo)".fmt(f),
         }
     }
 }
@@ -93,7 +91,7 @@ pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
     fn read(
         &self,
         port: impl Into<String>,
-    ) -> Result<VerilatorValue, DynamicVerilatedModelError>;
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError>;
 
     /// If `port` is a valid port name for this model, and the port's width is
     /// `<=` `value.into().width()`, sets the port to `value`.
@@ -165,7 +163,7 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
     fn read(
         &self,
         port: impl Into<String>,
-    ) -> Result<VerilatorValue, DynamicVerilatedModelError> {
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError> {
         let port: String = port.into();
         let DynamicPortInfo { width, direction } = *self
             .ports
@@ -217,7 +215,7 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
         } else {
             let value: types::WDataOutP =
                 read_value!(self, port, types::WDataOutP)?;
-            let length = width.div_ceil(size_of::<types::WData>() * 8);
+            let length = width.div_ceil(types::WData::BITS as usize);
             let mut result = Vec::with_capacity(length);
             result.extend_from_slice(unsafe {
                 slice::from_raw_parts(value, length)
