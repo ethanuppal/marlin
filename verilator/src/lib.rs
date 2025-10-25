@@ -20,6 +20,7 @@ use std::{
     hash::{self, Hash, Hasher},
     io::Write,
     os::fd::FromRawFd,
+    slice,
     sync::{LazyLock, Mutex},
     time::Instant,
 };
@@ -40,6 +41,8 @@ pub mod dynamic;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
+
+use crate::dynamic::DynamicPortInfo;
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -76,7 +79,9 @@ pub mod types {
     pub type WDataOutP = *mut WData;
 }
 
-/// `LENGTH` must equal `HIGH.div_ceil(size_of::<types::WData>() * 8)`.
+/// `LOW` is the index of the least significant bit. `HIGH` is the index of the
+/// most significant bit. `LENGTH` must equal `(HIGH +
+/// 1).div_ceil(size_of::<types::WData>() * 8)`.
 pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
     inner: [types::WData; LENGTH],
 }
@@ -84,19 +89,30 @@ pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
 impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     WideIn<LOW, HIGH, LENGTH>
 {
+    /// # Safety
+    ///
+    /// The returned pointer may not outlive `self`.
     #[doc(hidden)]
-    pub fn inner(&self) -> types::WDataInP {
+    pub fn as_ptr(&self) -> types::WDataInP {
         self.inner.as_ptr()
     }
 }
 
-pub struct WideOut<const LOW: usize, const HIGH: usize> {
-    inner: types::WDataOutP,
+/// See [`WideIn`].
+pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+    inner: [types::WData; LENGTH],
 }
 
-impl<const LOW: usize, const HIGH: usize> WideOut<LOW, HIGH> {
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    WideOut<LOW, HIGH, LENGTH>
+{
+    /// # Safety
+    ///
+    /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
     #[doc(hidden)]
-    pub fn from_inner(inner: types::WDataOutP) -> Self {
+    pub fn from_ptr(raw: types::WDataOutP) -> Self {
+        let mut inner = [0; LENGTH];
+        inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, LENGTH) });
         Self { inner }
     }
 }
@@ -477,7 +493,13 @@ impl VerilatorRuntime {
             .iter()
             .copied()
             .map(|(port, high, low, direction)| {
-                (port.to_string(), (high - low + 1, direction))
+                (
+                    port.to_string(),
+                    DynamicPortInfo {
+                        width: high + 1,
+                        direction,
+                    },
+                )
             })
             .collect();
 

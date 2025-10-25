@@ -152,13 +152,13 @@ pub fn build_verilated_struct(
         let port_type = if port_width <= 64 {
             verilator_interface_port_type.clone()
         } else {
+            let length = port_width.div_ceil(size_of::<WData>() * 8);
             match port_direction {
                 PortDirection::Input => {
-                    let length = port_msb.div_ceil(size_of::<WData>() * 8);
                     quote! { #crate_name::__reexports::verilator::WideIn<#port_lsb, #port_msb, #length> }
                 }
                 PortDirection::Output => {
-                    quote! { #crate_name::__reexports::verilator::WideOut<#port_lsb, #port_msb> }
+                    quote! { #crate_name::__reexports::verilator::WideOut<#port_lsb, #port_msb, #length> }
                 }
 
                 PortDirection::Inout => {
@@ -197,7 +197,7 @@ pub fn build_verilated_struct(
                     });
                 } else {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident.inner());
+                        (self.#setter)(self.model, self.#port_name_ident.as_ptr());
                     });
                 }
 
@@ -255,7 +255,7 @@ pub fn build_verilated_struct(
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #crate_name::__reexports::verilator::WideOut::from_inner((self.#getter)(self.model));
+                        self.#port_name_ident = #crate_name::__reexports::verilator::WideOut::from_ptr((self.#getter)(self.model));
                     });
                 }
 
@@ -418,7 +418,7 @@ pub fn build_verilated_struct(
             fn pin(
                 &mut self,
                 port: impl Into<String>,
-                value: impl Into<#crate_name::__reexports::verilator::dynamic::VerilatorValue>,
+                value: impl Into<#crate_name::__reexports::verilator::dynamic::VerilatorValue<'ctx>>,
             ) -> Result<(), #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError> {
                 use #crate_name::__reexports::verilator::AsVerilatedModel;
 
