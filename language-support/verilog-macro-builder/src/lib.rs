@@ -133,11 +133,15 @@ pub fn build_verilated_struct(
         } else if port_width <= 64 {
             quote! { QData }
         } else {
-            return syn::Error::new_spanned(
-                source_path,
-                format!("Port `{port_name}` is wider than supported right now"),
-            )
-            .into_compile_error();
+            match port_direction {
+                PortDirection::Input => quote! { WideIn<#port_lsb, #port_msb> },
+                PortDirection::Output => {
+                    quote! { WideOut<#port_lsb, #port_msb> }
+                }
+                PortDirection::Inout => {
+                    todo!("Inout wide ports are not currently supported")
+                }
+            }
         };
         let port_type = quote! { #crate_name::__reexports::verilator::types::#port_type_name };
 
@@ -165,9 +169,15 @@ pub fn build_verilated_struct(
                     #[doc(hidden)]
                     #setter: extern "C" fn(*mut std::ffi::c_void, #port_type)
                 });
-                preeval_impl.push(quote! {
-                    (self.#setter)(self.model, self.#port_name_ident);
-                });
+                if port_width <= 64 {
+                    preeval_impl.push(quote! {
+                        (self.#setter)(self.model, self.#port_name_ident);
+                    });
+                } else {
+                    preeval_impl.push(quote! {
+                        (self.#setter)(self.model, self.#port_name_ident.inner());
+                    });
+                }
 
                 if let Some(clock_port) = &clock_port {
                     if clock_port.value().as_str() == port_name {
@@ -217,9 +227,15 @@ pub fn build_verilated_struct(
                     #[doc(hidden)]
                     #getter: extern "C" fn(*mut std::ffi::c_void) -> #port_type
                 });
-                posteval_impl.push(quote! {
-                    self.#port_name_ident = (self.#getter)(self.model);
-                });
+                if port_width <= 64 {
+                    posteval_impl.push(quote! {
+                        self.#port_name_ident = (self.#getter)(self.model);
+                    });
+                } else {
+                    posteval_impl.push(quote! {
+                        self.#port_name_ident = WideOut::from_inner((self.#getter)(self.model));
+                    });
+                }
 
                 verilated_model_init_impl.push(quote! {
                     let #getter: extern "C" fn(*mut std::ffi::c_void) -> #port_type =

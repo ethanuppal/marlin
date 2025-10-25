@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -32,7 +32,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;
@@ -74,6 +74,28 @@ pub mod types {
     ///< From the Verilator documentation: "'bit' of >64 packed bits as array
     /// output from a function."
     pub type WDataOutP = *mut WData;
+}
+
+pub struct WideIn<const LOW: usize, const HIGH: usize> {
+    inner: types::WDataInP,
+}
+
+impl<const LOW: usize, const HIGH: usize> WideIn<LOW, HIGH> {
+    #[doc(hidden)]
+    pub fn inner(&self) -> types::WDataInP {
+        self.inner
+    }
+}
+
+pub struct WideOut<const LOW: usize, const HIGH: usize> {
+    inner: types::WDataOutP,
+}
+
+impl<const LOW: usize, const HIGH: usize> WideOut<LOW, HIGH> {
+    #[doc(hidden)]
+    pub fn from_inner(inner: types::WDataOutP) -> Self {
+        Self { inner }
+    }
 }
 
 /// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
