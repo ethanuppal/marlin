@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -33,7 +33,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -82,7 +82,7 @@ pub mod types {
 /// `LOW` is the index of the least significant bit. `HIGH` is the index of the
 /// most significant bit. `LENGTH` must equal `(HIGH +
 /// 1).div_ceil(size_of::<types::WData>() * 8)`.
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
     inner: [types::WData; LENGTH],
 }
@@ -112,9 +112,9 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
 }
 
 /// See [`WideIn`].
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
-    pub(crate) inner: [types::WData; LENGTH],
+    pub inner: [types::WData; LENGTH],
 }
 
 impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
@@ -599,15 +599,6 @@ impl VerilatorRuntime {
         {
             whatever!(
                 "Port {} on module {} was specified with the high bit less than the low bit",
-                port,
-                name
-            );
-        }
-        if let Some((port, _, _, _)) =
-            ports.iter().find(|(_, high, low, _)| high + 1 - low > 64)
-        {
-            whatever!(
-                "Port {} on module {} is greater than 64 bits",
                 port,
                 name
             );

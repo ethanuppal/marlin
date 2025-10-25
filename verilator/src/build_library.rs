@@ -14,11 +14,11 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    dpi::DpiFunction,
+    dpi::DpiFunction, PortDirection, VerilatedModelConfig,
+    VerilatorRuntimeOptions,
 };
 
 fn build_ffi_for_tracing(
@@ -106,15 +106,6 @@ extern "C" {{
 
     for (port, msb, lsb, direction) in ports {
         let width = msb - lsb + 1;
-        if width > 64 {
-            let underlying = format!(
-                "Port `{port}` on top module `{top_module}` was larger than 64 bits wide"
-            );
-            whatever!(
-                Err(underlying),
-                "We don't support larger than 64-bit width on ports yet because weird C linkage things"
-            );
-        }
         let macro_prefix = match direction {
             PortDirection::Input => "VL_IN",
             PortDirection::Output => "VL_OUT",
@@ -141,8 +132,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", width.div_ceil(32)) // words are 32 bits
-                // according to header
-                // file
+                                                        // according to header
+                                                        // file
                 } else {
                     "".into()
                 }
@@ -284,8 +275,8 @@ extern \"C\" void {name}({signature}) {{
 
     fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
         .whatever_context(format!(
-            "Failed to write DPI function wrapper code to {dpi_file_absolute_path}"
-        ))?;
+        "Failed to write DPI function wrapper code to {dpi_file_absolute_path}"
+    ))?;
 
     Ok((Some(dpi_file), true))
 }

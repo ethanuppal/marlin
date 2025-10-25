@@ -11,11 +11,12 @@ use std::{collections::HashMap, ffi, fmt, slice};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, WideOut, types};
+use crate::{types, PortDirection, WideOut};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum VerilatorValue<'a> {
+    NotDriven,
     CData(types::CData),
     SData(types::SData),
     IData(types::IData),
@@ -28,6 +29,7 @@ impl VerilatorValue<'_> {
     /// The maximum number of bits this value takes up.
     pub fn width(&self) -> usize {
         match self {
+            Self::NotDriven => 0,
             Self::CData(_) => 8,
             Self::SData(_) => 16,
             Self::IData(_) => 32,
@@ -43,6 +45,7 @@ impl VerilatorValue<'_> {
 impl fmt::Display for VerilatorValue<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            VerilatorValue::NotDriven => "z".fmt(f),
             VerilatorValue::CData(cdata) => cdata.fmt(f),
             VerilatorValue::SData(sdata) => sdata.fmt(f),
             VerilatorValue::IData(idata) => idata.fmt(f),
@@ -73,6 +76,14 @@ impl From<types::IData> for VerilatorValue<'_> {
 impl From<types::QData> for VerilatorValue<'_> {
     fn from(value: types::QData) -> Self {
         Self::QData(value)
+    }
+}
+
+impl<'a, const LENGTH: usize> From<&'a [types::WData; LENGTH]>
+    for VerilatorValue<'a>
+{
+    fn from(value: &'a [types::WData; LENGTH]) -> Self {
+        Self::WDataInP(value)
     }
 }
 
@@ -215,12 +226,18 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
         } else {
             let value: types::WDataOutP =
                 read_value!(self, port, types::WDataOutP)?;
-            let length = width.div_ceil(types::WData::BITS as usize);
-            let mut result = Vec::with_capacity(length);
-            result.extend_from_slice(unsafe {
-                slice::from_raw_parts(value, length)
-            });
-            Ok(VerilatorValue::WDataOutP(result))
+            assert!(value.is_aligned());
+            if value.is_null() {
+                // technically not driven yet
+                Ok(VerilatorValue::NotDriven)
+            } else {
+                let length = width.div_ceil(types::WData::BITS as usize);
+                let mut result = Vec::with_capacity(length);
+                result.extend_from_slice(unsafe {
+                    slice::from_raw_parts(value, length)
+                });
+                Ok(VerilatorValue::WDataOutP(result))
+            }
         }
     }
 
@@ -287,6 +304,9 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
 
         let port: String = port.into();
         match value.into() {
+            VerilatorValue::NotDriven => {
+                panic!("Cannot pin NotDriven");
+            }
             VerilatorValue::CData(cdata) => {
                 pin_value!(self, port, cdata, types::CData, 0, 8)
             }
