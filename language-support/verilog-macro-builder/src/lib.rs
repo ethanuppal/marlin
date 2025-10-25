@@ -149,7 +149,7 @@ pub fn build_verilated_struct(
             #crate_name::__reexports::verilator::types::#verilator_interface_port_type_name
         };
 
-        let port_type = if port_width <= 64 {
+        let port_type_with_generics = if port_width <= 64 {
             verilator_interface_port_type.clone()
         } else {
             let length = port_width.div_ceil(size_of::<WData>() * 8);
@@ -159,6 +159,22 @@ pub fn build_verilated_struct(
                 }
                 PortDirection::Output => {
                     quote! { #crate_name::__reexports::verilator::WideOut<#port_lsb, #port_msb, #length> }
+                }
+
+                PortDirection::Inout => {
+                    todo!("Inout wide ports are not currently supported")
+                }
+            }
+        };
+        let port_type_without_generics = if port_width <= 64 {
+            verilator_interface_port_type.clone()
+        } else {
+            match port_direction {
+                PortDirection::Input => {
+                    quote! { #crate_name::__reexports::verilator::WideIn }
+                }
+                PortDirection::Output => {
+                    quote! { #crate_name::__reexports::verilator::WideOut }
                 }
 
                 PortDirection::Inout => {
@@ -176,11 +192,17 @@ pub fn build_verilated_struct(
         );
         struct_members.push(quote! {
             #[doc = #port_documentation]
-            pub #port_name_ident: #port_type
+            pub #port_name_ident: #port_type_with_generics
         });
-        verilated_model_init_self.push(quote! {
-            #port_name_ident: 0 as _
-        });
+        if port_width <= 64 {
+            verilated_model_init_self.push(quote! {
+                #port_name_ident: 0 as _
+            });
+        } else {
+            verilated_model_init_self.push(quote! {
+                #port_name_ident: std::default::Default::default()
+            });
+        }
 
         let port_name_literal = syn::LitStr::new(&port_name, top_name.span());
 
@@ -225,23 +247,52 @@ pub fn build_verilated_struct(
                 });
                 verilated_model_init_self.push(quote! { #setter });
 
-                dynamic_pin_arms.push(quote! {
-                    #port_name_literal => {
-                        if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#verilator_interface_port_type_name(inner) = value {
-                            self.#port_name_ident = inner;
-                        } else {
-                            return Err(
-                                #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
-                                    top_module: Self::name().to_string(),
-                                    port: port,
-                                    width: #port_width as _,
-                                    attempted_lower: 0,
-                                    attempted_higher: value.width()
-                                },
-                            );
+                if port_width <= 64 {
+                    dynamic_pin_arms.push(quote! {
+                        #port_name_literal => {
+                            if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#verilator_interface_port_type_name(inner) = value {
+                                self.#port_name_ident = inner;
+                            } else {
+                                return Err(
+                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
+                                        top_module: Self::name().to_string(),
+                                        port,
+                                        width: #port_width as _,
+                                        attempted_lower: 0,
+                                        attempted_higher: value.width()
+                                    },
+                                );
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    dynamic_pin_arms.push(quote! {
+                        #port_name_literal => {
+                            if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#verilator_interface_port_type_name(inner) = value {
+                                let array = inner.try_into().map_err(|_| {
+                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
+                                        top_module: Self::name().to_string(),
+                                        port,
+                                        width: #port_width as _,
+                                        attempted_lower: 0,
+                                        attempted_higher: value.width()
+                                    }
+                                })?;
+                                self.#port_name_ident = #port_type_without_generics::new(array);
+                            } else {
+                                return Err(
+                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
+                                        top_module: Self::name().to_string(),
+                                        port,
+                                        width: #port_width as _,
+                                        attempted_lower: 0,
+                                        attempted_higher: value.width()
+                                    },
+                                );
+                            }
+                        }
+                    });
+                }
             }
             PortDirection::Output => {
                 let getter = format_ident!("read_{}", port_name);
@@ -255,7 +306,7 @@ pub fn build_verilated_struct(
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #crate_name::__reexports::verilator::WideOut::from_ptr((self.#getter)(self.model));
+                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
                     });
                 }
 
@@ -267,7 +318,7 @@ pub fn build_verilated_struct(
                 verilated_model_init_self.push(quote! { #getter });
 
                 dynamic_read_arms.push(quote! {
-                    #port_name_literal => Ok(self.#port_name_ident.into())
+                    #port_name_literal => Ok(self.#port_name_ident.clone().into())
                 });
             }
             _ => todo!("Unhandled port direction"),

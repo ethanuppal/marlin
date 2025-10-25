@@ -11,7 +11,7 @@ use std::{collections::HashMap, ffi, fmt, slice, usize};
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{types, PortDirection};
+use crate::{types, PortDirection, WideOut};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -75,6 +75,14 @@ impl From<types::IData> for VerilatorValue<'_> {
 impl From<types::QData> for VerilatorValue<'_> {
     fn from(value: types::QData) -> Self {
         Self::QData(value)
+    }
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    From<WideOut<LOW, HIGH, LENGTH>> for VerilatorValue<'_>
+{
+    fn from(value: WideOut<LOW, HIGH, LENGTH>) -> Self {
+        Self::WDataOutP(value.inner.to_vec())
     }
 }
 

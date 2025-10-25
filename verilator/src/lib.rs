@@ -82,6 +82,7 @@ pub mod types {
 /// `LOW` is the index of the least significant bit. `HIGH` is the index of the
 /// most significant bit. `LENGTH` must equal `(HIGH +
 /// 1).div_ceil(size_of::<types::WData>() * 8)`.
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
     inner: [types::WData; LENGTH],
 }
@@ -89,6 +90,10 @@ pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
 impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     WideIn<LOW, HIGH, LENGTH>
 {
+    pub fn new(value: [types::WData; LENGTH]) -> Self {
+        Self { inner: value }
+    }
+
     /// # Safety
     ///
     /// The returned pointer may not outlive `self`.
@@ -98,9 +103,18 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     }
 }
 
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
+    for WideIn<LOW, HIGH, LENGTH>
+{
+    fn default() -> Self {
+        Self { inner: [0; LENGTH] }
+    }
+}
+
 /// See [`WideIn`].
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
-    inner: [types::WData; LENGTH],
+    pub(crate) inner: [types::WData; LENGTH],
 }
 
 impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
@@ -114,6 +128,14 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
         let mut inner = [0; LENGTH];
         inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, LENGTH) });
         Self { inner }
+    }
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
+    for WideOut<LOW, HIGH, LENGTH>
+{
+    fn default() -> Self {
+        Self { inner: [0; LENGTH] }
     }
 }
 
