@@ -6,65 +6,96 @@
 
 //! Support for dynamic models.
 
-use std::{collections::HashMap, ffi, fmt};
+use std::{collections::HashMap, ffi, fmt, slice};
 
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{PortDirection, types};
+use crate::{
+    PortDirection, WideOut, compute_approx_width_from_wdata_length, types,
+};
 
 /// See [`types`].
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum VerilatorValue {
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum VerilatorValue<'a> {
+    NotDriven,
     CData(types::CData),
     SData(types::SData),
     IData(types::IData),
     QData(types::QData),
+    WDataInP(&'a [types::WData]),
+    WDataOutP(Vec<types::WData>),
 }
 
-impl VerilatorValue {
+impl VerilatorValue<'_> {
     /// The maximum number of bits this value takes up.
     pub fn width(&self) -> usize {
         match self {
+            Self::NotDriven => 0,
             Self::CData(_) => 8,
             Self::SData(_) => 16,
             Self::IData(_) => 32,
             Self::QData(_) => 64,
+            Self::WDataInP(values) => {
+                compute_approx_width_from_wdata_length(values.len())
+            }
+            Self::WDataOutP(values) => {
+                compute_approx_width_from_wdata_length(values.len())
+            }
         }
     }
 }
 
-impl fmt::Display for VerilatorValue {
+impl fmt::Display for VerilatorValue<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            VerilatorValue::NotDriven => "z".fmt(f),
             VerilatorValue::CData(cdata) => cdata.fmt(f),
             VerilatorValue::SData(sdata) => sdata.fmt(f),
             VerilatorValue::IData(idata) => idata.fmt(f),
             VerilatorValue::QData(qdata) => qdata.fmt(f),
+            Self::WDataInP(_values) => "wide (fmt is todo)".fmt(f),
+            Self::WDataOutP(_values) => "wide (fmt is todo)".fmt(f),
         }
     }
 }
 
-impl From<types::CData> for VerilatorValue {
+impl From<types::CData> for VerilatorValue<'_> {
     fn from(value: types::CData) -> Self {
         Self::CData(value)
     }
 }
 
-impl From<types::SData> for VerilatorValue {
+impl From<types::SData> for VerilatorValue<'_> {
     fn from(value: types::SData) -> Self {
         Self::SData(value)
     }
 }
-impl From<types::IData> for VerilatorValue {
+impl From<types::IData> for VerilatorValue<'_> {
     fn from(value: types::IData) -> Self {
         Self::IData(value)
     }
 }
 
-impl From<types::QData> for VerilatorValue {
+impl From<types::QData> for VerilatorValue<'_> {
     fn from(value: types::QData) -> Self {
         Self::QData(value)
+    }
+}
+
+impl<'a, const LENGTH: usize> From<&'a [types::WData; LENGTH]>
+    for VerilatorValue<'a>
+{
+    fn from(value: &'a [types::WData; LENGTH]) -> Self {
+        Self::WDataInP(value)
+    }
+}
+
+impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
+    From<WideOut<LOW, HIGH, LENGTH>> for VerilatorValue<'_>
+{
+    fn from(value: WideOut<LOW, HIGH, LENGTH>) -> Self {
+        Self::WDataOutP(value.inner.to_vec())
     }
 }
 
@@ -75,22 +106,28 @@ pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
     fn read(
         &self,
         port: impl Into<String>,
-    ) -> Result<VerilatorValue, DynamicVerilatedModelError>;
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError>;
 
     /// If `port` is a valid port name for this model, and the port's width is
     /// `<=` `value.into().width()`, sets the port to `value`.
     fn pin(
         &mut self,
         port: impl Into<String>,
-        value: impl Into<VerilatorValue>,
+        value: impl Into<VerilatorValue<'ctx>>,
     ) -> Result<(), DynamicVerilatedModelError>;
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct DynamicPortInfo {
+    pub(crate) width: usize,
+    pub(crate) direction: PortDirection,
 }
 
 /// A hardware model constructed at runtime. See
 /// [`super::VerilatorRuntime::create_dyn_model`].
 pub struct DynamicVerilatedModel<'ctx> {
     // TODO: add the dlsyms here and remove the library field
-    pub(crate) ports: HashMap<String, (usize, PortDirection)>,
+    pub(crate) ports: HashMap<String, DynamicPortInfo>,
     pub(crate) name: String,
     pub(crate) main: *mut ffi::c_void,
     pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
@@ -141,15 +178,16 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
     fn read(
         &self,
         port: impl Into<String>,
-    ) -> Result<VerilatorValue, DynamicVerilatedModelError> {
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError> {
         let port: String = port.into();
-        let (width, direction) = *self.ports.get(&port).ok_or(
-            DynamicVerilatedModelError::NoSuchPort {
+        let DynamicPortInfo { width, direction } = *self
+            .ports
+            .get(&port)
+            .ok_or(DynamicVerilatedModelError::NoSuchPort {
                 top_module: self.name.clone(),
                 port: port.clone(),
                 source: None,
-            },
-        )?;
+            })?;
 
         if !matches!(direction, PortDirection::Output | PortDirection::Inout,) {
             return Err(DynamicVerilatedModelError::InvalidPortDirection {
@@ -190,17 +228,30 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
         } else if width <= 64 {
             read_value!(self, port, types::QData)
         } else {
-            unreachable!("Should have been caught in create_dyn_model")
+            let value: types::WDataOutP =
+                read_value!(self, port, types::WDataOutP)?;
+            assert!(value.is_aligned());
+            if value.is_null() {
+                // technically not driven yet
+                Ok(VerilatorValue::NotDriven)
+            } else {
+                let length = width.div_ceil(types::WData::BITS as usize);
+                let mut result = Vec::with_capacity(length);
+                result.extend_from_slice(unsafe {
+                    slice::from_raw_parts(value, length)
+                });
+                Ok(VerilatorValue::WDataOutP(result))
+            }
         }
     }
 
     fn pin(
         &mut self,
         port: impl Into<String>,
-        value: impl Into<VerilatorValue>,
+        value: impl Into<VerilatorValue<'ctx>>,
     ) -> Result<(), DynamicVerilatedModelError> {
         macro_rules! pin_value {
-            ($self:ident, $port:expr, $value:expr, $value_type:ty, $low:literal, $high:literal) => {{
+            ($self:ident, $port:expr, $value:expr, $value_type:ty, $low:literal, $high:expr) => {{
                 let symbol: libloading::Symbol<
                     extern "C" fn(*mut ffi::c_void, $value_type),
                 > = unsafe {
@@ -216,7 +267,7 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
                     }
                 })?;
 
-                let (width, direction) = $self
+                let DynamicPortInfo { width, direction } = $self
                     .ports
                     .get(&$port)
                     .ok_or(DynamicVerilatedModelError::NoSuchPort {
@@ -257,6 +308,9 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
 
         let port: String = port.into();
         match value.into() {
+            VerilatorValue::NotDriven => {
+                panic!("Cannot pin NotDriven");
+            }
             VerilatorValue::CData(cdata) => {
                 pin_value!(self, port, cdata, types::CData, 0, 8)
             }
@@ -268,6 +322,20 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
             }
             VerilatorValue::QData(qdata) => {
                 pin_value!(self, port, qdata, types::QData, 33, 64)
+            }
+            VerilatorValue::WDataInP(values) => {
+                let values_ptr = values.as_ptr();
+                pin_value!(
+                    self,
+                    port,
+                    values_ptr,
+                    types::WDataInP,
+                    65,
+                    usize::MAX
+                )
+            }
+            VerilatorValue::WDataOutP(_) => {
+                unreachable!("output ports should have already been caught")
             }
         }
     }
