@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/ethanuppal/marlin/compare/v0.9.0...v0.9.1) (2025-10-25)
+
+
+### Bug Fixes
+
+* **spade, veryl:** Display proper compilation messages in language wrappers ([#152](https://github.com/ethanuppal/marlin/issues/152)) ([ce9f897](https://github.com/ethanuppal/marlin/commit/ce9f897541722579268542323dbb8bc87cf87594))
+
 ## [0.9.0](https://github.com/ethanuppal/marlin/compare/v0.8.0...v0.9.0) (2025-10-25)
 
 
