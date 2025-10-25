@@ -7,6 +7,7 @@
 - [Verilog Quickstart](verilog/quickstart.md)
 - [Dynamic Bindings to Verilog](verilog/dynamic.md)
 - [Calling Rust from Verilog](verilog/dpi.md)
+- [Wide Ports](verilog/wide.md)
 
 # Marlin for Spade
 

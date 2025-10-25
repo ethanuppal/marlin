@@ -34,10 +34,10 @@ fn forwards_correctly() -> Result<(), Whatever> {
 
     main.wide_input = WideIn::new([u32::MAX, u32::MAX, 1]);
     println!("{:?}", main.wide_output);
-    assert_eq!(main.wide_output.inner, [0; 3]);
+    assert_eq!(main.wide_output.value(), &[0; 3]);
     main.eval();
     println!("{:?}", main.wide_output);
-    assert_eq!(main.wide_output.inner, [u32::MAX, u32::MAX, 1]);
+    assert_eq!(main.wide_output.value(), &[u32::MAX, u32::MAX, 1]);
 
     Ok(())
 }

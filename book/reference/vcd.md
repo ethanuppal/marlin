@@ -1,6 +1,8 @@
 # Waveform Tracing
 
-Example [here](https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs).
+## Overview
+
+(Bad) example [here](https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs).
 
 You can open a VCD for a Verilated model using the `.open_vcd` function, which takes in anything that can turn into a `Path`.
 The `.dump` and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).
@@ -11,3 +13,23 @@ Lifetimes enforce that you cannot use the VCD past the scope of the runtime when
 Until <https://github.com/verilator/verilator/issues/5813> gets fixed, `.open_vcd` will panic if you call it more than once.
 
 You can consult the reference documentation for VCDs [here](https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.Vcd.html).
+
+## Tips
+
+You might find yourself wanting to write a function on your model (let's say you declared it as `struct Top`) to simulate a clock cycle.
+You will need to remember to update the VCD.
+For instance:
+```rs
+impl Top<'_> {
+    fn tick(&mut self, vcd: &mut Vcd<'_>, timestamp: &mut u64) {
+        self.clk = 0;
+        self.eval();
+        *timestamp += 1;
+        vcd.dump(*timestamp);
+        self.clk = 1;
+        self.eval();
+        *timestamp += 1;
+        vcd.dump(*timestamp);
+    }
+}
+```

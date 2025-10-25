@@ -94,6 +94,10 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
         Self { inner: value }
     }
 
+    pub fn value(&self) -> &[types::WData; LENGTH] {
+        &self.inner
+    }
+
     /// # Safety
     ///
     /// The returned pointer may not outlive `self`.
@@ -114,12 +118,16 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
 /// See [`WideIn`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
-    pub inner: [types::WData; LENGTH],
+    inner: [types::WData; LENGTH],
 }
 
 impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     WideOut<LOW, HIGH, LENGTH>
 {
+    pub fn value(&self) -> &[types::WData; LENGTH] {
+        &self.inner
+    }
+
     /// # Safety
     ///
     /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
