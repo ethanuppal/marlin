@@ -445,13 +445,31 @@
 
 </style>
 <h1 id="waveform-tracing"><a class="header" href="#waveform-tracing">Waveform Tracing</a></h1>
-<p>Example <a href="https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs">here</a>.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>(Bad) example <a href="https://github.com/ethanuppal/marlin/blob/main/examples/verilog-project/tests/tracing.rs">here</a>.</p>
 <p>You can open a VCD for a Verilated model using the <code>.open_vcd</code> function, which takes in anything that can turn into a <code>Path</code>.
 The <code>.dump</code> and other functions are bridged directly to the Verilator functions and, as such, will behave as you expect (but through a safe Rust API).</p>
 <p>The VCD is automatically closed and deallocated when out of scope.
 Lifetimes enforce that you cannot use the VCD past the scope of the runtime whence the model you created the VCD came.</p>
 <p>Until <a href="https://github.com/verilator/verilator/issues/5813">https://github.com/verilator/verilator/issues/5813</a> gets fixed, <code>.open_vcd</code> will panic if you call it more than once.</p>
 <p>You can consult the reference documentation for VCDs <a href="https://docs.rs/marlin/latest/marlin/verilator/vcd/struct.Vcd.html">here</a>.</p>
+<h2 id="tips"><a class="header" href="#tips">Tips</a></h2>
+<p>You might find yourself wanting to write a function on your model (let's say you declared it as <code>struct Top</code>) to simulate a clock cycle.
+You will need to remember to update the VCD.
+For instance:</p>
+<pre><code class="language-rs">impl Top&lt;'_&gt; {
+    fn tick(&amp;mut self, vcd: &amp;mut Vcd&lt;'_&gt;, timestamp: &amp;mut u64) {
+        self.clk = 0;
+        self.eval();
+        *timestamp += 1;
+        vcd.dump(*timestamp);
+        self.clk = 1;
+        self.eval();
+        *timestamp += 1;
+        vcd.dump(*timestamp);
+    }
+}
+</code></pre>
 
                     </main>
 

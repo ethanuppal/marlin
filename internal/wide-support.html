@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Verilator Runtime - Marlin Handbook</title>
+        <title>Wide Port Support - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -444,22 +444,45 @@
 }
 
 </style>
-<h1 id="verilator-runtime"><a class="header" href="#verilator-runtime">Verilator Runtime</a></h1>
-<ul>
-<li>All models are "owned" by the runtime. Lifetimes enforce that they cannot outlive it. All deallocation of Verilated models is done when the runtime is dropped --- when an individual model is dropped, no deallocation occurs. This allows, for instance, for constructing a model with a struct initializer, where <code>Alu { ..alu }</code> would otherwise have deallocated the model when dropping the old <code>alu</code> and caused a double-free error when the newly-constructed model was also dropped.</li>
-</ul>
+<h1 id="wide-port-support"><a class="header" href="#wide-port-support">Wide Port Support</a></h1>
+<p><a href="https://gist.github.com/ethanuppal/aaf0916080343d8244a48f982912e6fd">A gist with the relevant Verilator header file code</a>.</p>
+<p>The following signature</p>
+<pre><code class="language-sv">    input single_input,
+    input[7:0] small_input,
+    input[63:0] medium_input,
+    input[127:0] big_input,
+    input[127:126] big2_input,
+    output single_output,
+    output[7:0] small_output,
+    output[63:0] medium_output,
+    output[127:0] big_output,
+    output[127:126] big2_output
+</code></pre>
+<p>generates this code</p>
+<pre><code class="language-cpp">    // PORTS
+    // The application code writes and reads these signals to
+    // propagate new values into/out from the Verilated model.
+    VL_IN8(&amp;single_input,0,0);
+    VL_IN8(&amp;small_input,7,0);
+    VL_IN8(&amp;big2_input,127,126);
+    VL_OUT8(&amp;single_output,0,0);
+    VL_OUT8(&amp;small_output,7,0);
+    VL_OUT8(&amp;big2_output,127,126);
+    VL_INW(&amp;big_input,127,0,4);
+    VL_OUTW(&amp;big_output,127,0,4);
+    VL_IN64(&amp;medium_input,63,0);
+    VL_OUT64(&amp;medium_output,63,0);
+</code></pre>
+<p>for the public class members of the module.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../internal/how-it-works.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../internal/verilator-runtime.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../internal/wide-support.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -467,13 +490,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../internal/how-it-works.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../internal/verilator-runtime.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../internal/wide-support.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

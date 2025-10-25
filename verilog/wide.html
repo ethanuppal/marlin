@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Verilator Runtime - Marlin Handbook</title>
+        <title>Wide Ports - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -444,20 +444,35 @@
 }
 
 </style>
-<h1 id="verilator-runtime"><a class="header" href="#verilator-runtime">Verilator Runtime</a></h1>
-<ul>
-<li>All models are "owned" by the runtime. Lifetimes enforce that they cannot outlive it. All deallocation of Verilated models is done when the runtime is dropped --- when an individual model is dropped, no deallocation occurs. This allows, for instance, for constructing a model with a struct initializer, where <code>Alu { ..alu }</code> would otherwise have deallocated the model when dropping the old <code>alu</code> and caused a double-free error when the newly-constructed model was also dropped.</li>
-</ul>
+<h1 id="wide-ports"><a class="header" href="#wide-ports">Wide Ports</a></h1>
+<p>Marlin supports wide (larger than 64 bits) ports in both static and dynamic bindings.
+The Verilator interface is exposed through a safe Rust wrapper in either case.</p>
+<h2 id="static"><a class="header" href="#static">Static</a></h2>
+<pre><code class="language-rs">pub struct WideIn&lt;const LOW: usize, const HIGH: usize, const LENGTH: usize&gt; {
+    /* private members */
+}
+
+pub struct WideOut&lt;const LOW: usize, const HIGH: usize, const LENGTH: usize&gt; {
+    /* private members */
+}
+</code></pre>
+<h2 id="dynamic"><a class="header" href="#dynamic">Dynamic</a></h2>
+<pre><code class="language-rs">pub enum VerilatorValue&lt;'a&gt; {
+    ...,
+    WDataInP(&amp;'a [types::WData]),
+    WDataOutP(Vec&lt;types::WData&gt;),
+}
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../internal/how-it-works.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../verilog/dpi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../internal/wide-support.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../spade/quickstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -467,11 +482,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../internal/how-it-works.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../verilog/dpi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../internal/wide-support.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../spade/quickstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
