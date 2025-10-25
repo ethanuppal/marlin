@@ -14,8 +14,8 @@
 
 use example_verilog_project::WideMain;
 use marlin::verilator::{
-    dynamic::VerilatorValue, AsDynamicVerilatedModel, PortDirection,
-    VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions, WideIn,
+    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions, WideIn, dynamic::VerilatorValue,
 };
 use snafu::{ResultExt, Whatever};
 
