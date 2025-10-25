@@ -30,3 +30,4 @@
 - [Release Process](internal/release-process.md)
 - [How Marlin Works](internal/how-it-works.md)
 - [Verilator Runtime](internal/verilator-runtime.md)
+- [Wide Port Support](internal/wide-support.md)
