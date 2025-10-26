@@ -2,7 +2,6 @@
 
 [![CI Badge](https://github.com/ethanuppal/marlin/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/ci.yaml)
 [![Code Style Badge](https://github.com/ethanuppal/marlin/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/lint.yaml)
-[![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/marlin)](https://crates.io/crates/marlin)
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
@@ -100,6 +99,8 @@ Marlin automatically runs them with all the right flags and arguments
   unmaintained for years as of writing this.
 
 ## 🔒 License & Legal
+
+[![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
 
 Marlin is licensed under the Mozilla Public License 2.0. This license is
 similar to the Lesser GNU Public License, except that the copyleft applies only
