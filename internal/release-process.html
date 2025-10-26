@@ -449,8 +449,8 @@
 <li>After a <code>feat</code>, <code>feat!</code>, <code>fix</code>, or <code>fix!</code>, merge the <a href="https://github.com/googleapis/release-please">release-please</a> PR
 after running <code>/bin/sh prepare-release.sh</code> from a named branch at project
 root.</li>
-<li>After any further fixes are required and commited, <code>git pull</code> the main
-branch, switch to it, and run <code>cargo release --workspace --execute</code> from the
+<li>After any further fixes are required and commited, switch to and <code>git pull</code>
+the main branch and run <code>cargo release --workspace --execute</code> from the
 project root.</li>
 </ol>
 <h2 id="multiple-semantic-changes-in-one-release"><a class="header" href="#multiple-semantic-changes-in-one-release">Multiple semantic changes in one release</a></h2>
