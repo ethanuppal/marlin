@@ -14,25 +14,27 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
     dpi::DpiFunction,
+    ffi_names::{self, DPI_INIT_CALLBACK, TRACE_EVER_ON},
+    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
 };
 
 fn build_ffi_for_tracing(
     buffer: &mut String,
     top_module: &str,
 ) -> Result<(), Whatever> {
+    let open_trace = ffi_names::open_trace(top_module);
     writeln!(
         buffer,
         r#"
-    void ffi_Verilated_traceEverOn(bool everOn) {{
+    void {TRACE_EVER_ON}(bool everOn) {{
         Verilated::traceEverOn(everOn);
     }}
 
-    VerilatedVcdC* ffi_V{top_module}_open_trace(V{top_module}* top, const char* path) {{
+    VerilatedVcdC* {open_trace}(V{top_module}* top, const char* path) {{
         VerilatedVcdC* vcd = new VerilatedVcdC;
         top->trace(vcd, 99);
         vcd->open(path);
@@ -132,8 +134,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", width.div_ceil(32)) // words are 32 bits
-                // according to header
-                // file
+                                                        // according to header
+                                                        // file
                 } else {
                     "".into()
                 }
@@ -208,7 +210,7 @@ fn bind_dpi_if_needed(
 #include \"V{}__Dpi.h\"
 #include <stdint.h>
 {}
-extern \"C\" void dpi_init_callback(void** callbacks) {{
+extern \"C\" void {DPI_INIT_CALLBACK}(void** callbacks) {{
 {}
 }}",
         top_module,

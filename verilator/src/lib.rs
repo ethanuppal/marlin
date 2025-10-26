@@ -36,12 +36,16 @@ use snafu::{whatever, ResultExt, Whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+mod ffi_names;
 pub mod nocapture;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
 
-use crate::dynamic::DynamicPortInfo;
+use crate::{
+    dynamic::DynamicPortInfo,
+    ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
+};
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -338,7 +342,7 @@ fn one_time_library_setup(
 ) -> Result<(), Whatever> {
     if !dpi_functions.is_empty() {
         let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
-            *unsafe { library.get(b"dpi_init_callback") }
+            *unsafe { library.get(DPI_INIT_CALLBACK.as_bytes()) }
                 .whatever_context("Failed to load DPI initializer")?;
 
         // order is important here. the function pointers will be
@@ -359,7 +363,7 @@ fn one_time_library_setup(
 
     if tracing_enabled {
         let trace_ever_on_callback: extern "C" fn(bool) =
-            *unsafe { library.get(b"ffi_Verilated_traceEverOn") }
+            *unsafe { library.get(TRACE_EVER_ON.as_bytes()) }
                 .whatever_context(
                     "Model was not configured with tracing enabled",
                 )?;
