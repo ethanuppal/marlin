@@ -36,7 +36,7 @@ use snafu::{whatever, ResultExt, Whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
-mod ffi_names;
+pub mod ffi_names;
 pub mod nocapture;
 pub mod vcd;
 

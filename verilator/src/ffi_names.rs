@@ -11,3 +11,5 @@ pub const TRACE_EVER_ON: &str = "ffi_Verilated_traceEverOn";
 pub fn open_trace(top_module: &str) -> String {
     format!("ffi_V{top_module}_open_trace")
 }
+
+pub const VCD_DUMP: &str = "ffi_VerilatedVcdC_dump";

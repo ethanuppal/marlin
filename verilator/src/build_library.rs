@@ -18,7 +18,7 @@ use snafu::{prelude::*, Whatever};
 
 use crate::{
     dpi::DpiFunction,
-    ffi_names::{self, DPI_INIT_CALLBACK, TRACE_EVER_ON},
+    ffi_names::{self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_DUMP},
     PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
 };
 
@@ -41,7 +41,7 @@ fn build_ffi_for_tracing(
         return vcd;
     }}
 
-    void ffi_VerilatedVcdC_dump(VerilatedVcdC* vcd, uint64_t timestamp) {{
+    void {VCD_DUMP}(VerilatedVcdC* vcd, uint64_t timestamp) {{
         vcd->dump(timestamp);
     }}
 

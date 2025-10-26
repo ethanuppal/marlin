@@ -6,10 +6,10 @@
 
 use std::{collections::HashMap, path::Path};
 
-use marlin_verilator::{PortDirection, types::WData};
+use marlin_verilator::{ffi_names::VCD_DUMP, types::WData, PortDirection};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
+use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
 
 mod util;
 
@@ -422,7 +422,7 @@ pub fn build_verilated_struct(
                         let open_trace: extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_char) -> *mut std::ffi::c_void =
                             *unsafe { library.get(concat!("ffi_V", #top_name, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
                         let dump: extern "C" fn(*mut std::ffi::c_void, u64) =
-                            *unsafe { library.get(b"ffi_VerilatedVcdC_dump").expect("failed to get dump symbol") };
+                            *unsafe { library.get(#VCD_DUMP.as_bytes()).expect("failed to get dump symbol") };
                         let open_next: extern "C" fn(*mut std::ffi::c_void, bool) =
                             *unsafe { library.get(b"ffi_VerilatedVcdC_open_next").expect("failed to get open_next symbol") };
                         let flush: extern "C" fn(*mut std::ffi::c_void) =
