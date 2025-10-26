@@ -14,12 +14,15 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{prelude::*, Whatever};
+use snafu::{Whatever, prelude::*};
 
 use crate::{
-    dpi::DpiFunction,
-    ffi_names::{self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_DUMP},
     PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
+    dpi::DpiFunction,
+    ffi_names::{
+        self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
+        VCD_FLUSH, VCD_OPEN_NEXT,
+    },
 };
 
 fn build_ffi_for_tracing(
@@ -45,15 +48,15 @@ fn build_ffi_for_tracing(
         vcd->dump(timestamp);
     }}
 
-    void ffi_VerilatedVcdC_open_next(VerilatedVcdC* vcd, bool increment_filename) {{
+    void {VCD_OPEN_NEXT}(VerilatedVcdC* vcd, bool increment_filename) {{
         vcd->openNext(increment_filename);
     }}
 
-    void ffi_VerilatedVcdC_flush(VerilatedVcdC* vcd) {{
+    void {VCD_FLUSH}(VerilatedVcdC* vcd) {{
         vcd->flush();
     }}
 
-    void ffi_VerilatedVcdC_close_and_delete(VerilatedVcdC* vcd) {{
+    void {VCD_CLOSE_AND_DELETE}(VerilatedVcdC* vcd) {{
         vcd->close();
         delete vcd;
     }}
@@ -83,6 +86,10 @@ fn build_ffi(
         buffer.push_str("#include <stdint.h>\n");
     }
 
+    let new_top = ffi_names::new_top(top_module);
+    let top_eval = ffi_names::top_eval(top_module);
+    let delete_top = ffi_names::delete_top(top_module);
+
     writeln!(
         &mut buffer,
         r#"
@@ -90,16 +97,16 @@ fn build_ffi(
 #include "V{top_module}.h"
 
 extern "C" {{
-    void* ffi_new_V{top_module}() {{
+    void* {new_top}() {{
         return new V{top_module}{{}};
     }}
 
     
-    void ffi_V{top_module}_eval(V{top_module}* top) {{
+    void {top_eval}(V{top_module}* top) {{
         top->eval();
     }}
 
-    void ffi_delete_V{top_module}(V{top_module}* top) {{
+    void {delete_top}(V{top_module}* top) {{
         delete top;
     }}
 "#
@@ -134,20 +141,23 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", width.div_ceil(32)) // words are 32 bits
-                                                        // according to header
-                                                        // file
+                // according to header
+                // file
                 } else {
                     "".into()
                 }
             )
         };
 
+        let pin_port = ffi_names::pin_port(top_module, port);
+        let read_port = ffi_names::read_port(top_module, port);
+
         if matches!(direction, PortDirection::Input | PortDirection::Inout) {
             let input_type = type_macro(Some("new_value"));
             writeln!(
                 &mut buffer,
                 r#"
-    void ffi_V{top_module}_pin_{port}(V{top_module}* top, {input_type}) {{
+    void {pin_port}(V{top_module}* top, {input_type}) {{
         top->{port} = new_value;
     }}
             "#
@@ -160,7 +170,7 @@ extern "C" {{
             writeln!(
                 &mut buffer,
                 r#"
-    {return_type} ffi_V{top_module}_read_{port}(V{top_module}* top) {{
+    {return_type} {read_port}(V{top_module}* top) {{
         return top->{port};
     }}
             "#

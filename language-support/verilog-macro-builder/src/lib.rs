@@ -6,10 +6,14 @@
 
 use std::{collections::HashMap, path::Path};
 
-use marlin_verilator::{ffi_names::VCD_DUMP, types::WData, PortDirection};
+use marlin_verilator::{
+    PortDirection,
+    ffi_names::{VCD_CLOSE_AND_DELETE, VCD_DUMP, VCD_FLUSH, VCD_OPEN_NEXT},
+    types::WData,
+};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
+use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
 
 mod util;
 
@@ -424,11 +428,11 @@ pub fn build_verilated_struct(
                         let dump: extern "C" fn(*mut std::ffi::c_void, u64) =
                             *unsafe { library.get(#VCD_DUMP.as_bytes()).expect("failed to get dump symbol") };
                         let open_next: extern "C" fn(*mut std::ffi::c_void, bool) =
-                            *unsafe { library.get(b"ffi_VerilatedVcdC_open_next").expect("failed to get open_next symbol") };
+                            *unsafe { library.get(#VCD_OPEN_NEXT.as_bytes()).expect("failed to get open_next symbol") };
                         let flush: extern "C" fn(*mut std::ffi::c_void) =
-                            *unsafe { library.get(b"ffi_VerilatedVcdC_flush").expect("failed to get flush symbol") };
+                            *unsafe { library.get(#VCD_FLUSH.as_bytes()).expect("failed to get flush symbol") };
                         let close_and_delete: extern "C" fn(*mut std::ffi::c_void) =
-                            *unsafe { library.get(b"ffi_VerilatedVcdC_close_and_delete").expect("failed to get close_and_delete symbol") };
+                            *unsafe { library.get(#VCD_CLOSE_AND_DELETE.as_bytes()).expect("failed to get close_and_delete symbol") };
                         Some(VcdApi { open_trace, dump, open_next, flush, close_and_delete })
                     } else {
                         None
