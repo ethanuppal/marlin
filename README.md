@@ -2,10 +2,11 @@
 
 [![CI Badge](https://github.com/ethanuppal/marlin/actions/workflows/ci.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/ci.yaml)
 [![Code Style Badge](https://github.com/ethanuppal/marlin/actions/workflows/lint.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/lint.yaml)
-[![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
 [![Crates.io Version](https://img.shields.io/crates/v/marlin)](https://crates.io/crates/marlin)
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
+[![Supported Spade version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.spade-parser.version&label=Spade)](https://github.com/ethanuppal/marlin/blob/main/language-support/spade)
+[![Supported Veryl version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.veryl-parser.version&label=Veryl)](https://github.com/ethanuppal/marlin/blob/main/language-support/veryl)
 
 **[Read the documentation](https://ethanuppal.com/marlin)** | **[Read the API reference](https://docs.rs/marlin/latest/marlin)**
 
@@ -59,6 +60,7 @@ Still, a lot of these are less than optimal.
 - 📈 Safe VCD tracing support
 - 🪙 Declarative API for usability + Dynamic API for programmability
 - 🔄 DPI support in Rust: call Rust functions from (System)Verilog
+- 👔 Integration with modern HDLs
 - 🦀 Rust. Did I say Rust?
 
 ## ⚡️ Requirements
@@ -98,6 +100,8 @@ Marlin automatically runs them with all the right flags and arguments
 
 ## 🔒 License & Legal
 
+[![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
+
 Marlin is licensed under the Mozilla Public License 2.0. This license is
 similar to the Lesser GNU Public License, except that the copyleft applies only
 to the source code of this library, not any library that uses it. That means you
@@ -105,9 +109,9 @@ can statically or dynamically link with unfree code (see
 <https://www.mozilla.org/en-US/MPL/2.0/FAQ/#virality>).
 
 I use [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) (see the
-[`deny.toml`](./deny.toml) to ensure no licensing violations occur. I also check
-this on CI to prevent merging any new dependencies or dependency updates that
-introduce incompatible licenses.
+[`deny.toml`](./deny.toml)) to ensure no licensing violations occur. I also
+check this on CI to prevent merging any new dependencies or dependency updates
+that introduce incompatible licenses.
 
 ### Verilator
 
