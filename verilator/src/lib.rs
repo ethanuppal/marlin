@@ -36,12 +36,16 @@ use snafu::{ResultExt, Whatever, whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+pub mod ffi_names;
 pub mod nocapture;
 pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
 
-use crate::dynamic::DynamicPortInfo;
+use crate::{
+    dynamic::DynamicPortInfo,
+    ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
+};
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -283,6 +287,11 @@ struct LibraryArenaKey {
     hash: u64,
 }
 
+struct ModelDeallocator {
+    model: *mut ffi::c_void,
+    deallocator: extern "C" fn(*mut ffi::c_void),
+}
+
 /// Runtime for (System)Verilog code.
 pub struct VerilatorRuntime {
     artifact_directory: Utf8PathBuf,
@@ -298,13 +307,12 @@ pub struct VerilatorRuntime {
     /// SAFETY: These are dropped when the runtime is dropped. They will not be
     /// "borrowed mutably" because the models created for this runtime must
     /// not outlive it and thus will be all gone before these are dropped.
-    model_deallocators:
-        RefCell<Vec<(*mut ffi::c_void, extern "C" fn(*mut ffi::c_void))>>,
+    model_deallocators: RefCell<Vec<ModelDeallocator>>,
 }
 
 impl Drop for VerilatorRuntime {
     fn drop(&mut self) {
-        for (model, deallocator) in
+        for ModelDeallocator { model, deallocator } in
             self.model_deallocators.borrow_mut().drain(..)
         {
             deallocator(model);
@@ -334,7 +342,7 @@ fn one_time_library_setup(
 ) -> Result<(), Whatever> {
     if !dpi_functions.is_empty() {
         let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
-            *unsafe { library.get(b"dpi_init_callback") }
+            *unsafe { library.get(DPI_INIT_CALLBACK.as_bytes()) }
                 .whatever_context("Failed to load DPI initializer")?;
 
         // order is important here. the function pointers will be
@@ -355,7 +363,7 @@ fn one_time_library_setup(
 
     if tracing_enabled {
         let trace_ever_on_callback: extern "C" fn(bool) =
-            *unsafe { library.get(b"ffi_Verilated_traceEverOn") }
+            *unsafe { library.get(TRACE_EVER_ON.as_bytes()) }
                 .whatever_context(
                     "Model was not configured with tracing enabled",
                 )?;
@@ -445,11 +453,11 @@ impl VerilatorRuntime {
 
         let model = M::init_from(library, config.enable_tracing);
 
-        self.model_deallocators.borrow_mut().push((
+        self.model_deallocators.borrow_mut().push(ModelDeallocator {
             // SAFETY: todo
-            unsafe { model.model() },
-            delete_model,
-        ));
+            model: unsafe { model.model() },
+            deallocator: delete_model,
+        });
 
         Ok(model)
     }
@@ -528,9 +536,10 @@ impl VerilatorRuntime {
             })
             .collect();
 
-        self.model_deallocators
-            .borrow_mut()
-            .push((main, delete_main));
+        self.model_deallocators.borrow_mut().push(ModelDeallocator {
+            model: main,
+            deallocator: delete_main,
+        });
 
         Ok(DynamicVerilatedModel {
             ports,

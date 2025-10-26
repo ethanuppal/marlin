@@ -19,39 +19,44 @@ use snafu::{Whatever, prelude::*};
 use crate::{
     PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
     dpi::DpiFunction,
+    ffi_names::{
+        self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
+        VCD_FLUSH, VCD_OPEN_NEXT,
+    },
 };
 
 fn build_ffi_for_tracing(
     buffer: &mut String,
     top_module: &str,
 ) -> Result<(), Whatever> {
+    let open_trace = ffi_names::open_trace(top_module);
     writeln!(
         buffer,
         r#"
-    void ffi_Verilated_traceEverOn(bool everOn) {{
+    void {TRACE_EVER_ON}(bool everOn) {{
         Verilated::traceEverOn(everOn);
     }}
 
-    VerilatedVcdC* ffi_V{top_module}_open_trace(V{top_module}* top, const char* path) {{
+    VerilatedVcdC* {open_trace}(V{top_module}* top, const char* path) {{
         VerilatedVcdC* vcd = new VerilatedVcdC;
         top->trace(vcd, 99);
         vcd->open(path);
         return vcd;
     }}
 
-    void ffi_VerilatedVcdC_dump(VerilatedVcdC* vcd, uint64_t timestamp) {{
+    void {VCD_DUMP}(VerilatedVcdC* vcd, uint64_t timestamp) {{
         vcd->dump(timestamp);
     }}
 
-    void ffi_VerilatedVcdC_open_next(VerilatedVcdC* vcd, bool increment_filename) {{
+    void {VCD_OPEN_NEXT}(VerilatedVcdC* vcd, bool increment_filename) {{
         vcd->openNext(increment_filename);
     }}
 
-    void ffi_VerilatedVcdC_flush(VerilatedVcdC* vcd) {{
+    void {VCD_FLUSH}(VerilatedVcdC* vcd) {{
         vcd->flush();
     }}
 
-    void ffi_VerilatedVcdC_close_and_delete(VerilatedVcdC* vcd) {{
+    void {VCD_CLOSE_AND_DELETE}(VerilatedVcdC* vcd) {{
         vcd->close();
         delete vcd;
     }}
@@ -81,6 +86,10 @@ fn build_ffi(
         buffer.push_str("#include <stdint.h>\n");
     }
 
+    let new_top = ffi_names::new_top(top_module);
+    let top_eval = ffi_names::top_eval(top_module);
+    let delete_top = ffi_names::delete_top(top_module);
+
     writeln!(
         &mut buffer,
         r#"
@@ -88,16 +97,16 @@ fn build_ffi(
 #include "V{top_module}.h"
 
 extern "C" {{
-    void* ffi_new_V{top_module}() {{
+    void* {new_top}() {{
         return new V{top_module}{{}};
     }}
 
     
-    void ffi_V{top_module}_eval(V{top_module}* top) {{
+    void {top_eval}(V{top_module}* top) {{
         top->eval();
     }}
 
-    void ffi_delete_V{top_module}(V{top_module}* top) {{
+    void {delete_top}(V{top_module}* top) {{
         delete top;
     }}
 "#
@@ -140,12 +149,15 @@ extern "C" {{
             )
         };
 
+        let pin_port = ffi_names::pin_port(top_module, port);
+        let read_port = ffi_names::read_port(top_module, port);
+
         if matches!(direction, PortDirection::Input | PortDirection::Inout) {
             let input_type = type_macro(Some("new_value"));
             writeln!(
                 &mut buffer,
                 r#"
-    void ffi_V{top_module}_pin_{port}(V{top_module}* top, {input_type}) {{
+    void {pin_port}(V{top_module}* top, {input_type}) {{
         top->{port} = new_value;
     }}
             "#
@@ -158,7 +170,7 @@ extern "C" {{
             writeln!(
                 &mut buffer,
                 r#"
-    {return_type} ffi_V{top_module}_read_{port}(V{top_module}* top) {{
+    {return_type} {read_port}(V{top_module}* top) {{
         return top->{port};
     }}
             "#
@@ -208,7 +220,7 @@ fn bind_dpi_if_needed(
 #include \"V{}__Dpi.h\"
 #include <stdint.h>
 {}
-extern \"C\" void dpi_init_callback(void** callbacks) {{
+extern \"C\" void {DPI_INIT_CALLBACK}(void** callbacks) {{
 {}
 }}",
         top_module,
