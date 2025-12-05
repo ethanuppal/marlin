@@ -159,10 +159,10 @@ pub fn build_verilated_struct(
             let length = port_width.div_ceil(WData::BITS as usize);
             match port_direction {
                 PortDirection::Input => {
-                    quote! { #crate_name::__reexports::verilator::WideIn<#port_lsb, #port_msb, #length> }
+                    quote! { #crate_name::__reexports::verilator::WideIn<#length> }
                 }
                 PortDirection::Output => {
-                    quote! { #crate_name::__reexports::verilator::WideOut<#port_lsb, #port_msb, #length> }
+                    quote! { #crate_name::__reexports::verilator::WideOut<#length> }
                 }
 
                 PortDirection::Inout => {

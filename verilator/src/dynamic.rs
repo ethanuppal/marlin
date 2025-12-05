@@ -91,10 +91,8 @@ impl<'a, const LENGTH: usize> From<&'a [types::WData; LENGTH]>
     }
 }
 
-impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
-    From<WideOut<LOW, HIGH, LENGTH>> for VerilatorValue<'_>
-{
-    fn from(value: WideOut<LOW, HIGH, LENGTH>) -> Self {
+impl<const LENGTH: usize> From<WideOut<LENGTH>> for VerilatorValue<'_> {
+    fn from(value: WideOut<LENGTH>) -> Self {
         Self::WDataOutP(value.inner.to_vec())
     }
 }
