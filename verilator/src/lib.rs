@@ -93,17 +93,14 @@ pub const fn compute_approx_width_from_wdata_length(length: usize) -> usize {
     length * (types::WData::BITS as usize)
 }
 
-/// `LOW` is the index of the least significant bit. `HIGH` is the index of the
-/// most significant bit. `LENGTH` must equal
-/// `compute_wdata_length_from_width_not_msb(HIGH + 1)`.
+///  `LENGTH` is `compute_wdata_length_from_width_not_msb(HIGH + 1)` where
+/// `HIGH` is the  most significant bit.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+pub struct WideIn<const LENGTH: usize> {
     inner: [types::WData; LENGTH],
 }
 
-impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
-    WideIn<LOW, HIGH, LENGTH>
-{
+impl<const LENGTH: usize> WideIn<LENGTH> {
     pub fn new(value: [types::WData; LENGTH]) -> Self {
         Self { inner: value }
     }
@@ -121,9 +118,7 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     }
 }
 
-impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
-    for WideIn<LOW, HIGH, LENGTH>
-{
+impl<const LENGTH: usize> Default for WideIn<LENGTH> {
     fn default() -> Self {
         Self { inner: [0; LENGTH] }
     }
@@ -131,13 +126,11 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
 
 /// See [`WideIn`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+pub struct WideOut<const LENGTH: usize> {
     inner: [types::WData; LENGTH],
 }
 
-impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
-    WideOut<LOW, HIGH, LENGTH>
-{
+impl<const LENGTH: usize> WideOut<LENGTH> {
     pub fn value(&self) -> &[types::WData; LENGTH] {
         &self.inner
     }
@@ -154,9 +147,7 @@ impl<const LOW: usize, const HIGH: usize, const LENGTH: usize>
     }
 }
 
-impl<const LOW: usize, const HIGH: usize, const LENGTH: usize> Default
-    for WideOut<LOW, HIGH, LENGTH>
-{
+impl<const LENGTH: usize> Default for WideOut<LENGTH> {
     fn default() -> Self {
         Self { inner: [0; LENGTH] }
     }

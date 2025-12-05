@@ -5,13 +5,14 @@ The Verilator interface is exposed through a safe Rust wrapper in either case.
 
 ## Static
 
+If a wide value is declared in Verilog with `[MSB:LSB]`, then `LENGTH` will be `compute_wdata_length_from_width_not_msb(MSB + 1)`.
 
 ```rs
-pub struct WideIn<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+pub struct WideIn<const LENGTH: usize> {
     /* private members */
 }
 
-pub struct WideOut<const LOW: usize, const HIGH: usize, const LENGTH: usize> {
+pub struct WideOut<const LENGTH: usize> {
     /* private members */
 }
 ```
