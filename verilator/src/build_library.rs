@@ -14,15 +14,15 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
         VCD_FLUSH, VCD_OPEN_NEXT,
     },
+    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
 };
 
 fn build_ffi_for_tracing(
@@ -141,8 +141,8 @@ extern "C" {{
                 lsb,
                 if width > 64 {
                     format!(", {}", width.div_ceil(32)) // words are 32 bits
-                // according to header
-                // file
+                                                        // according to header
+                                                        // file
                 } else {
                     "".into()
                 }
