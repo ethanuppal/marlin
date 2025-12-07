@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0](https://github.com/ethanuppal/marlin/compare/v0.9.1...v1.0.0) (2025-12-05)
+## [0.10.0](https://github.com/ethanuppal/marlin/compare/v0.9.1...v0.10.0) (2025-12-05)
 
 
 ### ⚠ BREAKING CHANGES
