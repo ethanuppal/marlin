@@ -106,6 +106,9 @@ pub fn build_verilated_struct(
             *unsafe { library.get(concat!("ffi_new_V", #top_name).as_bytes()) }
                 .expect("failed to get symbol");
         let model = (new_model)();
+        let model = unsafe {
+            ::marlin::ModelRef::new(model)
+        };
 
         let eval_model: extern "C" fn(*mut std::ffi::c_void) =
             *unsafe { library.get(concat!("ffi_V", #top_name, "_eval").as_bytes()) }
@@ -113,8 +116,7 @@ pub fn build_verilated_struct(
     });
     verilated_model_init_self.push(quote! {
         eval_model,
-        model,
-        _marker: std::marker::PhantomData
+        model
     });
 
     for (port_name, port_msb, port_lsb, port_direction) in verilog_ports {
@@ -219,11 +221,11 @@ pub fn build_verilated_struct(
                 });
                 if port_width <= 64 {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident);
+                        (self.#setter)(self.model.ptr, self.#port_name_ident);
                     });
                 } else {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident.as_ptr());
+                        (self.#setter)(self.model.ptr, self.#port_name_ident.as_ptr());
                     });
                 }
 
@@ -306,11 +308,11 @@ pub fn build_verilated_struct(
                 });
                 if port_width <= 64 {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = (self.#getter)(self.model);
+                        self.#port_name_ident = (self.#getter)(self.model.ptr);
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
+                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model.ptr));
                     });
                 }
 
@@ -358,20 +360,15 @@ pub fn build_verilated_struct(
             #[doc(hidden)]
             opened_vcd: bool,
             #(#struct_members),*,
-            #[doc = "# Safety\nThe Rust binding to the model will not outlive the dynamic library context (with lifetime `'ctx`) and is dropped when this struct is."]
             #[doc(hidden)]
-            model: *mut std::ffi::c_void,
-            #[doc(hidden)]
-            _marker: std::marker::PhantomData<&'ctx ()>,
-            #[doc(hidden)]
-            _unsend_unsync: std::marker::PhantomData<(std::cell::Cell<()>, std::sync::MutexGuard<'static, ()>)>
+            model: ::marlin::ModelRef<'ctx>,
         }
 
         impl<'ctx> #struct_name<'ctx> {
             #[doc = "Equivalent to the Verilator `eval` method."]
             pub fn eval(&mut self) {
                 #(#preeval_impl)*
-                (self.eval_model)(self.model);
+                (self.eval_model)(self.model.ptr);
                 #(#posteval_impl)*
             }
 
@@ -385,7 +382,7 @@ pub fn build_verilated_struct(
                         panic!("Verilator does not support opening multiple VCD traces (see issue #5813). You can instead split the already-opened VCD.");
                     }
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
-                    let vcd_ptr = (vcd_api.open_trace)(self.model, c_path.as_ptr());
+                    let vcd_ptr = (vcd_api.open_trace)(self.model.ptr, c_path.as_ptr());
                     self.opened_vcd = true;
                     #crate_name::__reexports::verilator::vcd::__private::new_vcd(
                         vcd_ptr,
@@ -442,12 +439,11 @@ pub fn build_verilated_struct(
                     vcd_api,
                     opened_vcd: false,
                     #(#verilated_model_init_self),*,
-                    _unsend_unsync: std::marker::PhantomData
                 }
             }
 
             unsafe fn model(&self) -> *mut std::ffi::c_void {
-                self.model
+                self.model.ptr
             }
         }
 
