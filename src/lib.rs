@@ -52,3 +52,87 @@ impl<'ctx> ModelRef<'ctx> {
         }
     }
 }
+
+pub struct OutputPin<'ctx, T> {
+    model: ModelRef<'ctx>,
+    /// # Safety
+    ///
+    /// The constructor's safety construct ensures that the getter matches the model
+    raw_get: unsafe extern "C" fn(*mut c_void) -> T,
+}
+
+impl<'ctx, T> OutputPin<'ctx, T> {
+    /// # Safety
+    ///
+    /// The `raw_get` function must correspond to the passed model
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_get: unsafe extern "C" fn(*mut c_void) -> T) -> Self {
+        Self {
+            model,
+            raw_get,
+        }
+    }
+}
+
+impl<'ctx, T> OutputPin<'ctx, T> {
+    pub fn get(&self) -> T {
+        unsafe {
+            (self.raw_get)(self.model.ptr)
+        }
+    }
+}
+
+pub struct InputPin<'ctx, T> {
+    model: ModelRef<'ctx>,
+    /// # Safety
+    ///
+    /// The constructor's safety construct ensures that the getter matches the model
+    raw_set: unsafe extern "C" fn(*mut c_void, T),
+}
+
+impl<'ctx, T> InputPin<'ctx, T> {
+    /// # Safety
+    ///
+    /// The `raw_get` function must correspond to the passed model
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_set: unsafe extern "C" fn(*mut c_void, T)) -> Self {
+        Self {
+            model,
+            raw_set,
+        }
+    }
+}
+
+impl<'ctx, T> InputPin<'ctx, T> {
+    pub fn set(&mut self, value: T) {
+        unsafe {
+            (self.raw_set)(self.model.ptr, value);
+        }
+    }
+}
+
+pub struct Evaluator<'ctx> {
+    model: ModelRef<'ctx>,
+    /// # Safety
+    ///
+    /// The constructor's safety construct ensures that the eval matches the model
+    eval_fn: unsafe extern "C" fn(*mut c_void),
+}
+
+impl<'ctx> Evaluator<'ctx> {
+    /// # Safety
+    ///
+    /// The `raw_get` function must correspond to the passed model
+    pub unsafe fn new(model: ModelRef<'ctx>, eval_fn: unsafe extern "C" fn(*mut c_void)) -> Self {
+        Self {
+            model,
+            eval_fn,
+        }
+    }
+}
+
+impl<'ctx> Evaluator<'ctx> {
+    pub fn eval(&mut self) {
+        unsafe {
+            (self.eval_fn)(self.model.ptr)
+        }
+    }
+}

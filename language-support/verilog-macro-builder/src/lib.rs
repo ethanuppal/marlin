@@ -9,7 +9,6 @@ use std::{collections::HashMap, path::Path};
 use marlin_verilator::{
     PortDirection,
     ffi_names::{VCD_CLOSE_AND_DELETE, VCD_DUMP, VCD_FLUSH, VCD_OPEN_NEXT},
-    types::WData,
 };
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -75,8 +74,8 @@ pub fn build_verilated_struct(
     top_name: syn::LitStr,
     source_path: syn::LitStr,
     verilog_ports: Vec<(String, usize, usize, PortDirection)>,
-    clock_port: Option<syn::LitStr>,
-    reset_port: Option<syn::LitStr>,
+    _clock_port: Option<syn::LitStr>,
+    _reset_port: Option<syn::LitStr>,
     item: TokenStream,
 ) -> TokenStream {
     let crate_name = format_ident!("{}", macro_name);
@@ -87,19 +86,11 @@ pub fn build_verilated_struct(
         }
     };
 
-    let mut struct_members = vec![];
-
-    let mut preeval_impl = vec![];
-    let mut posteval_impl = vec![];
-
-    let mut other_impl = vec![];
+    let mut pin_members = vec![];
 
     let mut verilated_model_ports_impl = vec![];
     let mut verilated_model_init_impl = vec![];
     let mut verilated_model_init_self = vec![];
-
-    let mut dynamic_read_arms = vec![];
-    let mut dynamic_pin_arms = vec![];
 
     verilated_model_init_impl.push(quote! {
         let new_model: extern "C" fn() -> *mut std::ffi::c_void =
@@ -110,13 +101,13 @@ pub fn build_verilated_struct(
             ::marlin::ModelRef::new(model)
         };
 
-        let eval_model: extern "C" fn(*mut std::ffi::c_void) =
-            *unsafe { library.get(concat!("ffi_V", #top_name, "_eval").as_bytes()) }
-                .expect("failed to get symbol");
-    });
-    verilated_model_init_self.push(quote! {
-        eval_model,
-        model
+        let evaluator = unsafe {
+            ::marlin::Evaluator::new(
+                model.clone(),
+                *unsafe { library.get(concat!("ffi_V", #top_name, "_eval").as_bytes()) }
+                    .expect("failed to get symbol")
+            )
+        };
     });
 
     for (port_name, port_msb, port_lsb, port_direction) in verilog_ports {
@@ -129,6 +120,9 @@ pub fn build_verilated_struct(
         }
 
         let port_width = port_msb + 1 - port_lsb;
+        if port_width > 64 {
+            todo!("wide ports are currently unimplemented");
+        }
 
         let verilator_interface_port_type_name = if port_width <= 8 {
             quote! { CData }
@@ -155,40 +149,6 @@ pub fn build_verilated_struct(
             #crate_name::__reexports::verilator::types::#verilator_interface_port_type_name
         };
 
-        let port_type_with_generics = if port_width <= 64 {
-            verilator_interface_port_type.clone()
-        } else {
-            let length = port_width.div_ceil(WData::BITS as usize);
-            match port_direction {
-                PortDirection::Input => {
-                    quote! { #crate_name::__reexports::verilator::WideIn<#length> }
-                }
-                PortDirection::Output => {
-                    quote! { #crate_name::__reexports::verilator::WideOut<#length> }
-                }
-
-                PortDirection::Inout => {
-                    todo!("Inout wide ports are not currently supported")
-                }
-            }
-        };
-        let port_type_without_generics = if port_width <= 64 {
-            verilator_interface_port_type.clone()
-        } else {
-            match port_direction {
-                PortDirection::Input => {
-                    quote! { #crate_name::__reexports::verilator::WideIn }
-                }
-                PortDirection::Output => {
-                    quote! { #crate_name::__reexports::verilator::WideOut }
-                }
-
-                PortDirection::Inout => {
-                    todo!("Inout wide ports are not currently supported")
-                }
-            }
-        };
-
         let port_name_ident = format_ident!("{}", port_name);
         let port_documentation = syn::LitStr::new(
             &format!(
@@ -196,135 +156,40 @@ pub fn build_verilated_struct(
             ),
             top_name.span(),
         );
-        struct_members.push(quote! {
-            #[doc = #port_documentation]
-            pub #port_name_ident: #port_type_with_generics
-        });
-        if port_width <= 64 {
-            verilated_model_init_self.push(quote! {
-                #port_name_ident: 0 as _
-            });
-        } else {
-            verilated_model_init_self.push(quote! {
-                #port_name_ident: std::default::Default::default()
-            });
-        }
 
-        let port_name_literal = syn::LitStr::new(&port_name, top_name.span());
+        verilated_model_init_self.push(quote! {
+            #port_name_ident
+        });
 
         match port_direction {
             PortDirection::Input => {
-                let setter = format_ident!("pin_{}", port_name);
-                struct_members.push(quote! {
-                    #[doc(hidden)]
-                    #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type)
-                });
-                if port_width <= 64 {
-                    preeval_impl.push(quote! {
-                        (self.#setter)(self.model.ptr, self.#port_name_ident);
-                    });
-                } else {
-                    preeval_impl.push(quote! {
-                        (self.#setter)(self.model.ptr, self.#port_name_ident.as_ptr());
-                    });
-                }
-
-                if let Some(clock_port) = &clock_port {
-                    if clock_port.value().as_str() == port_name {
-                        other_impl.push(quote! {
-                            pub fn tick(&mut self) {
-                                self.#port_name = 1 as _;
-                                self.eval();
-                                self.#port_name = 0 as _;
-                                self.eval();
-                            }
-                        });
-                    }
-                }
-
-                if let Some(_reset_port) = &reset_port {
-                    todo!("reset ports");
-                }
-
                 verilated_model_init_impl.push(quote! {
-                    let #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type) =
-                        *unsafe { library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes()) }
-                            .expect("failed to get symbol");
+                    let #port_name_ident = unsafe {::marlin::InputPin::new(
+                        model.clone(),
+                        *unsafe {
+                            library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes())
+                        }.expect("failed to get symbol")
+                    )};
                 });
-                verilated_model_init_self.push(quote! { #setter });
 
-                if port_width <= 64 {
-                    dynamic_pin_arms.push(quote! {
-                        #port_name_literal => {
-                            if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#verilator_interface_port_type_name(inner) = value {
-                                self.#port_name_ident = inner;
-                            } else {
-                                return Err(
-                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
-                                        top_module: Self::name().to_string(),
-                                        port,
-                                        width: #port_width as _,
-                                        attempted_lower: 0,
-                                        attempted_higher: value.width()
-                                    },
-                                );
-                            }
-                        }
-                    });
-                } else {
-                    dynamic_pin_arms.push(quote! {
-                        #port_name_literal => {
-                            if let #crate_name::__reexports::verilator::dynamic::VerilatorValue::#verilator_interface_port_type_name(inner) = value {
-                                let array = inner.try_into().map_err(|_| {
-                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
-                                        top_module: Self::name().to_string(),
-                                        port,
-                                        width: #port_width as _,
-                                        attempted_lower: 0,
-                                        attempted_higher: value.width()
-                                    }
-                                })?;
-                                self.#port_name_ident = #port_type_without_generics::new(array);
-                            } else {
-                                return Err(
-                                    #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::InvalidPortWidth {
-                                        top_module: Self::name().to_string(),
-                                        port,
-                                        width: #port_width as _,
-                                        attempted_lower: 0,
-                                        attempted_higher: value.width()
-                                    },
-                                );
-                            }
-                        }
-                    });
-                }
+                pin_members.push(quote! {
+                    #[doc = #port_documentation]
+                    pub #port_name_ident: ::marlin::InputPin<'ctx, #verilator_interface_port_type>
+                });
             }
             PortDirection::Output => {
-                let getter = format_ident!("read_{}", port_name);
-                struct_members.push(quote! {
-                    #[doc(hidden)]
-                    #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type
-                });
-                if port_width <= 64 {
-                    posteval_impl.push(quote! {
-                        self.#port_name_ident = (self.#getter)(self.model.ptr);
-                    });
-                } else {
-                    posteval_impl.push(quote! {
-                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model.ptr));
-                    });
-                }
-
                 verilated_model_init_impl.push(quote! {
-                    let #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type =
-                        *unsafe { library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes()) }
-                            .expect("failed to get symbol");
+                    let #port_name_ident = unsafe {::marlin::OutputPin::new(
+                        model.clone(),
+                        *unsafe {
+                            library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes())
+                        }.expect("failed to get symbol")
+                    )};
                 });
-                verilated_model_init_self.push(quote! { #getter });
 
-                dynamic_read_arms.push(quote! {
-                    #port_name_literal => Ok(self.#port_name_ident.clone().into())
+                pin_members.push(quote! {
+                    #[doc = #port_documentation]
+                    pub #port_name_ident: ::marlin::OutputPin<'ctx, #verilator_interface_port_type>
                 });
             }
             _ => todo!("Unhandled port direction"),
@@ -345,11 +210,6 @@ pub fn build_verilated_struct(
         });
     }
 
-    struct_members.push(quote! {
-        #[doc(hidden)]
-        eval_model: extern "C" fn(*mut std::ffi::c_void)
-    });
-
     let struct_name = item.ident;
     let vis = item.vis;
     let port_count = verilated_model_ports_impl.len();
@@ -359,7 +219,9 @@ pub fn build_verilated_struct(
             vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
             #[doc(hidden)]
             opened_vcd: bool,
-            #(#struct_members),*,
+            #(#pin_members),*,
+            #[doc(hidden)]
+            pub evaluator: ::marlin::Evaluator<'ctx>,
             #[doc(hidden)]
             model: ::marlin::ModelRef<'ctx>,
         }
@@ -367,9 +229,7 @@ pub fn build_verilated_struct(
         impl<'ctx> #struct_name<'ctx> {
             #[doc = "Equivalent to the Verilator `eval` method."]
             pub fn eval(&mut self) {
-                #(#preeval_impl)*
-                (self.eval_model)(self.model.ptr);
-                #(#posteval_impl)*
+                self.evaluator.eval();
             }
 
             pub fn open_vcd(
@@ -395,8 +255,6 @@ pub fn build_verilated_struct(
                     #crate_name::__reexports::verilator::vcd::__private::new_vcd_useless()
                 }
             }
-
-            #(#other_impl)*
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::AsVerilatedModel<'ctx> for #struct_name<'ctx> {
@@ -438,57 +296,14 @@ pub fn build_verilated_struct(
                 Self {
                     vcd_api,
                     opened_vcd: false,
+                    evaluator,
+                    model,
                     #(#verilated_model_init_self),*,
                 }
             }
 
             unsafe fn model(&self) -> *mut std::ffi::c_void {
                 self.model.ptr
-            }
-        }
-
-        impl<'ctx> #crate_name::__reexports::verilator::AsDynamicVerilatedModel<'ctx> for #struct_name<'ctx> {
-            fn read(
-                &self,
-                port: impl Into<String>,
-            ) -> Result<#crate_name::__reexports::verilator::dynamic::VerilatorValue, #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError> {
-                use #crate_name::__reexports::verilator::AsVerilatedModel;
-
-                let port = port.into();
-
-                match port.as_str() {
-                    #(#dynamic_read_arms,)*
-                    _ => Err(#crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::NoSuchPort {
-                        top_module: Self::name().to_string(),
-                        port,
-                        source: None,
-                    })
-                }
-            }
-
-            fn pin(
-                &mut self,
-                port: impl Into<String>,
-                value: impl Into<#crate_name::__reexports::verilator::dynamic::VerilatorValue<'ctx>>,
-            ) -> Result<(), #crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError> {
-                use #crate_name::__reexports::verilator::AsVerilatedModel;
-
-                let port = port.into();
-                let value = value.into();
-
-                match port.as_str() {
-                    #(#dynamic_pin_arms,)*
-                    _ => {
-                        return Err(#crate_name::__reexports::verilator::dynamic::DynamicVerilatedModelError::NoSuchPort {
-                            top_module: Self::name().to_string(),
-                            port,
-                            source: None,
-                        });
-                    }
-                }
-
-                #[allow(unreachable_code)]
-                Ok(())
             }
         }
     }
