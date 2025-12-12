@@ -86,7 +86,7 @@ pub fn build_verilated_struct(
         }
     };
 
-    let mut pin_members = vec![];
+    let mut port_members = vec![];
 
     let mut verilated_model_ports_impl = vec![];
     let mut verilated_model_init_impl = vec![];
@@ -164,7 +164,7 @@ pub fn build_verilated_struct(
         match port_direction {
             PortDirection::Input => {
                 verilated_model_init_impl.push(quote! {
-                    let #port_name_ident = unsafe {::marlin::InputPin::new(
+                    let #port_name_ident = unsafe {::marlin::InputPort::new(
                         model.clone(),
                         *unsafe {
                             library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes())
@@ -172,14 +172,14 @@ pub fn build_verilated_struct(
                     )};
                 });
 
-                pin_members.push(quote! {
+                port_members.push(quote! {
                     #[doc = #port_documentation]
-                    pub #port_name_ident: ::marlin::InputPin<'ctx, #verilator_interface_port_type>
+                    pub #port_name_ident: ::marlin::InputPort<'ctx, #verilator_interface_port_type>
                 });
             }
             PortDirection::Output => {
                 verilated_model_init_impl.push(quote! {
-                    let #port_name_ident = unsafe {::marlin::OutputPin::new(
+                    let #port_name_ident = unsafe {::marlin::OutputPort::new(
                         model.clone(),
                         *unsafe {
                             library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes())
@@ -187,9 +187,9 @@ pub fn build_verilated_struct(
                     )};
                 });
 
-                pin_members.push(quote! {
+                port_members.push(quote! {
                     #[doc = #port_documentation]
-                    pub #port_name_ident: ::marlin::OutputPin<'ctx, #verilator_interface_port_type>
+                    pub #port_name_ident: ::marlin::OutputPort<'ctx, #verilator_interface_port_type>
                 });
             }
             _ => todo!("Unhandled port direction"),
@@ -219,7 +219,7 @@ pub fn build_verilated_struct(
             vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
             #[doc(hidden)]
             opened_vcd: bool,
-            #(#pin_members),*,
+            #(#port_members),*,
             #[doc(hidden)]
             pub evaluator: ::marlin::Evaluator<'ctx>,
             #[doc(hidden)]

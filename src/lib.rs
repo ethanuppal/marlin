@@ -53,7 +53,7 @@ impl<'ctx> ModelRef<'ctx> {
     }
 }
 
-pub struct OutputPin<'ctx, T> {
+pub struct OutputPort<'ctx, T> {
     model: ModelRef<'ctx>,
     /// # Safety
     ///
@@ -61,7 +61,7 @@ pub struct OutputPin<'ctx, T> {
     raw_get: unsafe extern "C" fn(*mut c_void) -> T,
 }
 
-impl<'ctx, T> OutputPin<'ctx, T> {
+impl<'ctx, T> OutputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
@@ -73,7 +73,7 @@ impl<'ctx, T> OutputPin<'ctx, T> {
     }
 }
 
-impl<'ctx, T> OutputPin<'ctx, T> {
+impl<'ctx, T> OutputPort<'ctx, T> {
     pub fn get(&self) -> T {
         unsafe {
             (self.raw_get)(self.model.ptr)
@@ -81,7 +81,7 @@ impl<'ctx, T> OutputPin<'ctx, T> {
     }
 }
 
-pub struct InputPin<'ctx, T> {
+pub struct InputPort<'ctx, T> {
     model: ModelRef<'ctx>,
     /// # Safety
     ///
@@ -89,7 +89,7 @@ pub struct InputPin<'ctx, T> {
     raw_set: unsafe extern "C" fn(*mut c_void, T),
 }
 
-impl<'ctx, T> InputPin<'ctx, T> {
+impl<'ctx, T> InputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
@@ -101,7 +101,7 @@ impl<'ctx, T> InputPin<'ctx, T> {
     }
 }
 
-impl<'ctx, T> InputPin<'ctx, T> {
+impl<'ctx, T> InputPort<'ctx, T> {
     pub fn set(&mut self, value: T) {
         unsafe {
             (self.raw_set)(self.model.ptr, value);
