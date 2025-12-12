@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.0](https://github.com/ethanuppal/marlin/compare/v0.9.1...v0.10.0) (2025-12-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **verilator:** Simplify wide port types ([#163](https://github.com/ethanuppal/marlin/issues/163))
+
+### refactor
+
+* **verilator:** Simplify wide port types ([#163](https://github.com/ethanuppal/marlin/issues/163)) ([68ed10d](https://github.com/ethanuppal/marlin/commit/68ed10d5c73ce006928c48b080b617202dcecf54))
+
 ## [0.9.1](https://github.com/ethanuppal/marlin/compare/v0.9.0...v0.9.1) (2025-10-25)
 
 
