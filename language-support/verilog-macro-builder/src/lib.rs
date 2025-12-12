@@ -150,6 +150,12 @@ pub fn build_verilated_struct(
         };
 
         let port_name_ident = format_ident!("{}", port_name);
+        let port_formatted_name = syn::LitStr::new(
+            &format!(
+                "{port_name}[{port_msb}:{port_lsb}]`."
+            ),
+            top_name.span(),
+        );
         let port_documentation = syn::LitStr::new(
             &format!(
                 "Corresponds to Verilog `{port_direction} {port_name}[{port_msb}:{port_lsb}]`."
@@ -168,7 +174,8 @@ pub fn build_verilated_struct(
                         model.clone(),
                         *unsafe {
                             library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes())
-                        }.expect("failed to get symbol")
+                        }.expect("failed to get symbol"),
+                        #port_formatted_name
                     )};
                 });
 
@@ -183,7 +190,8 @@ pub fn build_verilated_struct(
                         model.clone(),
                         *unsafe {
                             library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes())
-                        }.expect("failed to get symbol")
+                        }.expect("failed to get symbol"),
+                        #port_formatted_name
                     )};
                 });
 

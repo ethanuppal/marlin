@@ -9,6 +9,7 @@
 
 use std::cell::Cell;
 use std::ffi::c_void;
+use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 use std::sync::MutexGuard;
 #[doc(inline)]
@@ -59,25 +60,35 @@ pub struct OutputPort<'ctx, T> {
     ///
     /// The constructor's safety construct ensures that the getter matches the model
     raw_get: unsafe extern "C" fn(*mut c_void) -> T,
+    /// Name of the pin for debug output
+    name: &'static str,
 }
 
 impl<'ctx, T> OutputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
-    pub unsafe fn new(model: ModelRef<'ctx>, raw_get: unsafe extern "C" fn(*mut c_void) -> T) -> Self {
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_get: unsafe extern "C" fn(*mut c_void) -> T, name: &'static str) -> Self {
         Self {
             model,
             raw_get,
+            name,
         }
     }
-}
 
-impl<'ctx, T> OutputPort<'ctx, T> {
     pub fn get(&self) -> T {
         unsafe {
             (self.raw_get)(self.model.ptr)
         }
+    }
+}
+
+impl<T: Debug> Debug for OutputPort<'_, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OutputPort")
+            .field("name", &self.name)
+            .field("value", &self.get())
+            .finish()
     }
 }
 
@@ -87,25 +98,34 @@ pub struct InputPort<'ctx, T> {
     ///
     /// The constructor's safety construct ensures that the getter matches the model
     raw_set: unsafe extern "C" fn(*mut c_void, T),
+    /// Name of the pin for debug output
+    name: &'static str,
 }
 
 impl<'ctx, T> InputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
-    pub unsafe fn new(model: ModelRef<'ctx>, raw_set: unsafe extern "C" fn(*mut c_void, T)) -> Self {
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_set: unsafe extern "C" fn(*mut c_void, T), name: &'static str) -> Self {
         Self {
             model,
             raw_set,
+            name,
         }
     }
-}
 
-impl<'ctx, T> InputPort<'ctx, T> {
     pub fn set(&mut self, value: T) {
         unsafe {
             (self.raw_set)(self.model.ptr, value);
         }
+    }
+}
+
+impl<T> Debug for InputPort<'_, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InputPort")
+            .field("name", &self.name)
+            .finish()
     }
 }
 
