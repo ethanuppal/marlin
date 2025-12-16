@@ -14,6 +14,7 @@ use std::marker::PhantomData;
 use std::sync::MutexGuard;
 #[doc(inline)]
 pub use marlin_verilator as verilator;
+pub use marlin_verilator::{OutputType, InputType};
 
 #[doc(inline)]
 #[cfg_attr(docsrs, doc(cfg(feature = "verilog")))]
@@ -54,21 +55,21 @@ impl<'ctx> ModelRef<'ctx> {
     }
 }
 
-pub struct OutputPort<'ctx, T> {
+pub struct OutputPort<'ctx, T: OutputType> {
     model: ModelRef<'ctx>,
     /// # Safety
     ///
     /// The constructor's safety construct ensures that the getter matches the model
-    raw_get: unsafe extern "C" fn(*mut c_void) -> T,
+    raw_get: unsafe extern "C" fn(*mut c_void) -> T::GetterReturnType,
     /// Name of the pin for debug output
     name: &'static str,
 }
 
-impl<'ctx, T> OutputPort<'ctx, T> {
+impl<'ctx, T: OutputType> OutputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
-    pub unsafe fn new(model: ModelRef<'ctx>, raw_get: unsafe extern "C" fn(*mut c_void) -> T, name: &'static str) -> Self {
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_get: unsafe extern "C" fn(*mut c_void) -> T::GetterReturnType, name: &'static str) -> Self {
         Self {
             model,
             raw_get,
@@ -78,12 +79,12 @@ impl<'ctx, T> OutputPort<'ctx, T> {
 
     pub fn get(&self) -> T {
         unsafe {
-            (self.raw_get)(self.model.ptr)
+            T::get(self.model.ptr, self.raw_get)
         }
     }
 }
 
-impl<T: Debug> Debug for OutputPort<'_, T> {
+impl<T: Debug + OutputType> Debug for OutputPort<'_, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("OutputPort")
             .field("name", &self.name)
@@ -92,21 +93,21 @@ impl<T: Debug> Debug for OutputPort<'_, T> {
     }
 }
 
-pub struct InputPort<'ctx, T> {
+pub struct InputPort<'ctx, T: InputType> {
     model: ModelRef<'ctx>,
     /// # Safety
     ///
     /// The constructor's safety construct ensures that the getter matches the model
-    raw_set: unsafe extern "C" fn(*mut c_void, T),
+    raw_set: unsafe extern "C" fn(*mut c_void, T::SetterArgumentType),
     /// Name of the pin for debug output
     name: &'static str,
 }
 
-impl<'ctx, T> InputPort<'ctx, T> {
+impl<'ctx, T: InputType> InputPort<'ctx, T> {
     /// # Safety
     ///
     /// The `raw_get` function must correspond to the passed model
-    pub unsafe fn new(model: ModelRef<'ctx>, raw_set: unsafe extern "C" fn(*mut c_void, T), name: &'static str) -> Self {
+    pub unsafe fn new(model: ModelRef<'ctx>, raw_set: unsafe extern "C" fn(*mut c_void, T::SetterArgumentType), name: &'static str) -> Self {
         Self {
             model,
             raw_set,
@@ -116,12 +117,12 @@ impl<'ctx, T> InputPort<'ctx, T> {
 
     pub fn set(&mut self, value: T) {
         unsafe {
-            (self.raw_set)(self.model.ptr, value);
+            T::set(value, self.model.ptr, self.raw_set)
         }
     }
 }
 
-impl<T> Debug for InputPort<'_, T> {
+impl<T: InputType> Debug for InputPort<'_, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("InputPort")
             .field("name", &self.name)

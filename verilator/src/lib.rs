@@ -22,7 +22,7 @@ use std::{
     sync::{LazyLock, Mutex},
     time::Instant,
 };
-
+use std::ffi::c_void;
 use boxcar::Vec as BoxcarVec;
 use build_library::build_library;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -46,6 +46,7 @@ use crate::{
     dynamic::DynamicPortInfo,
     ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
 };
+use crate::types::NarrowType;
 
 /// Verilator-defined types for C FFI.
 pub mod types {
@@ -80,6 +81,71 @@ pub mod types {
     ///< From the Verilator documentation: "'bit' of >64 packed bits as array
     /// output from a function."
     pub type WDataOutP = *mut WData;
+
+    pub(super) trait NarrowType: Copy {}
+
+    impl NarrowType for CData {}
+    impl NarrowType for SData {}
+    impl NarrowType for IData {}
+    impl NarrowType for QData {}
+}
+
+/// A type that can be used for an output port
+pub trait OutputType {
+    #[doc(hidden)]
+    type GetterReturnType;
+
+    #[doc(hidden)]
+    unsafe fn get(mode: *mut c_void, getter: unsafe extern "C" fn(*mut c_void) -> Self::GetterReturnType) -> Self;
+}
+
+impl<T: NarrowType> OutputType for T {
+    type GetterReturnType = T;
+
+    unsafe fn get(model: *mut c_void, getter: unsafe extern "C" fn(*mut c_void) -> Self::GetterReturnType) -> Self {
+        unsafe {
+            getter(model)
+        }
+    }
+}
+
+impl<const LENGTH: usize> OutputType for WideOut<LENGTH> {
+    type GetterReturnType = types::WDataOutP;
+
+    unsafe fn get(model: *mut c_void, getter: unsafe extern "C" fn(*mut c_void) -> Self::GetterReturnType) -> Self {
+        unsafe {
+            Self::from_ptr(getter(model))
+        }
+    }
+}
+
+/// A type that can be used for an input port
+pub trait InputType {
+    #[doc(hidden)]
+    type SetterArgumentType;
+
+    #[doc(hidden)]
+    unsafe fn set(self, model: *mut c_void, setter: unsafe extern "C" fn(*mut c_void, Self::SetterArgumentType));
+}
+
+impl<T: NarrowType> InputType for T {
+    type SetterArgumentType = T;
+
+    unsafe fn set(self, model: *mut c_void, setter: unsafe extern "C" fn(*mut c_void, Self::SetterArgumentType)) {
+        unsafe {
+            setter(model, self)
+        }
+    }
+}
+
+impl<const LENGTH: usize> InputType for WideIn<LENGTH> {
+    type SetterArgumentType = types::WDataInP;
+
+    unsafe fn set(self, model: *mut c_void, setter: unsafe extern "C" fn(*mut c_void, Self::SetterArgumentType)) {
+        unsafe {
+            setter(model, self.as_ptr())
+        }
+    }
 }
 
 #[doc(hidden)]
@@ -231,7 +297,7 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     fn init_from(library: &'ctx Library, tracing_enabled: bool) -> Self;
 
     #[doc(hidden)]
-    unsafe fn model(&self) -> *mut ffi::c_void;
+    unsafe fn model(&self) -> *mut c_void;
 }
 
 /// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can

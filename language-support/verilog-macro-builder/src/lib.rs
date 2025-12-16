@@ -13,6 +13,7 @@ use marlin_verilator::{
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
+use marlin_verilator::types::WData;
 
 mod util;
 
@@ -120,34 +121,6 @@ pub fn build_verilated_struct(
         }
 
         let port_width = port_msb + 1 - port_lsb;
-        if port_width > 64 {
-            todo!("wide ports are currently unimplemented");
-        }
-
-        let verilator_interface_port_type_name = if port_width <= 8 {
-            quote! { CData }
-        } else if port_width <= 16 {
-            quote! { SData }
-        } else if port_width <= 32 {
-            quote! { IData }
-        } else if port_width <= 64 {
-            quote! { QData }
-        } else {
-            match port_direction {
-                PortDirection::Input => {
-                    quote! { WDataInP }
-                }
-                PortDirection::Output => {
-                    quote! { WDataOutP }
-                }
-                PortDirection::Inout => {
-                    todo!("Inout wide ports are not currently supported")
-                }
-            }
-        };
-        let verilator_interface_port_type = quote! {
-            #crate_name::__reexports::verilator::types::#verilator_interface_port_type_name
-        };
 
         let port_name_ident = format_ident!("{}", port_name);
         let port_formatted_name = syn::LitStr::new(
@@ -167,6 +140,30 @@ pub fn build_verilated_struct(
             #port_name_ident
         });
 
+        let port_type_with_generics = if port_width <= 8 {
+            quote! { #crate_name::__reexports::verilator::types::CData }
+        } else if port_width <= 16 {
+            quote! { #crate_name::__reexports::verilator::types::SData }
+        } else if port_width <= 32 {
+            quote! { #crate_name::__reexports::verilator::types::IData }
+        } else if port_width <= 64 {
+            quote! { #crate_name::__reexports::verilator::types::QData }
+        } else {
+            let length = port_width.div_ceil(WData::BITS as usize);
+            match port_direction {
+                PortDirection::Input => {
+                    quote! { #crate_name::__reexports::verilator::WideIn<#length> }
+                }
+                PortDirection::Output => {
+                    quote! { #crate_name::__reexports::verilator::WideOut<#length> }
+                }
+
+                PortDirection::Inout => {
+                    todo!("Inout wide ports are not currently supported")
+                }
+            }
+        };
+
         match port_direction {
             PortDirection::Input => {
                 verilated_model_init_impl.push(quote! {
@@ -181,7 +178,7 @@ pub fn build_verilated_struct(
 
                 port_members.push(quote! {
                     #[doc = #port_documentation]
-                    pub #port_name_ident: ::marlin::InputPort<'ctx, #verilator_interface_port_type>
+                    pub #port_name_ident: ::marlin::InputPort<'ctx, #port_type_with_generics>
                 });
             }
             PortDirection::Output => {
@@ -197,7 +194,7 @@ pub fn build_verilated_struct(
 
                 port_members.push(quote! {
                     #[doc = #port_documentation]
-                    pub #port_name_ident: ::marlin::OutputPort<'ctx, #verilator_interface_port_type>
+                    pub #port_name_ident: ::marlin::OutputPort<'ctx, #port_type_with_generics>
                 });
             }
             _ => todo!("Unhandled port direction"),
