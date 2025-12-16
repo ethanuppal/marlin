@@ -22,11 +22,11 @@ For instance:
 ```rs
 impl Top<'_> {
     fn tick(&mut self, vcd: &mut Vcd<'_>, timestamp: &mut u64) {
-        self.clk = 0;
+        self.clk.set(0);
         self.eval();
         *timestamp += 1;
         vcd.dump(*timestamp);
-        self.clk = 1;
+        self.clk.set(1);
         self.eval();
         *timestamp += 1;
         vcd.dump(*timestamp);
