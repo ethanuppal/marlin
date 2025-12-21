@@ -32,12 +32,12 @@ fn forwards_correctly() -> Result<(), Whatever> {
 
     let mut main = runtime.create_model_simple::<WideMain>()?;
 
-    main.wide_input = WideIn::new([u32::MAX, u32::MAX, 1]);
-    println!("{:?}", main.wide_output);
-    assert_eq!(main.wide_output.value(), &[0; 3]);
+    main.wide_input.set(WideIn::new([u32::MAX, u32::MAX, 1]));
+    println!("{:?}", main.wide_output.get());
+    assert_eq!(main.wide_output.get().value(), &[0; 3]);
     main.eval();
-    println!("{:?}", main.wide_output);
-    assert_eq!(main.wide_output.value(), &[u32::MAX, u32::MAX, 1]);
+    println!("{:?}", main.wide_output.get());
+    assert_eq!(main.wide_output.get().value(), &[u32::MAX, u32::MAX, 1]);
 
     Ok(())
 }

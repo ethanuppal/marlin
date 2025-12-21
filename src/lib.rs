@@ -31,6 +31,10 @@ pub use marlin_spade as spade;
 #[cfg(feature = "veryl")]
 pub use marlin_veryl as veryl;
 
+pub mod prelude {
+    pub use super::{OutputPort, InputPort, OutputType, InputType, Evaluator};
+}
+
 /// A reference to the verilator model
 #[derive(Clone)]
 pub struct ModelRef<'ctx> {
