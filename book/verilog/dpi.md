@@ -108,7 +108,7 @@ fn main() -> Result<(), Whatever> {
 
     let mut main = runtime.create_model_simple::<Main>()?;
     main.eval();
-    assert_eq!(main.out, 3);
+    assert_eq!(main.out.get(), 3);
 
     Ok(())
 }

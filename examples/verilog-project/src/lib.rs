@@ -36,18 +36,19 @@ pub mod enclosed {
 /// Compiles if we can parse the `var` keyword.
 mod parses_var_test {
     use marlin::{verilator::types, verilog::prelude::*};
+    use marlin::prelude::*;
 
     #[verilog(src = "src/parse_var.sv", name = "main")]
     pub struct ParsesVarTest;
 
     #[allow(unused)]
-    const fn size_of_return_type<T, U>(f: impl FnOnce(T) -> U) -> usize {
+    const fn size_of_port_type<'a, M, T: InputType>(f: impl FnOnce(M) -> InputPort<'a, T>) -> usize {
         std::mem::forget(f);
-        size_of::<U>()
+        size_of::<T>()
     }
 
     const _: () = assert!(
-        size_of_return_type::<ParsesVarTest, _>(|dut| dut.clk)
+        size_of_port_type(|dut: ParsesVarTest| dut.clk)
             == size_of::<types::CData>()
     );
 }
