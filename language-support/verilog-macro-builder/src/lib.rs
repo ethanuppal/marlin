@@ -215,15 +215,19 @@ pub fn build_verilated_struct(
                 let setter = format_ident!("pin_{}", port_name);
                 struct_members.push(quote! {
                     #[doc(hidden)]
-                    #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type)
+                    #setter: unsafe extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type)
                 });
                 if port_width <= 64 {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident);
+                        unsafe {
+                            (self.#setter)(self.model, self.#port_name_ident);
+                        }
                     });
                 } else {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident.as_ptr());
+                        unsafe {
+                            (self.#setter)(self.model, self.#port_name_ident.as_ptr());
+                        }
                     });
                 }
 
@@ -245,7 +249,7 @@ pub fn build_verilated_struct(
                 }
 
                 verilated_model_init_impl.push(quote! {
-                    let #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type) =
+                    let #setter: unsafe extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type) =
                         *unsafe { library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
@@ -302,20 +306,24 @@ pub fn build_verilated_struct(
                 let getter = format_ident!("read_{}", port_name);
                 struct_members.push(quote! {
                     #[doc(hidden)]
-                    #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type
+                    #getter: unsafe extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type
                 });
                 if port_width <= 64 {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = (self.#getter)(self.model);
+                        unsafe {
+                            self.#port_name_ident = (self.#getter)(self.model);
+                        }
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
+                        unsafe {
+                            self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
+                        }
                     });
                 }
 
                 verilated_model_init_impl.push(quote! {
-                    let #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type =
+                    let #getter: unsafe extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type =
                         *unsafe { library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
@@ -345,7 +353,7 @@ pub fn build_verilated_struct(
 
     struct_members.push(quote! {
         #[doc(hidden)]
-        eval_model: extern "C" fn(*mut std::ffi::c_void)
+        eval_model: unsafe extern "C" fn(*mut std::ffi::c_void)
     });
 
     let struct_name = item.ident;
@@ -371,7 +379,9 @@ pub fn build_verilated_struct(
             #[doc = "Equivalent to the Verilator `eval` method."]
             pub fn eval(&mut self) {
                 #(#preeval_impl)*
-                (self.eval_model)(self.model);
+                unsafe {
+                    (self.eval_model)(self.model);
+                }
                 #(#posteval_impl)*
             }
 
