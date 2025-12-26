@@ -1,6 +1,6 @@
 #[no_mangle(all)]
-entity main(out: inv &int<8>) {
-    set out = &42;
+entity main(out2: inv &int<8>) {
+    set out2 = &42;
 }
 
 #[no_mangle(all)]

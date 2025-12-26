@@ -12,7 +12,7 @@ use marlin_verilator::{
     types::WData,
 };
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::{ToTokens, format_ident, quote};
 use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
 
 mod util;
@@ -348,6 +348,14 @@ pub fn build_verilated_struct(
         eval_model: extern "C" fn(*mut std::ffi::c_void)
     });
 
+    let absolute_source_path = if source_path.value().starts_with("/") {
+        source_path.to_token_stream()
+    } else {
+        quote! {
+            concat!(env!("CARGO_MANIFEST_DIR"), "/", #source_path)
+        }
+    };
+
     let struct_name = item.ident;
     let vis = item.vis;
     let port_count = verilated_model_ports_impl.len();
@@ -403,6 +411,8 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::AsVerilatedModel<'ctx> for #struct_name<'ctx> {
+            const SOURCE: &'static str = include_str!(#absolute_source_path);
+
             fn name() -> &'static str {
                 #top_name
             }
