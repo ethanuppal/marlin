@@ -46,7 +46,7 @@ fn main_tutorial() -> Result<(), Whatever> {
     let mut main = runtime.create_model_simple::<DpiMain>()?;
     main.eval();
 
-    assert_eq!(main.out, SET_OUT_TO as u32);
+    assert_eq!(main.out.get(), SET_OUT_TO as u32);
 
     Ok(())
 }
@@ -83,8 +83,8 @@ fn other_test() -> Result<(), Whatever> {
     let mut main = runtime.create_model_simple::<MoreDpiMain>()?;
     main.eval();
 
-    assert_eq!(main.int_out, SET_UNSIGNED_INT_OUT_TO);
-    assert_eq!(main.bool_out, SET_BOOL_OUT_TO as u8);
+    assert_eq!(main.int_out.get(), SET_UNSIGNED_INT_OUT_TO);
+    assert_eq!(main.bool_out.get(), SET_BOOL_OUT_TO as u8);
 
     Ok(())
 }
