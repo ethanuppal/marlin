@@ -129,3 +129,7 @@ Through [`VerilatorRuntimeOptions::verilator_executable`](https://docs.rs/marlin
 you can specify your own interface-compatible Verilator wrapper, enabling (b).
 
 [crates.io]: https://crates.io/crates/marlin
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ethanuppal/marlin&type=date&legend=top-left)](https://www.star-history.com/#ethanuppal/marlin&type=date&legend=top-left)
