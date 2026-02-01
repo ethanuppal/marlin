@@ -95,6 +95,7 @@ fn build_ffi(
         r#"
 #include "verilated.h"
 #include "V{top_module}.h"
+#include <algorithm>
 
 extern "C" {{
     void* {new_top}() {{
@@ -153,29 +154,55 @@ extern "C" {{
         let read_port = ffi_names::read_port(top_module, port);
 
         if matches!(direction, PortDirection::Input | PortDirection::Inout) {
-            let input_type = type_macro(Some("new_value"));
-            writeln!(
-                &mut buffer,
-                r#"
+            // Wide ports use pointer types to avoid ABI issues with large structs
+            if width > 64 {
+                let words = width.div_ceil(32);
+                writeln!(
+                    &mut buffer,
+                    r#"
+    void {pin_port}(V{top_module}* top, const WData* new_value) {{
+        std::copy(new_value, new_value + {words}, top->{port}.data());
+    }}
+            "#
+                )
+                .whatever_context("Failed to format wide input port FFI")?;
+            } else {
+                let input_type = type_macro(Some("new_value"));
+                writeln!(
+                    &mut buffer,
+                    r#"
     void {pin_port}(V{top_module}* top, {input_type}) {{
         top->{port} = new_value;
     }}
             "#
-            )
-            .whatever_context("Failed to format input port FFI")?;
+                )
+                .whatever_context("Failed to format input port FFI")?;
+            }
         }
 
         if matches!(direction, PortDirection::Output | PortDirection::Inout) {
-            let return_type = type_macro(None);
-            writeln!(
-                &mut buffer,
-                r#"
+            if width > 64 {
+                writeln!(
+                    &mut buffer,
+                    r#"
+    WData* {read_port}(V{top_module}* top) {{
+        return top->{port}.data();
+    }}
+            "#
+                )
+                .whatever_context("Failed to format wide output port FFI")?;
+            } else {
+                let return_type = type_macro(None);
+                writeln!(
+                    &mut buffer,
+                    r#"
     {return_type} {read_port}(V{top_module}* top) {{
         return top->{port};
     }}
             "#
-            )
-            .whatever_context("Failed to format output port FFI")?;
+                )
+                .whatever_context("Failed to format output port FFI")?;
+            }
         }
     }
 

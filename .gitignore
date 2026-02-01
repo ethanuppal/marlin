@@ -1,7 +1,5 @@
 target/
-**/artifacts/
-**/artifacts2/
-**/artifacts3/
+**/artifacts*/
 docs/
 version.txt
 *.vcd

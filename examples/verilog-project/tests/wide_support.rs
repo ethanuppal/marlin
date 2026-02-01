@@ -67,7 +67,7 @@ fn forwards_correctly_dynamically() -> Result<(), Whatever> {
         .whatever_context("pin")?;
     assert_eq!(
         main.read("wide_output").whatever_context("first read")?,
-        VerilatorValue::NotDriven
+        VerilatorValue::WDataOutP(vec![0, 0, 0])
     );
     main.eval();
     assert_eq!(

@@ -20,6 +20,12 @@ pub struct Main;
 #[verilog(src = "src/wide_main.sv", name = "wide_main")]
 pub struct WideMain;
 
+#[verilog(src = "src/very_wide_main.sv", name = "very_wide_main")]
+pub struct VeryWideMain;
+
+#[verilog(src = "src/very_wide_registered.sv", name = "very_wide_registered")]
+pub struct VeryWideRegistered;
+
 #[verilog(src = "src/dpi.sv", name = "dpi_main")]
 pub struct DpiMain;
 
