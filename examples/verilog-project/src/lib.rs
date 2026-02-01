@@ -26,6 +26,9 @@ pub struct DpiMain;
 #[verilog(src = "src/more_dpi.sv", name = "dpi_main")]
 pub struct MoreDpiMain;
 
+#[verilog(src = "src/defines.sv", name = "defines_main")]
+pub struct DefinesMain;
+
 pub mod enclosed {
     use marlin::verilog::prelude::*;
 

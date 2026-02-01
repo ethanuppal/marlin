@@ -451,6 +451,9 @@ pub fn build_library(
     for include_directory in include_directories {
         verilator_command.arg(format!("-I{include_directory}"));
     }
+    for define in &options.defines {
+        verilator_command.arg(format!("+define+{define}"));
+    }
     if let Some(dpi_file) = dpi_file {
         verilator_command.arg(dpi_file);
     }

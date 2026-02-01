@@ -56,3 +56,40 @@ test!(first_test);
 test!(second_test);
 test!(third_test);
 test!(fourth_test);
+
+#[test]
+#[snafu::report]
+fn test_preprocessor_defines() -> Result<(), Whatever> {
+    use example_verilog_project::DefinesMain;
+
+    let runtime = VerilatorRuntime::new(
+        "artifacts".into(),
+        &["src/defines.sv".as_ref()],
+        &[],
+        [],
+        VerilatorRuntimeOptions::default(),
+    )?;
+
+    let mut dut = runtime.create_model_simple::<DefinesMain>()?;
+    dut.data_in = 0xDEAD_BEEF;
+    dut.eval();
+    assert_eq!(dut.data_out, 0xDEAD_BEEF);
+
+    let runtime = VerilatorRuntime::new(
+        "artifacts".into(),
+        &["src/defines.sv".as_ref()],
+        &[],
+        [],
+        VerilatorRuntimeOptions {
+            defines: vec!["INVERT_OUTPUT".into()],
+            ..Default::default()
+        },
+    )?;
+
+    let mut dut = runtime.create_model_simple::<DefinesMain>()?;
+    dut.data_in = 0xDEAD_BEEF;
+    dut.eval();
+    assert_eq!(dut.data_out, !0xDEAD_BEEF);
+
+    Ok(())
+}

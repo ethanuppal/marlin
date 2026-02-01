@@ -248,6 +248,10 @@ pub struct VerilatorRuntimeOptions {
 
     /// Whether to use the log crate.
     pub log: bool,
+
+    /// Preprocessor defines to pass to Verilator (e.g., `["SIMULATION", "DEBUG"]`
+    /// becomes `+define+SIMULATION +define+DEBUG`).
+    pub defines: Vec<String>,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -256,6 +260,7 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             force_verilator_rebuild: false,
             log: false,
+            defines: Vec::new(),
         }
     }
 }
@@ -609,6 +614,7 @@ impl VerilatorRuntime {
         let mut hasher = hash::DefaultHasher::new();
         ports.hash(&mut hasher);
         config.hash(&mut hasher);
+        self.options.defines.hash(&mut hasher);
         let library_key = LibraryArenaKey {
             name: name.to_owned(),
             source_path: source_path.to_owned(),
