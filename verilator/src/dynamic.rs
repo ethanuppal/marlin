@@ -91,9 +91,13 @@ impl<'a, const LENGTH: usize> From<&'a [types::WData; LENGTH]>
     }
 }
 
-impl<const LENGTH: usize> From<WideOut<LENGTH>> for VerilatorValue<'_> {
-    fn from(value: WideOut<LENGTH>) -> Self {
-        Self::WDataOutP(value.inner.to_vec())
+impl<const LENGTH: usize> From<&WideOut<'_, LENGTH>> for VerilatorValue<'_> {
+    fn from(value: &WideOut<'_, LENGTH>) -> Self {
+        if value.is_initialized() {
+            Self::WDataOutP(value.value().to_vec())
+        } else {
+            Self::NotDriven
+        }
     }
 }
 

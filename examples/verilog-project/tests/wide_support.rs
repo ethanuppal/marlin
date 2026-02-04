@@ -19,24 +19,38 @@ use marlin::verilator::{
 };
 use snafu::{ResultExt, Whatever};
 
-#[test]
-//#[snafu::report]
-fn forwards_correctly() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
+fn make_runtime(
+    artifacts_dir: &str,
+    sv_path: &str,
+) -> Result<VerilatorRuntime, Whatever> {
+    VerilatorRuntime::new(
+        artifacts_dir.into(),
+        &[sv_path.as_ref()],
         &[],
         [],
         VerilatorRuntimeOptions::default_logging(),
-    )?;
+    )
+}
+
+fn panic_message(payload: Box<dyn std::any::Any + Send>) -> String {
+    if let Some(message) = payload.downcast_ref::<&str>() {
+        (*message).to_string()
+    } else if let Some(message) = payload.downcast_ref::<String>() {
+        message.clone()
+    } else {
+        "<non-string panic>".to_string()
+    }
+}
+
+#[test]
+//#[snafu::report]
+fn forwards_correctly() -> Result<(), Whatever> {
+    let runtime = make_runtime("artifacts2", "src/wide_main.sv")?;
 
     let mut main = runtime.create_model_simple::<WideMain>()?;
 
     main.wide_input = WideIn::new([u32::MAX, u32::MAX, 1]);
-    println!("{:?}", main.wide_output);
-    assert_eq!(main.wide_output.value(), &[0; 3]);
     main.eval();
-    println!("{:?}", main.wide_output);
     assert_eq!(main.wide_output.value(), &[u32::MAX, u32::MAX, 1]);
 
     Ok(())
@@ -45,13 +59,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
 #[test]
 //#[snafu::report]
 fn forwards_correctly_dynamically() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
-        [],
-        VerilatorRuntimeOptions::default_logging(),
-    )?;
+    let runtime = make_runtime("artifacts2", "src/wide_main.sv")?;
 
     let mut main = runtime.create_dyn_model(
         "wide_main",
@@ -65,15 +73,36 @@ fn forwards_correctly_dynamically() -> Result<(), Whatever> {
 
     main.pin("wide_input", &[u32::MAX, u32::MAX, 1])
         .whatever_context("pin")?;
-    assert_eq!(
-        main.read("wide_output").whatever_context("first read")?,
-        VerilatorValue::WDataOutP(vec![0, 0, 0])
-    );
     main.eval();
     assert_eq!(
         main.read("wide_output").whatever_context("second read")?,
         VerilatorValue::WDataOutP(vec![u32::MAX, u32::MAX, 1])
     );
+
+    Ok(())
+}
+
+#[test]
+fn uninitialized_wide_out_behaves_safely() -> Result<(), Whatever> {
+    let runtime = make_runtime("artifacts_init_test", "src/wide_main.sv")?;
+    let mut main = runtime.create_model_simple::<WideMain>()?;
+
+    assert!(!main.wide_output.is_initialized());
+
+    let debug_str = format!("{:?}", main.wide_output);
+    assert!(debug_str.contains("<uninitialized>"));
+
+    let value: VerilatorValue = (&main.wide_output).into();
+    assert_eq!(value, VerilatorValue::NotDriven);
+
+    let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = main.wide_output.value();
+    }));
+    let message = panic_message(panic.expect_err("expected panic"));
+    assert!(message.contains("WideOut::value() called on uninitialized port"));
+
+    main.eval();
+    assert!(main.wide_output.is_initialized());
 
     Ok(())
 }

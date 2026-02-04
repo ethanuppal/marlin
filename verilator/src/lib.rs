@@ -18,7 +18,6 @@ use std::{
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
-    slice,
     sync::{LazyLock, Mutex},
     time::Instant,
 };
@@ -125,31 +124,103 @@ impl<const LENGTH: usize> Default for WideIn<LENGTH> {
 }
 
 /// See [`WideIn`].
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct WideOut<const LENGTH: usize> {
-    inner: [types::WData; LENGTH],
+///
+/// Unlike [`WideIn`], `WideOut` holds a reference to the Verilator model's
+/// internal data rather than owning a copy. This avoids unnecessary copying
+/// when reading wide output ports.
+///
+/// The lifetime `'ctx` is tied to the [`VerilatorRuntime`] that created the
+/// model, ensuring the reference remains valid.
+pub struct WideOut<'ctx, const LENGTH: usize> {
+    ptr: types::WDataOutP,
+    _marker: std::marker::PhantomData<&'ctx [types::WData; LENGTH]>,
 }
 
-impl<const LENGTH: usize> WideOut<LENGTH> {
-    pub fn value(&self) -> &[types::WData; LENGTH] {
-        &self.inner
+impl<'ctx, const LENGTH: usize> WideOut<'ctx, LENGTH> {
+    /// Returns a reference to the underlying data.
+    ///
+    /// This directly references the Verilator model's internal state without
+    /// copying. The returned reference has lifetime `'ctx` since the data
+    /// lives in the model for the runtime's lifetime.
+    pub fn value(&self) -> &'ctx [types::WData; LENGTH] {
+        assert!(
+            !self.ptr.is_null(),
+            "WideOut::value() called on uninitialized port; ensure eval() has been called at least once"
+        );
+        // SAFETY: The pointer is valid for 'ctx, and LENGTH matches the
+        // allocation size as guaranteed by the FFI layer.
+        unsafe { &*(self.ptr as *const [types::WData; LENGTH]) }
+    }
+
+    /// Returns true if this port has been initialized (i.e., eval() has been called).
+    pub fn is_initialized(&self) -> bool {
+        !self.ptr.is_null()
     }
 
     /// # Safety
     ///
-    /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
-    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    /// - `raw` must point to a valid `[WData; LENGTH]` array
+    /// - The pointed-to data must remain valid for lifetime `'ctx`
     #[doc(hidden)]
-    pub fn from_ptr(raw: types::WDataOutP) -> Self {
-        let mut inner = [0; LENGTH];
-        inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, LENGTH) });
-        Self { inner }
+    pub unsafe fn from_ptr(raw: types::WDataOutP) -> Self {
+        Self {
+            ptr: raw,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<const LENGTH: usize> Default for WideOut<LENGTH> {
+impl<'ctx, const LENGTH: usize> Clone for WideOut<'ctx, LENGTH> {
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr,
+            _marker: self._marker,
+        }
+    }
+}
+
+impl<'ctx, const LENGTH: usize> Default for WideOut<'ctx, LENGTH> {
     fn default() -> Self {
-        Self { inner: [0; LENGTH] }
+        Self {
+            ptr: std::ptr::null_mut(),
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'ctx, const LENGTH: usize> fmt::Debug for WideOut<'ctx, LENGTH> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.ptr.is_null() {
+            f.debug_struct("WideOut")
+                .field("value", &"<uninitialized>")
+                .finish()
+        } else {
+            f.debug_struct("WideOut")
+                .field("value", &self.value())
+                .finish()
+        }
+    }
+}
+
+impl<'ctx, const LENGTH: usize> PartialEq for WideOut<'ctx, LENGTH> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.ptr.is_null(), other.ptr.is_null()) {
+            (true, true) => true,
+            (false, false) => self.value() == other.value(),
+            _ => false,
+        }
+    }
+}
+
+impl<'ctx, const LENGTH: usize> Eq for WideOut<'ctx, LENGTH> {}
+
+impl<'ctx, const LENGTH: usize> std::hash::Hash for WideOut<'ctx, LENGTH> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        if self.ptr.is_null() {
+            None::<()>.hash(state);
+        } else {
+            self.value().hash(state);
+        }
     }
 }
 

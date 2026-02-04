@@ -162,7 +162,7 @@ pub fn build_verilated_struct(
                     quote! { #crate_name::__reexports::verilator::WideIn<#length> }
                 }
                 PortDirection::Output => {
-                    quote! { #crate_name::__reexports::verilator::WideOut<#length> }
+                    quote! { #crate_name::__reexports::verilator::WideOut<'ctx, #length> }
                 }
 
                 PortDirection::Inout => {
@@ -310,7 +310,9 @@ pub fn build_verilated_struct(
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
+                        // SAFETY: The FFI function returns a valid pointer to the model's
+                        // internal VlWide<N>::data(), which remains stable for 'ctx.
+                        self.#port_name_ident = unsafe { #port_type_without_generics::from_ptr((self.#getter)(self.model)) };
                     });
                 }
 
@@ -321,9 +323,15 @@ pub fn build_verilated_struct(
                 });
                 verilated_model_init_self.push(quote! { #getter });
 
-                dynamic_read_arms.push(quote! {
-                    #port_name_literal => Ok(self.#port_name_ident.clone().into())
-                });
+                if port_width <= 64 {
+                    dynamic_read_arms.push(quote! {
+                        #port_name_literal => Ok(self.#port_name_ident.into())
+                    });
+                } else {
+                    dynamic_read_arms.push(quote! {
+                        #port_name_literal => Ok((&self.#port_name_ident).into())
+                    });
+                }
             }
             _ => todo!("Unhandled port direction"),
         }
