@@ -113,6 +113,10 @@ I use [`cargo-deny`](https://github.com/EmbarkStudios/cargo-deny) (see the
 check this on CI to prevent merging any new dependencies or dependency updates
 that introduce incompatible licenses.
 
+### Large Language Models
+
+I do not permit any contributions containing output, in part or in whole, from large language models (LLMs) or other probabilistic models.
+
 ### Verilator
 
 Verilator is licensed under the Lesser GNU General Public License 3.0. However,
