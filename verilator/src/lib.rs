@@ -218,13 +218,17 @@ impl Default for VerilatedModelConfig {
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
 pub trait AsVerilatedModel<'ctx>: 'ctx {
-    /// The source-level name of the module.
+    /// The source file contents of the model.
+    #[doc(hidden)]
+    const SOURCE: &'static str;
+
+    /// The source-level name of the model.
     fn name() -> &'static str;
 
-    /// The path of the module's definition.
+    /// The path of the model's definition.
     fn source_path() -> &'static str;
 
-    /// The module's interface.
+    /// The model's interface.
     fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
 
     #[doc(hidden)]
