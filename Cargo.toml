@@ -44,9 +44,9 @@ proc-macro2 = { version = "1.0.93", default-features = false }
 syn = { version = "2.0.96", features = ["full"] }
 quote = { version = "1.0.38", default-features = false }
 
-sv-parser = { version = "0.13.3", default-features = false }
-spade-parser = { version = "0.14.0", default-features = false }
-spade-ast = { version = "0.14.0", default-features = false }
+sv-parser = { version = "0.13.4", default-features = false }
+spade-parser = { version = "0.16.0", default-features = false }
+spade-ast = { version = "0.16.0", default-features = false }
 veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
 marlin-verilator = { path = "verilator", version = "0.10.0" }

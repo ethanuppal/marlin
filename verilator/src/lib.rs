@@ -87,6 +87,13 @@ pub const fn compute_wdata_length_from_width_not_msb(width: usize) -> usize {
     width.div_ceil(types::WData::BITS as usize)
 }
 
+pub mod utils {
+    pub fn compute_wdata_length_from_msb(width: usize) -> usize {
+        // TODO: what the hell
+        super::compute_wdata_length_from_width_not_msb(width)
+    }
+}
+
 /// Computes the width upper bound for the given `length`.
 #[doc(hidden)]
 pub const fn compute_approx_width_from_wdata_length(length: usize) -> usize {
@@ -224,7 +231,8 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     /// The path of the module's definition.
     fn source_path() -> &'static str;
 
-    /// The module's interface.
+    /// The module's interface; each element is `(port_name, port_msb, port_lsb,
+    /// port_direction)`.
     fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
 
     #[doc(hidden)]

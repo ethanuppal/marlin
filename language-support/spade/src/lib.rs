@@ -26,6 +26,7 @@ pub mod prelude {
     pub use crate as spade;
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
+    pub use marlin_verilator::AsVerilatedModel;
 }
 
 const SWIM_TOML: &str = "swim.toml";
