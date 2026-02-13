@@ -3666,6 +3666,21 @@ For instance:</p>
     }
 }
 </code></pre>
+<p>You could also wrap the <code>Vcd</code> in another <code>struct</code>:</p>
+<pre><code class="language-rs">pub struct GoodVcd&lt;'a&gt; {
+    inner: Vcd&lt;'a&gt;,
+    timestamp: u64,
+}
+
+impl&lt;'a&gt; From&lt;Vcd&lt;'a&gt;&gt; for GoodVcd&lt;'a&gt; {
+    fn from(vcd: Vcd&lt;'a&gt;) -&gt; Self {
+        Self {
+            inner: vcd,
+            timestamp: 0,
+        }
+    }
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-callouts {
   padding: 8px 16px;
