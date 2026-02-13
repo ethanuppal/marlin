@@ -81,7 +81,7 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     let Some(unit_head) =
         top_level.members.iter().find_map(|item| match item {
             spade_ast::Item::Unit(unit)
-                if unit.head.name.0.as_str() == args.name.value().as_str() =>
+                if unit.head.name.as_str() == args.name.value().as_str() =>
             {
                 Some(unit.head.clone())
             }
@@ -94,7 +94,8 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
             .filter_map(|item| match item {
                 spade_ast::Item::Unit(unit) => Some(format!(
                     "{} {}",
-                    unit.head.unit_kind, unit.head.name.0
+                    unit.head.unit_kind,
+                    unit.head.name.as_str()
                 )),
                 _ => None,
             })
@@ -173,7 +174,12 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
 
         let port_msb = spade_simple_type_width(&port_type.inner) - 1;
 
-        ports.push((port_name.inner.0.clone(), port_msb, 0, port_direction));
+        ports.push((
+            port_name.inner.as_str().to_string(),
+            port_msb,
+            0,
+            port_direction,
+        ));
     }
 
     build_verilated_struct(
@@ -223,7 +229,7 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
             if name.inner.0.len() != 1 {
                 panic!("I'm so done writing error messages");
             }
-            match name.inner.0[0].inner.0.as_str() {
+            match name.inner.0[0].unwrap_named().as_str() {
                 "int" | "uint" => {
                     if args.is_none() {
                         panic!(

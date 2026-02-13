@@ -33,3 +33,21 @@ impl Top<'_> {
     }
 }
 ```
+
+You could also wrap the `Vcd` in another `struct`:
+
+```rs
+pub struct GoodVcd<'a> {
+    inner: Vcd<'a>,
+    timestamp: u64,
+}
+
+impl<'a> From<Vcd<'a>> for GoodVcd<'a> {
+    fn from(vcd: Vcd<'a>) -> Self {
+        Self {
+            inner: vcd,
+            timestamp: 0,
+        }
+    }
+}
+```
