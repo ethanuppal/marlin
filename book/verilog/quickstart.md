@@ -118,12 +118,12 @@ fn forwards_u32max_correctly() -> Result<(), Whatever> {
 
     let mut main = runtime.create_model_simple::<Main>()?;
 
-    main.medium_input = u32::MAX;
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, 0);
+    main.medium_input.set(u32::MAX);
+    println!("{}", main.medium_output.get());
+    assert_eq!(main.medium_output.get(), 0);
     main.eval();
-    println!("{}", main.medium_output);
-    assert_eq!(main.medium_output, u32::MAX);
+    println!("{}", main.medium_output.get());
+    assert_eq!(main.medium_output.get(), u32::MAX);
 
     Ok(())
 }
