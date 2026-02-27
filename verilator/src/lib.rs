@@ -705,14 +705,14 @@ impl VerilatorRuntime {
                     log::info!("Acquiring file lock on build directory");
                 }
                 let lockfile = fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(self.artifact_directory.join(format!("{local_directory_name}.lock")))
-                .whatever_context(
-                    "Failed to open lockfile for artifacts directory (this is not the actual lock itself, it is an I/O error)",
-                )?;
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .truncate(true)
+                    .open(self.artifact_directory.join(format!("{local_directory_name}.lock")))
+                    .whatever_context(
+                        "Failed to open lockfile for artifacts directory (this is not the actual lock itself, it is an I/O error)",
+                    )?;
 
                 let _file_lock = file_guard::lock(
                     &lockfile,
