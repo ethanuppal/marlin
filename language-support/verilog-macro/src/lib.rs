@@ -208,7 +208,7 @@ fn parse_dpi_type(ty: &syn::Type) -> Result<DPIType, syn::Error> {
 ///
 /// ## More
 ///
-/// Please reference the [Verilator docs on VPI](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi) for further information.
+/// Please reference the [Verilator docs on DPI](https://verilator.org/guide/latest/connecting.html#direct-programming-interface-dpi) for further information.
 /// You can also see the [corresponding page in the Marlin handbook](https://www.ethanuppal.com/marlin/verilog/dpi.html).
 #[proc_macro_attribute]
 pub fn dpi(_args: TokenStream, item: TokenStream) -> TokenStream {

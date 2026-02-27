@@ -21,6 +21,7 @@
 - [Bridging Macros](reference/bridging-macros.md)
 - [Waveform Tracing](reference/vcd.md)
 - [Model Traits](reference/model-traits.md)
+- [Dynamic API Values](reference/dynamic-api-values.md)
 
 ---
 
@@ -31,4 +32,4 @@
 - [Release Process](internal/release-process.md)
 - [How Marlin Works](internal/how-it-works.md)
 - [Verilator Runtime](internal/verilator-runtime.md)
-- [Wide Port Support](internal/wide-support.md)
+- [Verilator Port Generation](internal/verilator-port-generation.md)

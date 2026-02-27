@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -31,7 +31,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -73,46 +73,49 @@ pub mod types {
     /// (used as pointer)."
     pub type WData = EData;
 
-    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// From the Verilator documentation: "'bit' of >64 packed bits as array
     /// input to a function."
     pub type WDataInP = *const WData;
 
-    ///< From the Verilator documentation: "'bit' of >64 packed bits as array
+    /// From the Verilator documentation: "'bit' of >64 packed bits as array
     /// output from a function."
     pub type WDataOutP = *mut WData;
 }
 
-#[doc(hidden)]
-pub const fn compute_wdata_length_from_width_not_msb(width: usize) -> usize {
+/// Computes the length of the [`types::WData`] array that Verilator generates
+/// for a given wide port of bit width `width`.
+///
+/// See also: [`compute_approx_width_from_wdata_word_count`]
+pub const fn compute_wdata_word_count_from_width_not_msb(
+    width: usize,
+) -> usize {
     width.div_ceil(types::WData::BITS as usize)
 }
 
-pub mod utils {
-    pub fn compute_wdata_length_from_msb(width: usize) -> usize {
-        // TODO: what the hell
-        super::compute_wdata_length_from_width_not_msb(width)
-    }
+/// Computes the width upper bound for a wide port with the given the given
+/// `word_count` of the [`types::WData`] array Verilator generates.
+///
+/// See also: [`compute_wdata_word_count_from_width_not_msb`]
+pub const fn compute_approx_width_from_wdata_word_count(
+    word_count: usize,
+) -> usize {
+    word_count * (types::WData::BITS as usize)
 }
 
-/// Computes the width upper bound for the given `length`.
-#[doc(hidden)]
-pub const fn compute_approx_width_from_wdata_length(length: usize) -> usize {
-    length * (types::WData::BITS as usize)
-}
-
-///  `LENGTH` is `compute_wdata_length_from_width_not_msb(HIGH + 1)` where
-/// `HIGH` is the  most significant bit.
+///  `WORDS` is [`compute_wdata_word_count_from_width_not_msb`]`(HIGH + 1 -
+/// LOW)` where `HIGH` is the  most significant bit index and `LOW` is the
+/// least.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct WideIn<const LENGTH: usize> {
-    inner: [types::WData; LENGTH],
+pub struct WideIn<const WORDS: usize> {
+    inner: [types::WData; WORDS],
 }
 
-impl<const LENGTH: usize> WideIn<LENGTH> {
-    pub fn new(value: [types::WData; LENGTH]) -> Self {
+impl<const WORDS: usize> WideIn<WORDS> {
+    pub fn new(value: [types::WData; WORDS]) -> Self {
         Self { inner: value }
     }
 
-    pub fn value(&self) -> &[types::WData; LENGTH] {
+    pub fn value(&self) -> &[types::WData; WORDS] {
         &self.inner
     }
 
@@ -125,42 +128,47 @@ impl<const LENGTH: usize> WideIn<LENGTH> {
     }
 }
 
-impl<const LENGTH: usize> Default for WideIn<LENGTH> {
+impl<const WORDS: usize> Default for WideIn<WORDS> {
     fn default() -> Self {
-        Self { inner: [0; LENGTH] }
+        Self { inner: [0; WORDS] }
     }
 }
 
 /// See [`WideIn`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub struct WideOut<const LENGTH: usize> {
-    inner: [types::WData; LENGTH],
+pub struct WideOut<const WORDS: usize> {
+    inner: [types::WData; WORDS],
 }
 
-impl<const LENGTH: usize> WideOut<LENGTH> {
-    pub fn value(&self) -> &[types::WData; LENGTH] {
+impl<const WORDS: usize> WideOut<WORDS> {
+    pub fn value(&self) -> &[types::WData; WORDS] {
         &self.inner
     }
 
     /// # Safety
     ///
-    /// `slice::from_raw_parts(raw, LENGTH)` must be defined.
+    /// `slice::from_raw_parts(raw, WORDS)` must be defined.
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
     #[doc(hidden)]
     pub fn from_ptr(raw: types::WDataOutP) -> Self {
-        let mut inner = [0; LENGTH];
-        inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, LENGTH) });
+        let mut inner = [0; WORDS];
+        inner.copy_from_slice(unsafe { slice::from_raw_parts(raw, WORDS) });
         Self { inner }
     }
 }
 
-impl<const LENGTH: usize> Default for WideOut<LENGTH> {
-    fn default() -> Self {
-        Self { inner: [0; LENGTH] }
+impl<const WORDS: usize> Into<[types::WData; WORDS]> for WideOut<WORDS> {
+    fn into(self) -> [types::WData; WORDS] {
+        self.inner
     }
 }
 
-/// <https://www.digikey.com/en/maker/blogs/2024/verilog-ports-part-7-of-our-verilog-journey>
+impl<const WORDS: usize> Default for WideOut<WORDS> {
+    fn default() -> Self {
+        Self { inner: [0; WORDS] }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum PortDirection {
     Input,
@@ -299,9 +307,9 @@ pub struct VerilatorRuntime {
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
     /// Mapping between hardware (top, path) and arena index of Verilator
-    /// implementations
+    /// implementations.
     library_map: RefCell<HashMap<LibraryArenaKey, usize>>,
-    /// Verilator implementations arena
+    /// Verilator implementations arena.
     library_arena: BoxcarVec<Library>,
     /// SAFETY: These are dropped when the runtime is dropped. They will not be
     /// "borrowed mutably" because the models created for this runtime must
@@ -314,6 +322,7 @@ impl Drop for VerilatorRuntime {
         for ModelDeallocator { model, deallocator } in
             self.model_deallocators.borrow_mut().drain(..)
         {
+            // SAFETY: todo
             deallocator(model);
         }
     }
@@ -453,7 +462,9 @@ impl VerilatorRuntime {
         let model = M::init_from(library, config.enable_tracing);
 
         self.model_deallocators.borrow_mut().push(ModelDeallocator {
-            // SAFETY: todo
+            // SAFETY: The `model` cannot outlive the runtime, and it is the
+            // model's responsibility to deallocate (because models
+            // themselves do not deallocate on `Drop`).
             model: unsafe { model.model() },
             deallocator: delete_model,
         });
