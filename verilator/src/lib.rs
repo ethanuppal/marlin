@@ -702,7 +702,7 @@ impl VerilatorRuntime {
                 // build_library is not thread-safe, so we have to lock the
                 // directory
                 if self.options.log {
-                    log::info!("Acquiring file lock on artifact directory");
+                    log::info!("Acquiring file lock on build directory");
                 }
                 let lockfile = fs::OpenOptions::new()
                 .read(true)
