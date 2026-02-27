@@ -23,7 +23,7 @@ use crate::{
         self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
         VCD_FLUSH, VCD_OPEN_NEXT,
     },
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
+    types, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
 };
 
 fn build_ffi_for_tracing(
@@ -154,17 +154,13 @@ extern "C" {{
         // Computes the C++ type for the port suitable for use in function
         // parameters and return types.
         let const_type_macro = |name: Option<&str>| {
+            let name_or_empty = name.unwrap_or("/* return value */");
             if width <= 64 {
                 format!(
-                    "{}{}({}, {}, {})",
-                    macro_prefix,
-                    macro_suffix,
-                    name.unwrap_or("/* return value */"),
-                    msb,
-                    lsb,
+                    "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
                 )
             } else {
-                "const WData* const".into()
+                format!("const WData* const {name_or_empty}")
             }
         };
 
@@ -178,8 +174,9 @@ extern "C" {{
             } else {
                 let word_count =
                     compute_wdata_word_count_from_width_not_msb(width);
+                let bytes_to_copy = word_count * (types::WData::BITS as usize);
                 // https://en.cppreference.com/w/cpp/string/byte/memcpy
-                format!("std::memcpy(top->{port}, new_value, {word_count});")
+                format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
             };
             writeln!(
                 &mut buffer,

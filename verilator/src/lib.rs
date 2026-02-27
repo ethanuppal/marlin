@@ -535,11 +535,11 @@ impl VerilatorRuntime {
         let ports = ports
             .iter()
             .copied()
-            .map(|(port, high, _low, direction)| {
+            .map(|(port, high, low, direction)| {
                 (
                     port.to_string(),
                     DynamicPortInfo {
-                        width: high + 1,
+                        width: high + 1 - low,
                         direction,
                     },
                 )
@@ -687,8 +687,8 @@ impl VerilatorRuntime {
                     _thread_lock
                 } else {
                     eprintln_nocapture!(
-                        "{} waiting for file lock on build directory",
-                        "    Blocking".bold().cyan(),
+                        "{} waiting for file lock on artifact directory",
+                        "    Blocking".bold().green(),
                     )?;
                     let Ok(_thread_lock) = thread_mutex.lock() else {
                         whatever!(

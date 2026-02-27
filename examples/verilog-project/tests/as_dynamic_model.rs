@@ -18,10 +18,10 @@ use example_verilog_project::Main;
 use marlin::verilator::{
     AsDynamicVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever};
+use snafu::Whatever;
 
 #[test]
-//#[snafu::report]
+#[snafu::report]
 fn main() -> Result<(), Whatever> {
     if env::var("RUST_LOG").is_ok() {
         env_logger::init();
@@ -37,18 +37,12 @@ fn main() -> Result<(), Whatever> {
 
     let mut main = runtime.create_model_simple::<Main>()?;
 
-    main.pin("medium_input", u32::MAX).whatever_context("pin")?;
-    println!("{}", main.read("medium_output").whatever_context("read")?);
-    assert_eq!(
-        main.read("medium_output").whatever_context("read")?,
-        0u32.into()
-    );
+    main.pin("medium_input", u32::MAX).unwrap();
+    println!("{}", main.read("medium_output").unwrap());
+    assert_eq!(main.read("medium_output").unwrap(), 0u32.into());
     main.eval();
-    println!("{}", main.read("medium_output").whatever_context("read")?);
-    assert_eq!(
-        main.read("medium_output").whatever_context("read")?,
-        u32::MAX.into()
-    );
+    println!("{}", main.read("medium_output").unwrap());
+    assert_eq!(main.read("medium_output").unwrap(), u32::MAX.into());
 
     Ok(())
 }

@@ -19,7 +19,7 @@ use marlin::verilator::{
 use snafu::Whatever;
 
 #[test]
-//#[snafu::report]
+#[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
