@@ -13,8 +13,11 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_verilog_project::Main;
-use marlin::verilator::{
-    VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
+use marlin::{
+    verilator::{
+        VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
+    },
+    verilog::prelude::*,
 };
 use snafu::Whatever;
 

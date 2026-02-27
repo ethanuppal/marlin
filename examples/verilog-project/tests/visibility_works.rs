@@ -15,7 +15,10 @@
 use std::env;
 
 use example_verilog_project::enclosed;
-use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
+use marlin::{
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilog::prelude::*,
+};
 use snafu::Whatever;
 
 #[test]

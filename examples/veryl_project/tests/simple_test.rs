@@ -13,7 +13,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_veryl_project::Wire;
-use marlin::veryl::{VerylRuntime, VerylRuntimeOptions};
+use marlin::veryl::prelude::*;
 use snafu::Whatever;
 
 #[test]

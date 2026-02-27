@@ -368,13 +368,6 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #struct_name<'ctx> {
-            #[doc = "Equivalent to the Verilator `eval` method."]
-            pub fn eval(&mut self) {
-                #(#preeval_impl)*
-                (self.eval_model)(self.model);
-                #(#posteval_impl)*
-            }
-
             pub fn open_vcd(
                 &mut self,
                 path: impl std::convert::AsRef<std::path::Path>,
@@ -452,6 +445,12 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::AsDynamicVerilatedModel<'ctx> for #struct_name<'ctx> {
+            fn eval(&mut self) {
+                #(#preeval_impl)*
+                (self.eval_model)(self.model);
+                #(#posteval_impl)*
+            }
+
             fn read(
                 &self,
                 port: impl Into<String>,
