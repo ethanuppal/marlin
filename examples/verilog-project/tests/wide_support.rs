@@ -92,8 +92,11 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
         ],
         VerilatedModelConfig::default(),
     )?;
-
-    main.pin("wide_input", [u32::MAX, u32::MAX, 1]).unwrap();
+    #[allow(
+        clippy::needless_borrows_for_generic_args,
+        reason = "false positive"
+    )]
+    main.pin("wide_input", &[u32::MAX, u32::MAX, 1]).unwrap();
     assert_eq!(main.read("wide_output").unwrap(), [0; 3].into());
     main.eval();
     assert_eq!(
@@ -115,9 +118,6 @@ fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    println!("processed");
-
-    println!("var");
     let mut main4 = runtime.create_dyn_model(
         "wide_main4",
         "src/wide_main.sv",
@@ -127,9 +127,14 @@ fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
         ],
         VerilatedModelConfig::default(),
     )?;
-    println!("foo");
 
-    main4.pin("wide_input", [u32::MAX, u32::MAX, 1, 2]).unwrap();
+    #[allow(
+        clippy::needless_borrows_for_generic_args,
+        reason = "false positive"
+    )]
+    main4
+        .pin("wide_input", &[u32::MAX, u32::MAX, 1, 2])
+        .unwrap();
     assert_eq!(main4.read("wide_output").unwrap(), [0; 4].into());
     main4.eval();
     assert_eq!(

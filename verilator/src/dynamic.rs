@@ -353,7 +353,9 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
                 )
             }
             VerilatorValue::WDataOutP(_) => {
-                unreachable!("output ports should have already been caught")
+                panic!(
+                    "Cannot pin with WDataOutP: did you accidently use the From<vec![]> instead of From<&[]>?"
+                )
             }
         }
     }
