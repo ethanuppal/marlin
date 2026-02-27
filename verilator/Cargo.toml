@@ -18,3 +18,6 @@ file-guard.workspace = true
 owo-colors.workspace = true
 dashmap.workspace = true
 boxcar.workspace = true
+
+[lints]
+workspace = true

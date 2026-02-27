@@ -23,3 +23,6 @@ quote.workspace = true
 
 spade-parser.workspace = true
 spade-ast.workspace = true
+
+[lints]
+workspace = true

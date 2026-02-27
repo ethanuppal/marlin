@@ -23,3 +23,6 @@ syn.workspace = true
 quote.workspace = true
 
 veryl-parser.workspace = true
+
+[lints]
+workspace = true
