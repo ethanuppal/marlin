@@ -296,8 +296,6 @@ pub fn veryl(args: TokenStream, item: TokenStream) -> TokenStream {
         verilog_module_name,
         verilog_source_path,
         ports,
-        args.clock_port,
-        args.reset_port,
         item.into(),
     )
     .into()

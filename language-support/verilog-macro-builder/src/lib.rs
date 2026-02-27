@@ -21,7 +21,9 @@ pub struct MacroArgs {
     pub source_path: syn::LitStr,
     pub name: syn::LitStr,
 
+    /// Deprecated; does nothing.
     pub clock_port: Option<syn::LitStr>,
+    /// Deprecated; does nothing.
     pub reset_port: Option<syn::LitStr>,
 }
 
@@ -75,8 +77,6 @@ pub fn build_verilated_struct(
     top_name: syn::LitStr,
     source_path: syn::LitStr,
     verilog_ports: Vec<(String, usize, usize, PortDirection)>,
-    clock_port: Option<syn::LitStr>,
-    reset_port: Option<syn::LitStr>,
     item: TokenStream,
 ) -> TokenStream {
     let crate_name = format_ident!("{}", macro_name);
@@ -91,8 +91,6 @@ pub fn build_verilated_struct(
 
     let mut preeval_impl = vec![];
     let mut posteval_impl = vec![];
-
-    let mut other_impl = vec![];
 
     let mut verilated_model_ports_impl = vec![];
     let mut verilated_model_init_impl = vec![];
@@ -225,23 +223,6 @@ pub fn build_verilated_struct(
                     preeval_impl.push(quote! {
                         (self.#setter)(self.model, self.#port_name_ident.as_ptr());
                     });
-                }
-
-                if let Some(clock_port) = &clock_port {
-                    if clock_port.value().as_str() == port_name {
-                        other_impl.push(quote! {
-                            pub fn tick(&mut self) {
-                                self.#port_name = 1 as _;
-                                self.eval();
-                                self.#port_name = 0 as _;
-                                self.eval();
-                            }
-                        });
-                    }
-                }
-
-                if let Some(_reset_port) = &reset_port {
-                    todo!("reset ports");
                 }
 
                 verilated_model_init_impl.push(quote! {
@@ -398,8 +379,6 @@ pub fn build_verilated_struct(
                     #crate_name::__reexports::verilator::vcd::__private::new_vcd_useless()
                 }
             }
-
-            #(#other_impl)*
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::AsVerilatedModel<'ctx> for #struct_name<'ctx> {

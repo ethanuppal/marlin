@@ -39,8 +39,6 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
             args.source_path.span(),
         ),
         ports,
-        args.clock_port,
-        args.reset_port,
         item.into(),
     )
     .into()
