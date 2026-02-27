@@ -3366,10 +3366,6 @@ encounter an error.</p>
 <li><code>name = "&lt;name&gt;"</code>: The name of the module.</li>
 <li><code>src = "&lt;file&gt;"</code>: The file where the module is defined relative to the manifest directory.</li>
 </ul>
-<p>Optionally, they take:</p>
-<ul>
-<li><code>clock = "&lt;port&gt;"</code>: The name of the clock port on the model. This generates a method called <code>.tick()</code> which performs a single clock cycle. It does NOT log to any VCDs that may be open, so consider <code>impl</code>ing your own <code>tick</code> method on the model instead if you want this behavior.</li>
-</ul>
 <p>See <a href="reference/../../internal/how-it-works.html">the relevant internal documentation</a> for technical explanation.</p>
 <div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-callouts {
