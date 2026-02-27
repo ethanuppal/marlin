@@ -99,6 +99,9 @@ impl<const LENGTH: usize> From<WideOut<LENGTH>> for VerilatorValue<'_> {
 
 /// Access model ports at runtime.
 pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
+    /// Equivalent to the Verilator `eval` method.
+    fn eval(&mut self);
+
     /// If `port` is a valid port name for this model, returns the current value
     /// of the port.
     fn read(
@@ -130,13 +133,6 @@ pub struct DynamicVerilatedModel<'ctx> {
     pub(crate) main: *mut ffi::c_void,
     pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
     pub(crate) library: &'ctx Library,
-}
-
-impl DynamicVerilatedModel<'_> {
-    /// Equivalent to the Verilator `eval` method.
-    pub fn eval(&mut self) {
-        (self.eval_main)(self.main);
-    }
 }
 
 /// Runtime port read/write error.
@@ -173,6 +169,10 @@ pub enum DynamicVerilatedModelError {
 }
 
 impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
+    fn eval(&mut self) {
+        (self.eval_main)(self.main);
+    }
+
     fn read(
         &self,
         port: impl Into<String>,
