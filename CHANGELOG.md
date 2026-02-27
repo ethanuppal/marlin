@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/ethanuppal/marlin/compare/v0.10.0...v0.10.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* Don't attempt to generate clock or reset functions ([#192](https://github.com/ethanuppal/marlin/issues/192)) ([6191fef](https://github.com/ethanuppal/marlin/commit/6191feff92b503434a8b7bbf9d18849f35b3e468))
+
 ## [0.10.0](https://github.com/ethanuppal/marlin/compare/v0.9.1...v0.10.0) (2025-12-05)
 
 
