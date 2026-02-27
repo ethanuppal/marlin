@@ -14,7 +14,7 @@
 
 use std::{
     cell::RefCell,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -31,7 +31,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, ResultExt, Whatever};
+use snafu::{ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;
@@ -157,9 +157,9 @@ impl<const WORDS: usize> WideOut<WORDS> {
     }
 }
 
-impl<const WORDS: usize> Into<[types::WData; WORDS]> for WideOut<WORDS> {
-    fn into(self) -> [types::WData; WORDS] {
-        self.inner
+impl<const WORDS: usize> From<WideOut<WORDS>> for [types::WData; WORDS] {
+    fn from(val: WideOut<WORDS>) -> Self {
+        val.inner
     }
 }
 

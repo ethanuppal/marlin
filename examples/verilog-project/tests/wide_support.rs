@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use example_verilog_project::{WideMain, WideMain2, WideMain3, WideMain4};
+use example_verilog_project::WideMain;
 use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
     VerilatorRuntime, VerilatorRuntimeOptions, WideIn,
@@ -93,7 +93,7 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
         VerilatedModelConfig::default(),
     )?;
 
-    main.pin("wide_input", &[u32::MAX, u32::MAX, 1]).unwrap();
+    main.pin("wide_input", [u32::MAX, u32::MAX, 1]).unwrap();
     assert_eq!(main.read("wide_output").unwrap(), [0; 3].into());
     main.eval();
     assert_eq!(
@@ -129,9 +129,7 @@ fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
     )?;
     println!("foo");
 
-    main4
-        .pin("wide_input", &[u32::MAX, u32::MAX, 1, 2])
-        .unwrap();
+    main4.pin("wide_input", [u32::MAX, u32::MAX, 1, 2]).unwrap();
     assert_eq!(main4.read("wide_output").unwrap(), [0; 4].into());
     main4.eval();
     assert_eq!(

@@ -7,14 +7,12 @@
 use std::{collections::HashMap, path::Path};
 
 use marlin_verilator::{
-    compute_wdata_word_count_from_width_not_msb,
+    PortDirection, compute_wdata_word_count_from_width_not_msb,
     ffi_names::{VCD_CLOSE_AND_DELETE, VCD_DUMP, VCD_FLUSH, VCD_OPEN_NEXT},
-    types::WData,
-    PortDirection,
 };
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use sv_parser::{self as sv, unwrap_node, Locate, RefNode};
+use sv_parser::{self as sv, Locate, RefNode, unwrap_node};
 
 mod util;
 
