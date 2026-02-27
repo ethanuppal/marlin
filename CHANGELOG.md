@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/ethanuppal/marlin/compare/v0.11.0...v0.11.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **verilator:** Wide ports ([#188](https://github.com/ethanuppal/marlin/issues/188)) ([0cbe88e](https://github.com/ethanuppal/marlin/commit/0cbe88ee72bf8ef3ba9e96b76986b767c2d7ddbe))
+
 ## [0.11.0](https://github.com/ethanuppal/marlin/compare/v0.10.1...v0.11.0) (2026-02-27)
 
 
