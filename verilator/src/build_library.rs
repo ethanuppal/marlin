@@ -174,7 +174,7 @@ extern "C" {{
             } else {
                 let word_count =
                     compute_wdata_word_count_from_width_not_msb(width);
-                let bytes_to_copy = word_count * (types::WData::BITS as usize);
+                let bytes_to_copy = word_count * size_of::<types::WData>();
                 // https://en.cppreference.com/w/cpp/string/byte/memcpy
                 format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
             };

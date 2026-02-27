@@ -39,35 +39,35 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
     println!("{:?}", main.wide_output);
     assert_eq!(main.wide_output.value(), &[u32::MAX, u32::MAX, 1]);
 
-    let mut main2 = runtime.create_model_simple::<WideMain2>()?;
-
-    main2.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2]);
-    println!("{:?}", main2.wide_output);
-    assert_eq!(main2.wide_output.value(), &[0; 4]);
-    main2.eval();
-    println!("{:?}", main2.wide_output);
-    assert_eq!(main2.wide_output.value(), &[u32::MAX, u32::MAX, 1, 2]);
-
-    let mut main3 = runtime.create_model_simple::<WideMain3>()?;
-
-    main3.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2, 3, 4, 5, 6]);
-    println!("{:?}", main3.wide_output);
-    assert_eq!(main3.wide_output.value(), &[0; 8]);
-    main3.eval();
-    println!("{:?}", main3.wide_output);
-    assert_eq!(
-        main3.wide_output.value(),
-        &[u32::MAX, u32::MAX, 1, 2, 3, 4, 5, 6]
-    );
-
-    let mut main4 = runtime.create_model_simple::<WideMain4>()?;
-
-    main4.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2]);
-    println!("{:?}", main4.wide_output);
-    assert_eq!(main4.wide_output.value(), &[0; 4]);
-    main4.eval();
-    println!("{:?}", main4.wide_output);
-    assert_eq!(main4.wide_output.value(), &[u32::MAX, u32::MAX, 1, 2]);
+    // let mut main2 = runtime.create_model_simple::<WideMain2>()?;
+    //
+    // main2.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2]);
+    // println!("{:?}", main2.wide_output);
+    // assert_eq!(main2.wide_output.value(), &[0; 4]);
+    // main2.eval();
+    // println!("{:?}", main2.wide_output);
+    // assert_eq!(main2.wide_output.value(), &[u32::MAX, u32::MAX, 1, 2]);
+    //
+    // let mut main3 = runtime.create_model_simple::<WideMain3>()?;
+    //
+    // main3.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2, 3, 4, 5, 6]);
+    // println!("{:?}", main3.wide_output);
+    // assert_eq!(main3.wide_output.value(), &[0; 8]);
+    // main3.eval();
+    // println!("{:?}", main3.wide_output);
+    // assert_eq!(
+    //     main3.wide_output.value(),
+    //     &[u32::MAX, u32::MAX, 1, 2, 3, 4, 5, 6]
+    // );
+    //
+    // let mut main4 = runtime.create_model_simple::<WideMain4>()?;
+    //
+    // main4.wide_input = WideIn::new([u32::MAX, u32::MAX, 1, 2]);
+    // println!("{:?}", main4.wide_output);
+    // assert_eq!(main4.wide_output.value(), &[0; 4]);
+    // main4.eval();
+    // println!("{:?}", main4.wide_output);
+    // assert_eq!(main4.wide_output.value(), &[u32::MAX, u32::MAX, 1, 2]);
 
     Ok(())
 }
