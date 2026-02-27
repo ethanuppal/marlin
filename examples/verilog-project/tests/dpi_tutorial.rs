@@ -70,7 +70,7 @@ pub extern "C" fn set_bool_out(output: &mut bool) {
 }
 
 #[test]
-//#[snafu::report]
+#[snafu::report]
 fn other_test() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),

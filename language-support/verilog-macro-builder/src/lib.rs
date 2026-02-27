@@ -7,9 +7,8 @@
 use std::{collections::HashMap, path::Path};
 
 use marlin_verilator::{
-    PortDirection,
+    PortDirection, compute_wdata_word_count_from_width_not_msb,
     ffi_names::{VCD_CLOSE_AND_DELETE, VCD_DUMP, VCD_FLUSH, VCD_OPEN_NEXT},
-    types::WData,
 };
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -154,7 +153,8 @@ pub fn build_verilated_struct(
         let port_type_with_generics = if port_width <= 64 {
             verilator_interface_port_type.clone()
         } else {
-            let length = port_width.div_ceil(WData::BITS as usize);
+            let length =
+                compute_wdata_word_count_from_width_not_msb(port_width);
             match port_direction {
                 PortDirection::Input => {
                     quote! { #crate_name::__reexports::verilator::WideIn<#length> }
@@ -339,7 +339,7 @@ pub fn build_verilated_struct(
             #[doc(hidden)]
             opened_vcd: bool,
             #(#struct_members),*,
-            #[doc = "# Safety\nThe Rust binding to the model will not outlive the dynamic library context (with lifetime `'ctx`) and is dropped when this struct is."]
+            #[doc = "# Safety\nThe Rust binding to the model will not outlive the runtime this model was created from (with lifetime `'ctx`) and is dropped when the runtime is."]
             #[doc(hidden)]
             model: *mut std::ffi::c_void,
             #[doc(hidden)]

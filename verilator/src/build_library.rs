@@ -18,11 +18,13 @@ use snafu::{Whatever, prelude::*};
 
 use crate::{
     PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
+    compute_wdata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
         VCD_FLUSH, VCD_OPEN_NEXT,
     },
+    types,
 };
 
 fn build_ffi_for_tracing(
@@ -71,6 +73,24 @@ fn build_ffi_for_tracing(
 /// (`top_module`) and signature (`ports`) to the given artifact directory
 /// `artifact_directory`, returning the path to the C++ file containing the FFI
 /// wrappers.
+///
+/// # Accessible Functions
+///
+/// The FFI wrappers for creating ([`ffi_names::new_top`]) and deleting
+/// ([`ffi_names::delete_top`]) the model are wrappers of C++
+/// `new` and `delete`, where the deletion is of the pointer created with `new`
+/// in the former function. See §18.6 "Dynamic memory management" of the C++14
+/// standard draft for specific semantics to translate into Rust safety
+/// comments.
+///
+/// The wrappers reading ([`ffi_names::read_port`]) and writing
+/// ([`ffi_names::pin_port`]) ports directly read and write to class members of
+/// the ppointer created with `new in the FFI creation wrapper.
+///
+/// The wrapper for evaluating the model ([`ffi_names::top_eval`]) simply calls
+/// `eval` \[1\].
+///
+/// \[1\]: https://verilator.org/guide/latest/connecting.html#wrappers-and-model-evaluation-loop
 fn build_ffi(
     artifact_directory: &Utf8Path,
     top_module: &str,
@@ -93,6 +113,7 @@ fn build_ffi(
     writeln!(
         &mut buffer,
         r#"
+#include <cstring> // std::memcpy
 #include "verilated.h"
 #include "V{top_module}.h"
 
@@ -131,34 +152,38 @@ extern "C" {{
         } else {
             "W"
         };
-        let type_macro = |name: Option<&str>| {
-            format!(
-                "{}{}({}, {}, {}{})",
-                macro_prefix,
-                macro_suffix,
-                name.unwrap_or("/* return value */"),
-                msb,
-                lsb,
-                if width > 64 {
-                    format!(", {}", width.div_ceil(32)) // words are 32 bits
-                // according to header
-                // file
-                } else {
-                    "".into()
-                }
-            )
+        // Computes the C++ type for the port suitable for use in function
+        // parameters and return types.
+        let const_type_macro = |name: Option<&str>| {
+            let name_or_empty = name.unwrap_or("/* return value */");
+            if width <= 64 {
+                format!(
+                    "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
+                )
+            } else {
+                format!("const WData* const {name_or_empty}")
+            }
         };
 
         let pin_port = ffi_names::pin_port(top_module, port);
         let read_port = ffi_names::read_port(top_module, port);
 
         if matches!(direction, PortDirection::Input | PortDirection::Inout) {
-            let input_type = type_macro(Some("new_value"));
+            let input_type = const_type_macro(Some("new_value"));
+            let pin_code = if width <= 64 {
+                format!("top->{port} = new_value;")
+            } else {
+                let word_count =
+                    compute_wdata_word_count_from_width_not_msb(width);
+                let bytes_to_copy = word_count * size_of::<types::WData>();
+                // https://en.cppreference.com/w/cpp/string/byte/memcpy
+                format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
+            };
             writeln!(
                 &mut buffer,
                 r#"
     void {pin_port}(V{top_module}* top, {input_type}) {{
-        top->{port} = new_value;
+        {pin_code}
     }}
             "#
             )
@@ -166,12 +191,13 @@ extern "C" {{
         }
 
         if matches!(direction, PortDirection::Output | PortDirection::Inout) {
-            let return_type = type_macro(None);
+            let to_pointer_if_wide = if width > 64 { ".data()" } else { "" };
+            let return_type = const_type_macro(None);
             writeln!(
                 &mut buffer,
                 r#"
     {return_type} {read_port}(V{top_module}* top) {{
-        return top->{port};
+        return top->{port}{to_pointer_if_wide};
     }}
             "#
             )
@@ -358,6 +384,9 @@ fn needs_verilator_rebuild(
 /// whether the library was rebuilt.
 ///
 /// This function is not thread-safe; the `artifact_directory` must be guarded.
+///
+/// See [`build_ffi`] for specific information on the functions accessible in
+/// the returned library.
 #[allow(clippy::too_many_arguments)]
 pub fn build_library(
     source_files: &[Utf8PathBuf],

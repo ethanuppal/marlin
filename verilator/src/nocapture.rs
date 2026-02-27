@@ -31,6 +31,7 @@ pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
     Ok(())
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! eprintln_nocapture {
     ($($contents:tt)*) => {{

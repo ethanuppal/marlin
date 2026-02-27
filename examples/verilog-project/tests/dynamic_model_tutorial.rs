@@ -18,7 +18,7 @@ use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
     VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::{ResultExt, Whatever};
+use snafu::Whatever;
 
 #[test]
 #[snafu::report]
@@ -45,7 +45,7 @@ fn main() -> Result<(), Whatever> {
         VerilatedModelConfig::default(),
     )?;
 
-    main.pin("medium_input", u32::MAX).whatever_context("pin")?;
+    main.pin("medium_input", u32::MAX).unwrap();
     assert!(
         main.read("medium_output").is_err(),
         "We didn't specify the `medium_output` port"
@@ -62,18 +62,12 @@ fn main() -> Result<(), Whatever> {
         VerilatedModelConfig::default(),
     )?;
 
-    main.pin("medium_input", u32::MAX).whatever_context("pin")?;
-    println!("{}", main.read("medium_output").whatever_context("read")?);
-    assert_eq!(
-        main.read("medium_output").whatever_context("read")?,
-        0u32.into()
-    );
+    main.pin("medium_input", u32::MAX).unwrap();
+    println!("{}", main.read("medium_output").unwrap());
+    assert_eq!(main.read("medium_output").unwrap(), 0u32.into());
     main.eval();
-    println!("{}", main.read("medium_output").whatever_context("read")?);
-    assert_eq!(
-        main.read("medium_output").whatever_context("read")?,
-        u32::MAX.into()
-    );
+    println!("{}", main.read("medium_output").unwrap());
+    assert_eq!(main.read("medium_output").unwrap(), u32::MAX.into());
 
     Ok(())
 }
