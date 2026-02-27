@@ -19,3 +19,6 @@ owo-colors.workspace = true
 toml.workspace = true
 glob.workspace = true
 libloading.workspace = true
+
+[lints]
+workspace = true

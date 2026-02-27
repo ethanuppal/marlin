@@ -18,6 +18,9 @@ snafu.workspace = true
 env_logger.workspace = true
 marlin = { path = "../../", features = ["verilog"] }
 
+[lints]
+workspace = true
+
 [package.metadata.release]
 release = false
 publish = false
