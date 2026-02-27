@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Wide Port Support - Marlin Handbook</title>
+        <title>Verilator Port Generation - Marlin Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Verilog</li><li class="chapter-item expanded "><a href="../verilog/quickstart.html"><strong aria-hidden="true">3.</strong> Verilog Quickstart</a></li><li class="chapter-item expanded "><a href="../verilog/dynamic.html"><strong aria-hidden="true">4.</strong> Dynamic Bindings to Verilog</a></li><li class="chapter-item expanded "><a href="../verilog/dpi.html"><strong aria-hidden="true">5.</strong> Calling Rust from Verilog</a></li><li class="chapter-item expanded "><a href="../verilog/wide.html"><strong aria-hidden="true">6.</strong> Wide Ports</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Spade</li><li class="chapter-item expanded "><a href="../spade/quickstart.html"><strong aria-hidden="true">7.</strong> Spade Quickstart</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Veryl</li><li class="chapter-item expanded "><a href="../veryl/quickstart.html"><strong aria-hidden="true">8.</strong> Veryl Quickstart</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="../reference/bridging-macros.html"><strong aria-hidden="true">9.</strong> Bridging Macros</a></li><li class="chapter-item expanded "><a href="../reference/vcd.html"><strong aria-hidden="true">10.</strong> Waveform Tracing</a></li><li class="chapter-item expanded "><a href="../reference/model-traits.html"><strong aria-hidden="true">11.</strong> Model Traits</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Internal</li><li class="chapter-item expanded "><a href="../internal/about-internal.html"><strong aria-hidden="true">12.</strong> About</a></li><li class="chapter-item expanded "><a href="../internal/name.html"><strong aria-hidden="true">13.</strong> Name</a></li><li class="chapter-item expanded "><a href="../internal/release-process.html"><strong aria-hidden="true">14.</strong> Release Process</a></li><li class="chapter-item expanded "><a href="../internal/how-it-works.html"><strong aria-hidden="true">15.</strong> How Marlin Works</a></li><li class="chapter-item expanded "><a href="../internal/verilator-runtime.html"><strong aria-hidden="true">16.</strong> Verilator Runtime</a></li><li class="chapter-item expanded "><a href="../internal/wide-support.html" class="active"><strong aria-hidden="true">17.</strong> Wide Port Support</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Verilog</li><li class="chapter-item expanded "><a href="../verilog/quickstart.html"><strong aria-hidden="true">3.</strong> Verilog Quickstart</a></li><li class="chapter-item expanded "><a href="../verilog/dynamic.html"><strong aria-hidden="true">4.</strong> Dynamic Bindings to Verilog</a></li><li class="chapter-item expanded "><a href="../verilog/dpi.html"><strong aria-hidden="true">5.</strong> Calling Rust from Verilog</a></li><li class="chapter-item expanded "><a href="../verilog/wide.html"><strong aria-hidden="true">6.</strong> Wide Ports</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Spade</li><li class="chapter-item expanded "><a href="../spade/quickstart.html"><strong aria-hidden="true">7.</strong> Spade Quickstart</a></li><li class="chapter-item expanded affix "><li class="part-title">Marlin for Veryl</li><li class="chapter-item expanded "><a href="../veryl/quickstart.html"><strong aria-hidden="true">8.</strong> Veryl Quickstart</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="../reference/bridging-macros.html"><strong aria-hidden="true">9.</strong> Bridging Macros</a></li><li class="chapter-item expanded "><a href="../reference/vcd.html"><strong aria-hidden="true">10.</strong> Waveform Tracing</a></li><li class="chapter-item expanded "><a href="../reference/model-traits.html"><strong aria-hidden="true">11.</strong> Model Traits</a></li><li class="chapter-item expanded "><a href="../reference/dynamic-api-values.html"><strong aria-hidden="true">12.</strong> Dynamic API Values</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Internal</li><li class="chapter-item expanded "><a href="../internal/about-internal.html"><strong aria-hidden="true">13.</strong> About</a></li><li class="chapter-item expanded "><a href="../internal/name.html"><strong aria-hidden="true">14.</strong> Name</a></li><li class="chapter-item expanded "><a href="../internal/release-process.html"><strong aria-hidden="true">15.</strong> Release Process</a></li><li class="chapter-item expanded "><a href="../internal/how-it-works.html"><strong aria-hidden="true">16.</strong> How Marlin Works</a></li><li class="chapter-item expanded "><a href="../internal/verilator-runtime.html"><strong aria-hidden="true">17.</strong> Verilator Runtime</a></li><li class="chapter-item expanded "><a href="../internal/verilator-port-generation.html" class="active"><strong aria-hidden="true">18.</strong> Verilator Port Generation</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -442,36 +442,52 @@
 }
 
 </style>
-<h1 id="wide-port-support"><a class="header" href="#wide-port-support">Wide Port Support</a></h1>
+<h1 id="verilator-port-generation"><a class="header" href="#verilator-port-generation">Verilator Port Generation</a></h1>
+<p>This page details how Verilator translates Verilog interfaces into C++.</p>
 <p><a href="https://gist.github.com/ethanuppal/aaf0916080343d8244a48f982912e6fd">A gist with the relevant Verilator header file code</a>.</p>
+<h2 id="explanation"><a class="header" href="#explanation">Explanation</a></h2>
+<p>The length is computed (via <code>"most significant bit index" - "least significant bit index + 1"</code>).
+If this length is <code>&lt;= 64</code>, the appropriate primitive integer type is used.
+Otherwise, a <code>VlWide</code> is used, which is an array of length <code>ceil(length / (sizeof(WData) * 8))</code>, <em>i.e.</em>, the minimum number of <code>WData</code>s needed to represent the value.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>The following signature</p>
 <pre><code class="language-sv">    input single_input,
     input[7:0] small_input,
     input[63:0] medium_input,
     input[127:0] big_input,
-    input[127:126] big2_input,
+    input[256:128] big2_input,
+    input[127:126] weird_input,
     output single_output,
     output[7:0] small_output,
     output[63:0] medium_output,
     output[127:0] big_output,
-    output[127:126] big2_output
+    output[256:128] big2_output,
+    output[127:126] weird_output
 </code></pre>
-<p>generates this code</p>
+<p>generates this code (on <code>Verilator 5.042 2025-11-02 rev UNKNOWN.REV</code>)</p>
 <pre><code class="language-cpp">    // PORTS
     // The application code writes and reads these signals to
     // propagate new values into/out from the Verilated model.
     VL_IN8(&amp;single_input,0,0);
     VL_IN8(&amp;small_input,7,0);
-    VL_IN8(&amp;big2_input,127,126);
+    VL_IN8(&amp;weird_input,127,126);
     VL_OUT8(&amp;single_output,0,0);
     VL_OUT8(&amp;small_output,7,0);
-    VL_OUT8(&amp;big2_output,127,126);
+    VL_OUT8(&amp;weird_output,127,126);
     VL_INW(&amp;big_input,127,0,4);
+    VL_INW(&amp;big2_input,256,128,5);
     VL_OUTW(&amp;big_output,127,0,4);
+    VL_OUTW(&amp;big2_output,256,128,5);
     VL_IN64(&amp;medium_input,63,0);
     VL_OUT64(&amp;medium_output,63,0);
 </code></pre>
-<p>for the public class members of the module.</p>
+<p>among the public class members of the design.</p>
+<p>The additional macro parameters to <code>VL_INW</code>/<code>VL_OUTW</code> are the number of "words" in (<em>i.e.</em>, the length of) the <code>VlWide</code> array</p>
+<h2 id="in-marlin"><a class="header" href="#in-marlin">In Marlin</a></h2>
+<p>Wide values are read and written over the FFI interface via pointers to avoid ABI issues with passing around large arrays (<code>VlWide</code>).
+All other values are copied.
+See <code>build_library.rs</code> in the <code>verilator</code> crate for details.</p>
+<p>The functions <code>compute_wdata_word_count_from_width_not_msb</code> and <code>compute_approx_width_from_wdata_word_count</code> help capture the wide port translation.</p>
 
                     </main>
 
