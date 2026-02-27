@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.0](https://github.com/ethanuppal/marlin/compare/v0.10.1...v0.11.0) (2026-02-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* Expose `eval` through `AsDynamicVerilatedModel` ([#194](https://github.com/ethanuppal/marlin/issues/194))
+
+### Features
+
+* Expose `eval` through `AsDynamicVerilatedModel` ([#194](https://github.com/ethanuppal/marlin/issues/194)) ([34eefca](https://github.com/ethanuppal/marlin/commit/34eefcafc9b981bb9e6e3f9dde95fab3be860fc9))
+
 ## [0.10.1](https://github.com/ethanuppal/marlin/compare/v0.10.0...v0.10.1) (2026-02-27)
 
 
