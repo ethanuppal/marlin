@@ -1,4 +1,4 @@
-name: Code Style
+name: Lints
 
 on:
   pull_request:

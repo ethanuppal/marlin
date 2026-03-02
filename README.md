@@ -7,6 +7,7 @@
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
 [![Supported Spade version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.spade-parser.version&label=Spade)](https://github.com/ethanuppal/marlin/blob/main/language-support/spade)
 [![Supported Veryl version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.veryl-parser.version&label=Veryl)](https://github.com/ethanuppal/marlin/blob/main/language-support/veryl)
+[![Matrix](https://img.shields.io/matrix/marlin-project%3Amatrix.org?label=Matrix)](https://matrix.to/#/#marlin-project:matrix.org)
 
 **[Read the documentation](https://ethanuppal.com/marlin)** | **[Read the API reference](https://docs.rs/marlin/latest/marlin)**
 
