@@ -161,7 +161,7 @@ extern "C" {{
                     "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
                 )
             } else {
-                format!("const WData* const {name_or_empty}")
+                format!("const WData* {name_or_empty}")
             }
         };
 
