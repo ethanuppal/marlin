@@ -19,3 +19,6 @@ syn.workspace = true
 quote.workspace = true
 
 marlin-verilog-macro-builder.workspace = true
+
+[lints]
+workspace = true

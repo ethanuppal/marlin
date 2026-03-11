@@ -13,3 +13,6 @@ license.workspace = true
 marlin-verilog-macro.workspace = true
 marlin-verilator.workspace = true
 libloading.workspace = true
+
+[lints]
+workspace = true
