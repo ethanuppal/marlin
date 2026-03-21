@@ -53,8 +53,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
 
     vcd.dump(0);
 
-    println!("Test 4");
-    assert!(false);
+    // reaches
+    // println!("Test 4");
+    // assert!(false);
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);
