@@ -47,8 +47,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
 
     let mut vcd = main.open_vcd("foo.vcd");
 
-    println!("Test 3");
-    assert!(false);
+    // reaches
+    // println!("Test 3");
+    // assert!(false);
 
     vcd.dump(0);
 
@@ -59,13 +60,22 @@ fn forwards_correctly() -> Result<(), Whatever> {
     println!("{}", main.medium_output);
     assert_eq!(main.medium_output, 0);
     main.eval();
+
+    println!("Test 5");
+    assert!(false);
     println!("{}", main.medium_output);
     assert_eq!(main.medium_output, u32::MAX);
 
     vcd.dump(1);
+
+    println!("Test 6");
+    assert!(false);
     vcd.dump(2);
 
-    println!("Test");
+    println!("Test 7");
+    assert!(false);
+
+    println!("Test 8");
     assert!(false);
 
     Ok(())
