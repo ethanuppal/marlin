@@ -41,8 +41,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
         ..Default::default()
     })?;
 
-    println!("Test 2");
-    assert!(false);
+    // reaches
+    // println!("Test 2");
+    // assert!(false);
 
     let mut vcd = main.open_vcd("foo.vcd");
 
