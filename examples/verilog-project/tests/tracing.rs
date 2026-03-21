@@ -62,8 +62,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
     assert_eq!(main.medium_output, 0);
     main.eval();
 
-    println!("Test 5");
-    assert!(false);
+    // reaches
+    // println!("Test 5");
+    // assert!(false);
     println!("{}", main.medium_output);
     assert_eq!(main.medium_output, u32::MAX);
 
