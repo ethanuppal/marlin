@@ -51,5 +51,8 @@ fn forwards_correctly() -> Result<(), Whatever> {
     vcd.dump(1);
     vcd.dump(2);
 
+    println!("Test");
+    assert!(false);
+
     Ok(())
 }
