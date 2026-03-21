@@ -1,4 +1,13 @@
-You are not permitted to contribute unless I have personally vetted you as someone who will not use large language models in any capacity.
+## Who can contribute?
+
+You are not permitted to contribute a pull request unless I have personally vetted you as someone who will not use large language models (LLMs) in any capacity.
+If you create one, I will close it.
+However, anyone can create an issue.
+
+I am aware that other projects adopt an "AI policy," for instance, [Bevy](https://bevy.org/learn/contribute/policies/ai/).
+Nevertheless, there is no way to enforce any LLM ban, and I have neither the time nor the willingness to engage with LLMs or their users.
+
+## Guidelines
 
 I'll refine this document later, but here are some general points:
 
