@@ -70,8 +70,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
 
     vcd.dump(1);
 
-    println!("Test 6");
-    assert!(false);
+    // reaches
+    // println!("Test 6");
+    // assert!(false);
     vcd.dump(2);
 
     println!("Test 7");
