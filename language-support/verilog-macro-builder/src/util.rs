@@ -61,6 +61,9 @@ pub fn evaluate_numeric_constant_expression(
                 _ => panic!("Not a number"),
             }
         }
+        sv::ConstantExpression::Inside(_inside) => {
+            todo!("Constant expression inside")
+        }
         sv::ConstantExpression::Unary(_constant_expression_unary) => {
             todo!("Constant unary expressions")
         }
