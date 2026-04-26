@@ -32,7 +32,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    reaches
+    // reaches
     println!("Test 1");
     assert!(false);
 
