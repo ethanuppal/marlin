@@ -68,7 +68,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
     println!("{}", main.medium_output);
     assert_eq!(main.medium_output, u32::MAX);
 
-    vcd.dump(1);
+    // vcd.dump(1);
 
     // reaches
     println!("Test 6");
