@@ -71,7 +71,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
     vcd.dump(1);
 
     // reaches
-    // println!("Test 6");
+    println!("Test 6");
     // assert!(false);
     vcd.dump(2);
 
