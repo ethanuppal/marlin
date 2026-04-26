@@ -33,8 +33,8 @@ fn forwards_correctly() -> Result<(), Whatever> {
     )?;
 
     // reaches
-    println!("Test 1");
-    assert!(false);
+    // println!("Test 1");
+    // assert!(false);
 
     let mut main = runtime.create_model::<Main>(&VerilatedModelConfig {
         enable_tracing: true,
