@@ -32,9 +32,9 @@ fn forwards_correctly() -> Result<(), Whatever> {
         VerilatorRuntimeOptions::default_logging(),
     )?;
 
-    // reaches
-    // println!("Test 1");
-    // assert!(false);
+    reaches
+    println!("Test 1");
+    assert!(false);
 
     let mut main = runtime.create_model::<Main>(&VerilatedModelConfig {
         enable_tracing: true,
