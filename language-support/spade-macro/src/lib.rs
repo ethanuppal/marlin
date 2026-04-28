@@ -8,7 +8,7 @@ use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::PortDirection;
-use marlin_verilog_macro_builder::{MacroArgs, build_verilated_struct};
+use marlin_verilog_macro_builder::{build_verilated_struct, MacroArgs};
 use proc_macro::TokenStream;
 use spade_parser::logos::Logos;
 
@@ -148,7 +148,9 @@ pub fn spade(args: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let mut ports = vec![];
-    for (attributes, port_name, port_type) in &unit_head.inputs.inner.args {
+    for (attributes, wire_marker, port_name, port_type) in
+        &unit_head.inputs.inner.args
+    {
         if !attributes
             .0
             .iter()
@@ -251,11 +253,10 @@ fn spade_simple_type_width(type_spec: &spade_ast::TypeSpec) -> usize {
         spade_ast::TypeSpec::Inverted(inner) => {
             spade_simple_type_width(get_type_spec(inner))
         }
-        spade_ast::TypeSpec::Wire(inner) => {
-            spade_simple_type_width(get_type_spec(inner))
-        }
         spade_ast::TypeSpec::Wildcard => {
             panic!("Invalid type for Verilog-exposed Spade top")
         }
+        spade_ast::TypeSpec::CopyView(..) => todo!("copy view"),
+        spade_ast::TypeSpec::Impl(..) => todo!("impl"),
     }
 }
