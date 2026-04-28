@@ -14,17 +14,17 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
     compute_wdata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
         VCD_FLUSH, VCD_OPEN_NEXT,
     },
-    types,
+    types, verilator_version, PortDirection, VerilatedModelConfig,
+    VerilatorRuntimeOptions, VerilatorVersion,
 };
 
 fn build_ffi_for_tracing(
@@ -32,6 +32,7 @@ fn build_ffi_for_tracing(
     top_module: &str,
 ) -> Result<(), Whatever> {
     let open_trace = ffi_names::open_trace(top_module);
+    let trace_levels = 99;
     writeln!(
         buffer,
         r#"
@@ -39,10 +40,12 @@ fn build_ffi_for_tracing(
         Verilated::traceEverOn(everOn);
     }}
 
+    #include <stdio.h>
     VerilatedVcdC* {open_trace}(V{top_module}* top, const char* path) {{
         VerilatedVcdC* vcd = new VerilatedVcdC;
-        top->trace(vcd, 99);
+        top->trace(vcd, {trace_levels});
         vcd->open(path);
+        vcd->dump(0);
         return vcd;
     }}
 
@@ -397,6 +400,7 @@ pub fn build_library(
     artifact_directory: &Utf8Path,
     options: &VerilatorRuntimeOptions,
     config: &VerilatedModelConfig,
+    verilator_version: VerilatorVersion,
     verbose: bool,
     on_rebuild: impl FnOnce() -> Result<(), Whatever>,
 ) -> Result<(Utf8PathBuf, bool), Whatever> {
@@ -495,7 +499,13 @@ pub fn build_library(
         verilator_command.arg(format!("-Wno-{ignored_warning}"));
     }
     if config.enable_tracing {
-        verilator_command.arg("--trace");
+        verilator_command.arg(
+            if verilator_version >= verilator_version!(5 036) {
+                "--trace-vcd"
+            } else {
+                "--trace"
+            },
+        );
     }
     if verbose {
         log::info!("| Verilator invocation: {:?}", verilator_command);

@@ -65,6 +65,10 @@ pub mod __private {
 }
 
 /// A VCD dump.
+///
+/// From Verilator's website:
+/// > The thread used to perform certain global operations, such as saving and
+/// > tracing, must be done by a “main thread”.
 pub struct Vcd<'ctx> {
     inner: Option<__private::VcdImpl>,
     _marker: PhantomData<&'ctx ()>,

@@ -14,10 +14,12 @@
 
 use std::{
     cell::RefCell,
-    collections::{HashMap, hash_map::Entry},
-    ffi::{self, OsString},
+    cmp,
+    collections::{hash_map::Entry, HashMap},
+    ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
+    process::Command,
     slice,
     sync::{LazyLock, Mutex},
     time::Instant,
@@ -31,7 +33,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -230,6 +232,15 @@ impl Default for VerilatedModelConfig {
     }
 }
 
+impl VerilatedModelConfig {
+    pub fn enable_tracing(self, tracing_enabled: bool) -> Self {
+        Self {
+            enable_tracing: tracing_enabled,
+            ..self
+        }
+    }
+}
+
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
 pub trait AsVerilatedModel<'ctx>: 'ctx {
@@ -254,9 +265,13 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
 /// just use [`VerilatorRuntimeOptions::default()`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VerilatorRuntimeOptions {
-    /// The name of the `verilator` executable, interpreted in some way by the
+    /// The name of the Verilator executable, interpreted in some way by the
     /// OS/shell.
     pub verilator_executable: OsString,
+
+    /// Whether unsupported Verilator versions should be silently ignored
+    /// instead of erroring.
+    pub allow_unsupported_verilator: bool,
 
     /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
@@ -270,6 +285,7 @@ impl Default for VerilatorRuntimeOptions {
     fn default() -> Self {
         Self {
             verilator_executable: "verilator".into(),
+            allow_unsupported_verilator: false,
             force_verilator_rebuild: false,
             log: false,
         }
@@ -306,6 +322,7 @@ pub struct VerilatorRuntime {
     include_directories: Vec<Utf8PathBuf>,
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
+    verilator_version: VerilatorVersion,
     /// Mapping between hardware (top, path) and arena index of Verilator
     /// implementations.
     library_map: RefCell<HashMap<LibraryArenaKey, usize>>,
@@ -385,6 +402,84 @@ fn one_time_library_setup(
     Ok(())
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct VerilatorVersion {
+    major: usize,
+    /// Breaking changes _have_ occured under "minor" release bumps, so I'm not
+    /// sure if I can call this "minor".
+    minor: usize,
+}
+
+#[macro_export]
+macro_rules! verilator_version {
+    ($major:literal $minor:literal) => {
+        $crate::VerilatorVersion {
+            major: $major,
+            #[allow(clippy::zero_prefixed_literal)]
+            minor: $minor,
+        }
+    };
+}
+
+impl fmt::Display for VerilatorVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}.{:03}", self.major, self.minor)
+    }
+}
+
+impl cmp::PartialOrd for VerilatorVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl cmp::Ord for VerilatorVersion {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.major
+            .cmp(&other.major)
+            .then(self.minor.cmp(&other.minor))
+    }
+}
+
+const MINIMUM_SUPPORTED_VERILATOR: VerilatorVersion = verilator_version!(5 025);
+
+fn retrieve_verilator_version(
+    verilator_executable: &OsStr,
+) -> Result<VerilatorVersion, Whatever> {
+    let output = Command::new(verilator_executable)
+        .arg("--version")
+        .output()
+        .whatever_context("Failed to retrieve Verilator --version")?;
+    let stdout = String::from_utf8(output.stdout).whatever_context(
+        "Failed to decode Verilator --version output as UTF-8",
+    )?;
+    let (major, minor_and_rest) = stdout
+        .strip_prefix("Verilator ")
+        .and_then(|rest| rest.split_once('.'))
+        .whatever_context("Unexpected Verilator --version output format")?;
+    let minor = minor_and_rest
+        .split_once(' ')
+        .map(|(minor, _)| minor)
+        .unwrap_or(minor_and_rest);
+    Ok(VerilatorVersion {
+        major: major.parse().whatever_context(
+            "Failed to parse major version from Verilator --version output",
+        )?,
+        minor: minor.parse().whatever_context(
+            "Failed to parse minor version from Verilator --version output",
+        )?,
+    })
+}
+
+fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
+    if MINIMUM_SUPPORTED_VERILATOR.major != version.major
+        || version.minor < MINIMUM_SUPPORTED_VERILATOR.minor
+    {
+        whatever!("Unsupported Verilator version {version}");
+    }
+    Ok(())
+}
+
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
@@ -395,6 +490,15 @@ impl VerilatorRuntime {
         dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
     ) -> Result<Self, Whatever> {
+        if options.log {
+            log::info!("Validating Verilator version");
+        }
+        let verilator_version =
+            retrieve_verilator_version(&options.verilator_executable)?;
+        if !options.allow_unsupported_verilator {
+            check_verilator_version(verilator_version)?;
+        }
+
         if options.log {
             log::info!("Validating source files");
         }
@@ -419,6 +523,7 @@ impl VerilatorRuntime {
                 .collect(),
             dpi_functions: dpi_functions.into_iter().collect(),
             options,
+            verilator_version,
             library_map: RefCell::new(HashMap::new()),
             library_arena: BoxcarVec::new(),
             model_deallocators: RefCell::new(vec![]),
@@ -437,6 +542,10 @@ impl VerilatorRuntime {
 
     /// Constructs a new model. Uses lazy and incremental building for
     /// efficiency.
+    ///
+    /// From Verilator's website:
+    /// > The thread used for constructing a model must be the same thread that
+    /// > calls eval() into the model; this is called the “eval thread”.
     ///
     /// See also: [`VerilatorRuntime::create_dyn_model`]
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
@@ -742,6 +851,7 @@ impl VerilatorRuntime {
                     &local_artifacts_directory,
                     &self.options,
                     config,
+                    self.verilator_version,
                     self.options.log,
                     || {
                         eprintln_nocapture!(
