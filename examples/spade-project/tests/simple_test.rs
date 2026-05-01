@@ -26,7 +26,7 @@ fn main() -> Result<(), Whatever> {
     }
 
     let runtime = SpadeRuntime::new(
-        SpadeRuntimeOptions::default_logging()
+        SpadeRuntimeOptions::default()
             .call_swim_build(
                 true, /* warning: not thread safe! don't use if you
                       * have multiple tests */
