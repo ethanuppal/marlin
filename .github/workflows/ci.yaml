@@ -21,12 +21,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # TODO: there is currently no good way to actually test the minimum supported Verilator because I can't actually install it
       - name: Install Verilator
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
             brew install verilator
           else
-            sudo apt-get install -y verilator=5.032
+            sudo apt-get install -y verilator
           fi
       - name: Manual test
         run: |
