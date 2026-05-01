@@ -78,7 +78,8 @@ fn other_test() -> Result<(), Whatever> {
         &["src/more_dpi.sv".as_ref()],
         &[],
         [set_unsigned_int_out, check_unsigned_int_out, set_bool_out],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_model_simple::<MoreDpiMain>()?;
