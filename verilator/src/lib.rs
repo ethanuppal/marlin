@@ -16,7 +16,7 @@ use core::convert::Into;
 use std::{
     cell::RefCell,
     cmp,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -34,7 +34,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -206,9 +206,8 @@ pub enum CxxStandard {
 /// Configuration for a particular [`VerilatedModel`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VerilatedModelConfig {
-    /// If `None`, there will be no optimization. If a value from `0` to `3`
-    /// inclusive, the flag `-O<level>` will be passed. Enabling will slow
-    /// compilation times.
+    /// The flag `-O<verilator_optimization>` will be passed. Enabling (> 0)
+    /// will slow compilation times.
     pub verilator_optimization: usize,
 
     /// A list of Verilator warnings to disable on the Verilog source code for
@@ -229,7 +228,7 @@ pub struct VerilatedModelConfig {
 impl Default for VerilatedModelConfig {
     fn default() -> Self {
         Self {
-            verilator_optimization: Default::default(),
+            verilator_optimization: 0,
             ignored_warnings: Default::default(),
             enable_tracing: Default::default(),
             cxx_executable: "c++".into(),
@@ -239,9 +238,30 @@ impl Default for VerilatedModelConfig {
 }
 
 impl VerilatedModelConfig {
+    pub fn verilator_optimization(self, level: usize) -> Self {
+        Self {
+            verilator_optimization: level,
+            ..self
+        }
+    }
+
     pub fn enable_tracing(self, tracing_enabled: bool) -> Self {
         Self {
             enable_tracing: tracing_enabled,
+            ..self
+        }
+    }
+
+    pub fn cxx_executable(self, cxx_executable: String) -> Self {
+        Self {
+            cxx_executable,
+            ..self
+        }
+    }
+
+    pub fn cxx_standard(self, cxx_standard: Option<CxxStandard>) -> Self {
+        Self {
+            cxx_standard,
             ..self
         }
     }
@@ -308,12 +328,29 @@ impl VerilatorRuntimeOptions {
         }
     }
 
+    pub fn verilator_executable(self, verilator_executable: OsString) -> Self {
+        Self {
+            verilator_executable,
+            ..self
+        }
+    }
+
     pub fn allow_unsupported_verilator(
         self,
         version: Option<VerilatorVersion>,
     ) -> Self {
         Self {
             allow_unsupported_verilator: version,
+            ..self
+        }
+    }
+
+    pub fn force_verilator_rebuild(
+        self,
+        force_verilator_rebuild: bool,
+    ) -> Self {
+        Self {
+            force_verilator_rebuild,
             ..self
         }
     }

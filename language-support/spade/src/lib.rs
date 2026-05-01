@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -73,6 +73,20 @@ impl SpadeRuntimeOptions {
         Self {
             verilator_options: VerilatorRuntimeOptions::default_logging(),
             ..Default::default()
+        }
+    }
+
+    pub fn swim_executable(self, swim_executable: OsString) -> Self {
+        Self {
+            swim_executable,
+            ..self
+        }
+    }
+
+    pub fn call_swim_build(self, call_swim_build: bool) -> Self {
+        Self {
+            call_swim_build,
+            ..self
         }
     }
 
