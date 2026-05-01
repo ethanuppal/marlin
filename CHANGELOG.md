@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/ethanuppal/marlin/compare/v0.11.2...v0.11.3) (2026-05-01)
+
+
+### Bug Fixes
+
+* **ffi:** Remove unnecessary `const` ([#205](https://github.com/ethanuppal/marlin/issues/205)) ([df99255](https://github.com/ethanuppal/marlin/commit/df9925526d8f922adb8cfeb48c4b425f2e5cbf44))
+
 ## [0.11.2](https://github.com/ethanuppal/marlin/compare/v0.11.1...v0.11.2) (2026-05-01)
 
 
