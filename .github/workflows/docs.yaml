@@ -13,10 +13,11 @@ jobs:
     name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
       - name: Install mdbook
-        uses: peaceiris/actions-mdbook@v1
+        uses: peaceiris/actions-mdbook@dddded6d7014282e3b5191a503fbcc71cc1882b6
         with:
           mdbook-version: "0.4.37"
       - name: Install callouts preprocessor
@@ -24,7 +25,7 @@ jobs:
       - name: Build
         run: mdbook build
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@a16b61f0780be556cf97931905d261429ee79342
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs

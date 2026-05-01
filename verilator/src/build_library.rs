@@ -517,7 +517,7 @@ pub fn build_library(
         );
     }
     if verbose {
-        log::info!("| Verilator invocation: {:?}", verilator_command);
+        log::info!("| Verilator invocation: {verilator_command:?}");
     }
     let verilator_output = verilator_command
         .output()

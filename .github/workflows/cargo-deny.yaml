@@ -1,8 +1,16 @@
 name: cargo-deny
-on: [push, pull_request]
+
+on:
+  - push
+  - pull_request
+
+permissions: {}
+
 jobs:
   cargo-deny:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@91bf2b620e09e18d6eb78b92e7861937469acedb
