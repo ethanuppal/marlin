@@ -29,10 +29,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions {
-            force_verilator_rebuild: true,
-            ..VerilatorRuntimeOptions::default_logging()
-        },
+        VerilatorRuntimeOptions::default_logging(),
     )?;
 
     let mut main = runtime.create_model::<Main>(
