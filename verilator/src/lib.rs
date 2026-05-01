@@ -488,7 +488,9 @@ fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
     if MINIMUM_SUPPORTED_VERILATOR.major != version.major
         || version.minor < MINIMUM_SUPPORTED_VERILATOR.minor
     {
-        whatever!("Unsupported Verilator version {version}");
+        whatever!(
+            "Unsupported Verilator version {version} (see `VerilatorRuntimeOptions::allow_unsupported_verilator`)"
+        );
     }
     Ok(())
 }
