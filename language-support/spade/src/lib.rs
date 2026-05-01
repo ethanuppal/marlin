@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -44,8 +44,7 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
 /// Optional configuration for creating a [`SpadeRuntime`]. Usually, you can
 /// just use [`SpadeRuntimeOptions::default()`].
 pub struct SpadeRuntimeOptions {
-    /// The name of the `swim` executable, interpreted in some way by the
-    /// OS/shell.
+    /// The name of the `swim` executable; interpreted by [`Command`].
     pub swim_executable: OsString,
 
     /// Whether `swim build` should be automatically called. This switch is
