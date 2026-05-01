@@ -422,8 +422,7 @@ pub fn build_library(
         .join(format!("lib{shared_library_name}.so"));
     let static_library_path =
         verilator_artifact_directory.join(format!("libV{top_module}.a"));
-    let libverilated_path =
-        verilator_artifact_directory.join(format!("libverilated.a"));
+    let libverilated_path = verilator_artifact_directory.join("libverilated.a");
 
     let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
         top_module,
