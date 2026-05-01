@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/ethanuppal/marlin/compare/v0.11.3...v0.12.0) (2026-05-01)
+
+
+### Features
+
+* Add builder methods to config structs ([#219](https://github.com/ethanuppal/marlin/issues/219)) ([8d2db4e](https://github.com/ethanuppal/marlin/commit/8d2db4e9b84355c4c0f6ec3813e79b564f8be898))
+
 ## [0.11.3](https://github.com/ethanuppal/marlin/compare/v0.11.2...v0.11.3) (2026-05-01)
 
 
