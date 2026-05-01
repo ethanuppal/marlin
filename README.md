@@ -29,7 +29,7 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 > The above screenshot is pre-0.1.0, so it's a bit out of date -- Marlin has
 > improved a lot since then!
 
-## 🔥 Motivation
+## Motivation
 
 Why does hardware testing suck? Consider the ways we have to test
 (System)Verilog:
@@ -54,17 +54,17 @@ solutions:
 
 Still, a lot of these are less than optimal.
 
-## ✨ Features
+## Features
 
-- 🚀 Minimal overhead over directly using `verilator`
-- 🔌 Works completely drop-in in your existing projects
-- 📈 Safe VCD tracing support
-- 🪙 Declarative API for usability + Dynamic API for programmability
-- 🔄 DPI support in Rust: call Rust functions from (System)Verilog
-- 👔 Integration with modern HDLs
-- 🦀 Rust. Did I say Rust?
+- Minimal overhead over directly using `verilator`
+- Works completely drop-in in your existing projects
+- Safe VCD tracing support
+- Declarative API for usability + Dynamic API for programmability
+- DPI support in Rust: call Rust functions from (System)Verilog
+- Integration with modern HDLs
+- Rust. Did I say Rust?
 
-## ⚡️ Requirements
+## Requirements
 
 - [Rust](https://rustup.rs), 2021 edition
 - [`verilator`](https://verilator.org/guide/latest/install.html), 5.025 or later
@@ -72,12 +72,12 @@ Still, a lot of these are less than optimal.
 - [GNU Make](https://www.gnu.org/software/make/)
 - A C++ compiler that `verilator` can find; may need to [support at least C++14](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4296.pdf).
 
-## 📦 Install
+## Install
 
 Marlin is on [crates.io], so just use `cargo add --dev marlin` to add Marlin as a
 dependency for your tests (`dev-dependencies`).
 
-## ❓ How it works
+## How it works
 
 I'll write more on this once I get further in the development process.
 The TLDR is procedural macros + `dlopen`.
@@ -94,13 +94,13 @@ For example, when you use Marlin in a Spade project, it calls out to:
 Marlin automatically runs them with all the right flags and arguments
 --- and it caches and only invokes them when needed.
 
-## 🌎 Related
+## Related
 
 - [verilated-rs](https://github.com/djg/verilated-rs) is a super cool library
   that uses a build script to statically link in verilated bindings, but is
   unmaintained for years as of writing this.
 
-## 🔒 License & Legal
+## License & Legal
 
 [![cargo-deny badge](https://github.com/ethanuppal/marlin/actions/workflows/cargo-deny.yaml/badge.svg)](https://github.com/ethanuppal/marlin/blob/main/.github/workflows/cargo-deny.yaml)
 
