@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/ethanuppal/marlin/compare/v0.11.1...v0.11.2) (2026-05-01)
+
+
+### Bug Fixes
+
+* **verilator:** Build dynamic library without relying on Verilator ([#215](https://github.com/ethanuppal/marlin/issues/215)) ([bf8916b](https://github.com/ethanuppal/marlin/commit/bf8916bf84379c372e3498ecec0f683da7c04999))
+
 ## [0.11.1](https://github.com/ethanuppal/marlin/compare/v0.11.0...v0.11.1) (2026-02-27)
 
 
