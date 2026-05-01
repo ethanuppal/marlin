@@ -15,7 +15,7 @@
 use std::env;
 
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -34,7 +34,8 @@ fn main() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_model_simple::<Main>()?;

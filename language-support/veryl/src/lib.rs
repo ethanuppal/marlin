@@ -65,6 +65,18 @@ impl Default for VerylRuntimeOptions {
     }
 }
 
+impl VerylRuntimeOptions {
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
+    ) -> Self {
+        Self {
+            verilator_options: f(self.verilator_options),
+            ..self
+        }
+    }
+}
+
 /// Runtime for Veryl code.
 pub struct VerylRuntime {
     verilator_runtime: VerilatorRuntime,

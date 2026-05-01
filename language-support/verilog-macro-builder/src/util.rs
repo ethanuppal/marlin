@@ -70,5 +70,8 @@ pub fn evaluate_numeric_constant_expression(
         sv::ConstantExpression::Ternary(_constant_expression_ternary) => {
             todo!("Constant ternary expressions")
         }
+        sv::ConstantExpression::Inside(_constant_expression_inside) => {
+            todo!("Constant inside expressions")
+        }
     }
 }
