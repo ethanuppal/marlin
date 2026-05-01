@@ -26,7 +26,7 @@ jobs:
           if [[ "$(uname)" == 'Darwin' ]]; then
             brew install verilator
           else
-            sudo apt-get install -y verilator@5.025
+            sudo apt-get install -y verilator=5.025
           fi
       - name: Manual test
         run: |
