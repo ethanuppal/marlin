@@ -11,7 +11,6 @@ pub fn evaluate_numeric_constant_expression(
     expression: &sv::ConstantExpression,
 ) -> usize {
     match expression {
-        sv::ConstantExpression::Inside(..) => todo!(),
         sv::ConstantExpression::ConstantPrimary(constant_primary) => {
             match &**constant_primary {
                 sv::ConstantPrimary::PrimaryLiteral(primary_literal) => {
