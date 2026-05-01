@@ -44,8 +44,7 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
 /// Optional configuration for creating a [`SpadeRuntime`]. Usually, you can
 /// just use [`SpadeRuntimeOptions::default()`].
 pub struct SpadeRuntimeOptions {
-    /// The name of the `swim` executable, interpreted in some way by the
-    /// OS/shell.
+    /// The name of the `swim` executable; interpreted by [`Command`].
     pub swim_executable: OsString,
 
     /// Whether `swim build` should be automatically called. This switch is
@@ -74,6 +73,16 @@ impl SpadeRuntimeOptions {
         Self {
             verilator_options: VerilatorRuntimeOptions::default_logging(),
             ..Default::default()
+        }
+    }
+
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
+    ) -> Self {
+        Self {
+            verilator_options: f(self.verilator_options),
+            ..self
         }
     }
 }

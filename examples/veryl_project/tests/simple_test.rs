@@ -13,17 +13,24 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_veryl_project::Wire;
-use marlin::veryl::prelude::*;
+use marlin::{verilator::verilator_version, veryl::prelude::*};
 use snafu::Whatever;
 
 #[test]
 #[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
-    let runtime = VerylRuntime::new(VerylRuntimeOptions {
-        call_veryl_build: true, /* warning: not thread safe! don't use if you
-                                 * have multiple tests */
-        ..Default::default()
-    })?;
+    let runtime = VerylRuntime::new(
+        VerylRuntimeOptions {
+            call_veryl_build: true, /* warning: not thread safe! don't use if
+                                     * you
+                                     * have multiple tests */
+            ..Default::default()
+        }
+        .with_inner(|verilator_options| {
+            verilator_options
+                .allow_unsupported_verilator(Some(verilator_version!(5 020)))
+        }),
+    )?;
 
     let mut main = runtime.create_model::<Wire>()?;
 
