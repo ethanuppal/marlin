@@ -2647,11 +2647,12 @@ use snafu::Whatever;
 #[test]
 //#[snafu::report]
 fn main() -&gt; Result&lt;(), Whatever&gt; {
-    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_swim_build: true, /* warning: not thread safe! don't use if you
-                                 * have multiple tests */
-        ..Default::default()
-    })?;
+    let runtime = SpadeRuntime::new(
+        SpadeRuntimeOptions::default().call_swim_build(
+            true, /* warning: not thread safe! don't use if you
+                  * have multiple tests */
+        ),
+    );
 
     let mut main = runtime.create_model_simple::&lt;Main&gt;()?;
 
@@ -3058,11 +3059,12 @@ pub struct Wire;
 #[test]
 //#[snafu::report]
 fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
-    let runtime = VerylRuntime::new(VerylRuntimeOptions {
-        call_veryl_build: true, /* warning: not thread safe! don't use if you
-                                 * have multiple tests */
-        ..Default::default()
-    })?;
+    let runtime = VerylRuntime::new(
+        VerylRuntimeOptions::default().call_veryl_build(
+            true, /* warning: not thread safe! don't use if you
+                  * have multiple tests */
+        ),
+    );
 
     let mut main = runtime.create_model::&lt;Wire&gt;()?;
 
