@@ -540,7 +540,7 @@ pub fn build_library(
         .arg("-shared")
         .args(cflags)
         .arg(match build_target {
-            BuildTarget::Linux => "-Wl,--no-whole-archive",
+            BuildTarget::Linux => "-Wl,--whole-archive",
             BuildTarget::MacOS => "-Wl,-force_load",
         })
         .args(["-o", shared_library_path.as_str()])
