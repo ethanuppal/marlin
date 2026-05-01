@@ -414,8 +414,12 @@ pub fn build_library(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
     let library_name = format!("marlin_V{top_module}");
-    let library_path =
-        verilator_artifact_directory.join(format!("lib{library_name}.so"));
+    // Use the platform's native shared-library extension. macOS dlopen
+    // accepts either, but emitting `.dylib` matches how the linker labels
+    // the file and keeps `nm`/`otool` output unambiguous.
+    let library_extension = if cfg!(target_os = "macos") { "dylib" } else { "so" };
+    let library_path = verilator_artifact_directory
+        .join(format!("lib{library_name}.{library_extension}"));
 
     let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
         top_module,
@@ -426,11 +430,8 @@ pub fn build_library(
     .whatever_context("Failed to build DPI functions")?;
 
     if !options.force_verilator_rebuild
-        && (!needs_verilator_rebuild(
-            source_files,
-            &verilator_artifact_directory,
-        )
-        .whatever_context("Failed to check if artifacts need rebuilding")?
+        && (!needs_verilator_rebuild(source_files, &library_path)
+            .whatever_context("Failed to check if artifacts need rebuilding")?
             && !dpi_rebuilt)
     {
         if verbose {
@@ -454,7 +455,11 @@ pub fn build_library(
     // bug in verilator#5226 means the directory must be relative to -Mdir
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
-    let mut cflags = "-shared -fpic".to_string();
+    // Compile the verilator-generated objects (and our ffi.cpp / dpi.cpp)
+    // as PIC so they can be linked into a shared library in step 2.
+    // Don't pass `-shared` here: that's a link-time flag, and verilator
+    // is only producing static archives at this stage.
+    let mut cflags = "-fPIC".to_string();
     if let Some(cxx_standard) = config.cxx_standard {
         cflags += " -std=";
         cflags += match cxx_standard {
@@ -468,11 +473,19 @@ pub fn build_library(
         };
     }
 
+    // Step 1 — verilator translates the Verilog to C++ and `--build`
+    // produces two static archives in `obj_dir/`:
+    //   - `libV{top_module}.a`  (model objects + our ffi.o + optional dpi.o)
+    //   - `libverilated.a`      (runtime: verilated.o, verilated_vcd_c.o,
+    //                            verilated_threads.o when --trace is set)
+    //
+    // We deliberately do NOT pass `--lib-create`: that flag is for
+    // hierarchical / 3rd-party-simulator partitioning, not for producing
+    // a dlopen-able .so. The shared library is built ourselves in step 2.
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
         .args(["--cc", "-sv", "-j", "0", "--build"])
         .args(["-CFLAGS", &cflags])
-        .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
         .args(source_files)
@@ -510,6 +523,51 @@ pub fn build_library(
             verilator_output.status,
             String::from_utf8(verilator_output.stdout).unwrap_or_default(),
             String::from_utf8(verilator_output.stderr).unwrap_or_default()
+        );
+    }
+
+    // Step 2 — link the verilator archives into a shared library that
+    // marlin can dlopen. The FFI symbols inside `libV{top}.a` are not
+    // referenced by anything else in the link graph, so the linker would
+    // discard them by default — `--whole-archive` / `-force_load` keeps
+    // them, the same trick verilator's own `--lib-create` mk rule uses.
+    let model_archive = format!("libV{top_module}.a");
+    let cxx = std::env::var_os("CXX")
+        .unwrap_or_else(|| std::ffi::OsString::from("c++"));
+    let mut link_command = Command::new(&cxx);
+    link_command
+        .current_dir(&verilator_artifact_directory)
+        .args(["-shared", "-fPIC", "-o"])
+        .arg(format!("lib{library_name}.{library_extension}"));
+    if cfg!(target_os = "macos") {
+        // ld64 wants the `-Wl,-force_load,<archive>` form to keep all
+        // members. `-undefined dynamic_lookup -flat_namespace` mirrors
+        // verilator's own dylib link rule (V3EmitMk.cpp) so DPI symbols
+        // can resolve at load time rather than link time.
+        link_command
+            .arg(format!("-Wl,-force_load,{model_archive}"))
+            .arg("libverilated.a")
+            .args(["-Wl,-undefined,dynamic_lookup", "-Wl,-flat_namespace"]);
+    } else {
+        link_command
+            .args(["-Wl,--whole-archive"])
+            .arg(&model_archive)
+            .args(["-Wl,--no-whole-archive"])
+            .arg("libverilated.a");
+    }
+    link_command.args(["-lpthread", "-lm"]);
+    if verbose {
+        log::info!("| Link invocation: {:?}", link_command);
+    }
+    let link_output = link_command
+        .output()
+        .whatever_context("Invocation of C++ linker failed")?;
+    if !link_output.status.success() {
+        whatever!(
+            "Linking marlin shared library failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+            link_output.status,
+            String::from_utf8(link_output.stdout).unwrap_or_default(),
+            String::from_utf8(link_output.stderr).unwrap_or_default()
         );
     }
 
