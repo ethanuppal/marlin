@@ -81,7 +81,8 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
         &["src/wide_main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_dyn_model(
@@ -116,7 +117,8 @@ fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
         &["src/wide_main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main4 = runtime.create_dyn_model(
