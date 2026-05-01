@@ -21,18 +21,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-
-      - name: Install Verilator (Ubuntu)
-        uses: veryl-lang/setup-verilator@v1
-        with:
-          version: 5.025
-        if: matrix.os == 'ubuntu-latest'
-      - name: Install Verilator (macOS)
-        uses: veryl-lang/setup-verilator@v1
-        # with:
-        #   version: 5.025
-        if: matrix.os == 'macos-15'
-
+      - name: Install Verilator
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            brew install verilator
+          else
+            sudo apt-get install -y verilator=5.032
+          fi
       - name: Manual test
         run: |
           cd examples/verilog-project
