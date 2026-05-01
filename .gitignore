@@ -6,3 +6,4 @@ docs/
 version.txt
 *.vcd
 *.DS_Store
+examples/veryl_project/.build/info.toml
