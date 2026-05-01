@@ -17,7 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install mdbook
-        uses: peaceiris/actions-mdbook@c55832435624ab1e08e67c99dbd044c768855937
+        uses: peaceiris/actions-mdbook@v2.0.0
         with:
           mdbook-version: "0.4.37"
       - name: Install callouts preprocessor
