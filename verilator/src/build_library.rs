@@ -510,10 +510,10 @@ pub fn build_library(
     }
     if config.enable_tracing {
         verilator_command.arg(
-            if verilator_version >= verilator_version!(5 036) {
-                "--trace-vcd"
-            } else {
+            if verilator_version < verilator_version!(5 036) {
                 "--trace"
+            } else {
+                "--trace-vcd"
             },
         );
     }
