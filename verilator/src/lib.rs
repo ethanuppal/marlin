@@ -850,8 +850,7 @@ impl VerilatorRuntime {
 
                 if self.options.log {
                     log::info!(
-                        "Creating artifacts directory {}",
-                        local_artifacts_directory
+                        "Creating artifacts directory {local_artifacts_directory}",
                     );
                 }
                 fs::create_dir_all(&local_artifacts_directory)
