@@ -476,7 +476,6 @@ pub fn build_library(
     verilator_command
         .args(["--cc", "-sv", "-j", "0", "--build"])
         .args(["-CFLAGS", &cflags])
-        .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
         .args(source_files)
