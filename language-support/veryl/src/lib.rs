@@ -42,8 +42,7 @@ fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
 /// Optional configuration for creating a [`VerylRuntime`]. Usually, you can
 /// just use [`VerylRuntimeOptions::default()`].
 pub struct VerylRuntimeOptions {
-    /// The name of the `veryl` executable, interpreted in some way by the
-    /// OS/shell.
+    /// The name of the `veryl` executable; interpreted by [`Command`].
     pub veryl_executable: OsString,
 
     /// Whether `veryl build` should be automatically called. This switch is
@@ -66,6 +65,20 @@ impl Default for VerylRuntimeOptions {
 }
 
 impl VerylRuntimeOptions {
+    pub fn veryl_executable(self, veryl_executable: OsString) -> Self {
+        Self {
+            veryl_executable,
+            ..self
+        }
+    }
+
+    pub fn call_veryl_build(self, call_veryl_build: bool) -> Self {
+        Self {
+            call_veryl_build,
+            ..self
+        }
+    }
+
     pub fn with_inner(
         self,
         f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,

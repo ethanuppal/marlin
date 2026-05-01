@@ -25,17 +25,18 @@ fn main() -> Result<(), Whatever> {
         env_logger::init();
     }
 
-    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_swim_build: true, /* warning: not thread safe! don't use if you
-                                * have multiple tests */
-        ..SpadeRuntimeOptions::default_logging().with_inner(
-            |verilator_options| {
+    let runtime = SpadeRuntime::new(
+        SpadeRuntimeOptions::default()
+            .call_swim_build(
+                true, /* warning: not thread safe! don't use if you
+                      * have multiple tests */
+            )
+            .with_inner(|verilator_options| {
                 verilator_options.allow_unsupported_verilator(Some(
                     verilator_version!(5 020),
                 ))
-            },
-        )
-    })?;
+            }),
+    )?;
 
     let mut main = runtime.create_model_simple::<Main>()?;
 

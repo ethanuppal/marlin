@@ -98,11 +98,12 @@ use snafu::Whatever;
 #[test]
 //#[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_swim_build: true, /* warning: not thread safe! don't use if you
-                                 * have multiple tests */
-        ..Default::default()
-    })?;
+    let runtime = SpadeRuntime::new(
+        SpadeRuntimeOptions::default().call_swim_build(
+            true, /* warning: not thread safe! don't use if you
+                  * have multiple tests */
+        ),
+    );
 
     let mut main = runtime.create_model_simple::<Main>()?;
 

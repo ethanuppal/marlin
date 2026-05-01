@@ -20,16 +20,16 @@ use snafu::Whatever;
 #[snafu::report]
 fn forwards_correctly() -> Result<(), Whatever> {
     let runtime = VerylRuntime::new(
-        VerylRuntimeOptions {
-            call_veryl_build: true, /* warning: not thread safe! don't use if
-                                     * you
-                                     * have multiple tests */
-            ..Default::default()
-        }
-        .with_inner(|verilator_options| {
-            verilator_options
-                .allow_unsupported_verilator(Some(verilator_version!(5 020)))
-        }),
+        VerylRuntimeOptions::default()
+            .call_veryl_build(
+                true, /* warning: not thread safe! don't use if you have
+                      * multiple tests */
+            )
+            .with_inner(|verilator_options| {
+                verilator_options.allow_unsupported_verilator(Some(
+                    verilator_version!(5 020),
+                ))
+            }),
     )?;
 
     let mut main = runtime.create_model::<Wire>()?;

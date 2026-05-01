@@ -76,6 +76,20 @@ impl SpadeRuntimeOptions {
         }
     }
 
+    pub fn swim_executable(self, swim_executable: OsString) -> Self {
+        Self {
+            swim_executable,
+            ..self
+        }
+    }
+
+    pub fn call_swim_build(self, call_swim_build: bool) -> Self {
+        Self {
+            call_swim_build,
+            ..self
+        }
+    }
+
     pub fn with_inner(
         self,
         f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
