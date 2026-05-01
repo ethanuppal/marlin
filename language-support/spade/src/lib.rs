@@ -75,6 +75,16 @@ impl SpadeRuntimeOptions {
             ..Default::default()
         }
     }
+
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
+    ) -> Self {
+        Self {
+            verilator_options: f(self.verilator_options),
+            ..self
+        }
+    }
 }
 
 /// Optional configuration for creating an [`AsVerilatedModel`]. Usually, you

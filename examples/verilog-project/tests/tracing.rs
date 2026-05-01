@@ -16,6 +16,7 @@ use example_verilog_project::Main;
 use marlin::{
     verilator::{
         VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
+        verilator_version,
     },
     verilog::prelude::*,
 };
@@ -29,7 +30,8 @@ fn forwards_correctly() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_model::<Main>(

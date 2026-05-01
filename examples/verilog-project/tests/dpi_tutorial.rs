@@ -16,7 +16,7 @@ use std::env;
 
 use example_verilog_project::{DpiMain, MoreDpiMain};
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -40,7 +40,8 @@ fn main_tutorial() -> Result<(), Whatever> {
         &["src/dpi.sv".as_ref()],
         &[],
         [set_out],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default_logging()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_model_simple::<DpiMain>()?;

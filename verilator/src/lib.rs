@@ -275,9 +275,9 @@ pub struct VerilatorRuntimeOptions {
     /// OS/shell.
     pub verilator_executable: OsString,
 
-    /// Whether unsupported Verilator versions should be silently ignored
-    /// instead of erroring.
-    pub allow_unsupported_verilator: bool,
+    /// If `Some(version)`, whether unsupported Verilator versions at least
+    /// `version` should be silently ignored instead of erroring.
+    pub allow_unsupported_verilator: Option<VerilatorVersion>,
 
     /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
@@ -291,7 +291,7 @@ impl Default for VerilatorRuntimeOptions {
     fn default() -> Self {
         Self {
             verilator_executable: "verilator".into(),
-            allow_unsupported_verilator: false,
+            allow_unsupported_verilator: None,
             force_verilator_rebuild: false,
             log: false,
         }
@@ -305,6 +305,16 @@ impl VerilatorRuntimeOptions {
         Self {
             log: true,
             ..Default::default()
+        }
+    }
+
+    pub fn allow_unsupported_verilator(
+        self,
+        version: Option<VerilatorVersion>,
+    ) -> Self {
+        Self {
+            allow_unsupported_verilator: version,
+            ..self
         }
     }
 }
@@ -415,12 +425,10 @@ fn one_time_library_setup(
     Ok(())
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct VerilatorVersion {
-    major: usize,
-    /// Breaking changes _have_ occured under "minor" release bumps, so I'm not
-    /// sure if I can call this "minor".
-    minor: usize,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct VerilatorVersion {
+    pub major: usize,
+    pub minor: usize,
 }
 
 #[macro_export]
@@ -454,7 +462,8 @@ impl cmp::Ord for VerilatorVersion {
     }
 }
 
-const MINIMUM_SUPPORTED_VERILATOR: VerilatorVersion = verilator_version!(5 025);
+pub const MINIMUM_SUPPORTED_VERILATOR: VerilatorVersion =
+    verilator_version!(5 025);
 
 fn retrieve_verilator_version(
     verilator_executable: &OsStr,
@@ -510,7 +519,13 @@ impl VerilatorRuntime {
         }
         let verilator_version =
             retrieve_verilator_version(&options.verilator_executable)?;
-        if !options.allow_unsupported_verilator {
+        if let Some(allowed_version) = options.allow_unsupported_verilator {
+            if verilator_version < allowed_version {
+                whatever!(
+                    "Unsupported Verilator version {verilator_version} ({allowed_version} was explicitly allowed)"
+                )
+            }
+        } else {
             check_verilator_version(verilator_version)?;
         }
 
