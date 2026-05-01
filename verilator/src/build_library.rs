@@ -536,7 +536,8 @@ pub fn build_library(
     // - https://veripool.org/guide/latest/exe_verilator.html#cmdoption-build
     // - https://veripool.org/guide/latest/files.html
 
-    let cxx_output = Command::new(&config.cxx_executable)
+    let mut cxx_command = Command::new(&config.cxx_executable);
+    cxx_command
         .arg("-shared")
         .args(cflags)
         .arg(match build_target {
@@ -544,7 +545,11 @@ pub fn build_library(
             BuildTarget::MacOS => "-Wl,-force_load",
         })
         .args(["-o", shared_library_path.as_str()])
-        .args([static_library_path, libverilated_path])
+        .args([static_library_path, libverilated_path]);
+    if matches!(build_target, BuildTarget::Linux) {
+        cxx_command.arg("-Wl,--no-whole-archive");
+    }
+    let cxx_output = cxx_command
         .output()
         .whatever_context("Invocation of C++ compiler failed")?;
 
