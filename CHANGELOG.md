@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0](https://github.com/ethanuppal/marlin/compare/v0.12.0...v0.13.0) (2026-05-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove `log` crate functionality ([#225](https://github.com/ethanuppal/marlin/issues/225))
+
+### refactor
+
+* Remove `log` crate functionality ([#225](https://github.com/ethanuppal/marlin/issues/225)) ([5e5d579](https://github.com/ethanuppal/marlin/commit/5e5d5797e35984c6b7ab52a802ec48ddea0244fd))
+
 ## [0.12.0](https://github.com/ethanuppal/marlin/compare/v0.11.3...v0.12.0) (2026-05-01)
 
 
