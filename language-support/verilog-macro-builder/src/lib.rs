@@ -348,8 +348,8 @@ pub fn build_verilated_struct(
             _unsend_unsync: std::marker::PhantomData<(std::cell::Cell<()>, std::sync::MutexGuard<'static, ()>)>
         }
 
-        impl<'ctx> #struct_name<'ctx> {
-            pub fn open_vcd(
+        impl<'ctx> #crate_name::__reexports::verilator::vcd::OpenVcd<'ctx> for #struct_name<'ctx> {
+            fn open_vcd(
                 &mut self,
                 path: impl std::convert::AsRef<std::path::Path>,
             ) -> #crate_name::__reexports::verilator::vcd::Vcd<'ctx> {
