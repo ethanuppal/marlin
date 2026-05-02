@@ -410,7 +410,6 @@ fn one_time_library_setup(
     library: &Library,
     dpi_functions: &[&'static dyn DpiFunction],
     tracing_enabled: bool,
-    options: &VerilatorRuntimeOptions,
 ) -> Result<(), Whatever> {
     if !dpi_functions.is_empty() {
         let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
@@ -924,7 +923,6 @@ impl VerilatorRuntime {
                     &library,
                     &self.dpi_functions,
                     config.enable_tracing,
-                    &self.options,
                 )?;
 
                 let library_idx = self.library_arena.push(library);
