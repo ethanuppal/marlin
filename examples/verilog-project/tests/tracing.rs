@@ -15,8 +15,8 @@
 use example_verilog_project::Main;
 use marlin::{
     verilator::{
-        verilator_version, VerilatedModelConfig, VerilatorRuntime,
-        VerilatorRuntimeOptions,
+        VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
+        verilator_version,
     },
     verilog::prelude::*,
 };
