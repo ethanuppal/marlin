@@ -12,8 +12,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::env;
-
 use example_spade_project::Main;
 use marlin::{spade::prelude::*, verilator::verilator_version};
 use snafu::Whatever;
@@ -21,10 +19,6 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
     let runtime = SpadeRuntime::new(
         SpadeRuntimeOptions::default()
             .call_swim_build(

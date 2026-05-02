@@ -233,7 +233,6 @@ fn bind_dpi_if_needed(
     top_module: &str,
     dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
-    verbose: bool,
 ) -> Result<(Option<Utf8PathBuf>, bool), Whatever> {
     if dpi_functions.is_empty() {
         return Ok((None, false));
@@ -303,14 +302,7 @@ extern \"C\" void {name}({signature}) {{
         .map(|current_file_code| current_file_code == file_code)
         .unwrap_or(false)
     {
-        if verbose {
-            log::info!("| Skipping regeneration of DPI due to no changes");
-        }
         return Ok((Some(dpi_file), false));
-    }
-
-    if verbose {
-        log::info!("| Generating DPI bindings");
     }
 
     fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
@@ -401,13 +393,8 @@ pub fn build_library(
     options: &VerilatorRuntimeOptions,
     config: &VerilatedModelConfig,
     verilator_version: VerilatorVersion,
-    verbose: bool,
     on_rebuild: impl FnOnce() -> Result<(), Whatever>,
 ) -> Result<(Utf8PathBuf, bool), Whatever> {
-    if verbose {
-        log::info!("| Preparing artifacts directory");
-    }
-
     let ffi_artifact_directory = artifact_directory.join("ffi");
     fs::create_dir_all(&ffi_artifact_directory).whatever_context(
         "Failed to create ffi/ subdirectory under artifacts directory",
@@ -424,13 +411,9 @@ pub fn build_library(
         verilator_artifact_directory.join(format!("libV{top_module}.a"));
     let libverilated_path = verilator_artifact_directory.join("libverilated.a");
 
-    let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
-        top_module,
-        dpi_functions,
-        &dpi_artifact_directory,
-        verbose,
-    )
-    .whatever_context("Failed to build DPI functions")?;
+    let (dpi_file, dpi_rebuilt) =
+        bind_dpi_if_needed(top_module, dpi_functions, &dpi_artifact_directory)
+            .whatever_context("Failed to build DPI functions")?;
 
     if !options.force_verilator_rebuild
         && (!needs_verilator_rebuild(
@@ -440,11 +423,6 @@ pub fn build_library(
         .whatever_context("Failed to check if artifacts need rebuilding")?
             && !dpi_rebuilt)
     {
-        if verbose {
-            log::info!(
-                "| Skipping rebuild of verilated model due to no changes"
-            );
-        }
         return Ok((shared_library_path, false));
     }
 
@@ -515,9 +493,6 @@ pub fn build_library(
                 "--trace-vcd"
             },
         );
-    }
-    if verbose {
-        log::info!("| Verilator invocation: {verilator_command:?}");
     }
     let verilator_output = verilator_command
         .output()

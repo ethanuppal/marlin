@@ -302,9 +302,6 @@ pub struct VerilatorRuntimeOptions {
     /// Whether Verilator should always be invoked instead of only when the
     /// source files or DPI functions change.
     pub force_verilator_rebuild: bool,
-
-    /// Whether to use the log crate.
-    pub log: bool,
 }
 
 impl Default for VerilatorRuntimeOptions {
@@ -313,21 +310,11 @@ impl Default for VerilatorRuntimeOptions {
             verilator_executable: "verilator".into(),
             allow_unsupported_verilator: None,
             force_verilator_rebuild: false,
-            log: false,
         }
     }
 }
 
 impl VerilatorRuntimeOptions {
-    /// The same as the [`Default`] implementation except that the log crate is
-    /// used.
-    pub fn default_logging() -> Self {
-        Self {
-            log: true,
-            ..Default::default()
-        }
-    }
-
     pub fn verilator_executable(self, verilator_executable: OsString) -> Self {
         Self {
             verilator_executable,
@@ -423,7 +410,6 @@ fn one_time_library_setup(
     library: &Library,
     dpi_functions: &[&'static dyn DpiFunction],
     tracing_enabled: bool,
-    options: &VerilatorRuntimeOptions,
 ) -> Result<(), Whatever> {
     if !dpi_functions.is_empty() {
         let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
@@ -440,10 +426,6 @@ fn one_time_library_setup(
             .collect::<Vec<_>>();
 
         (dpi_init_callback)(function_pointers.as_ptr_range().start);
-
-        if options.log {
-            log::info!("Initialized DPI functions");
-        }
     }
 
     if tracing_enabled {
@@ -453,10 +435,6 @@ fn one_time_library_setup(
                     "Model was not configured with tracing enabled",
                 )?;
         trace_ever_on_callback(true);
-
-        if options.log {
-            log::info!("Initialized VCD tracing");
-        }
     }
 
     Ok(())
@@ -551,9 +529,6 @@ impl VerilatorRuntime {
         dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
     ) -> Result<Self, Whatever> {
-        if options.log {
-            log::info!("Validating Verilator version");
-        }
         let verilator_version =
             retrieve_verilator_version(&options.verilator_executable)?;
         if let Some(allowed_version) = options.allow_unsupported_verilator {
@@ -566,9 +541,6 @@ impl VerilatorRuntime {
             check_verilator_version(verilator_version)?;
         }
 
-        if options.log {
-            log::info!("Validating source files");
-        }
         for source_file in source_files {
             if !source_file.is_file() {
                 whatever!(
@@ -795,9 +767,6 @@ impl VerilatorRuntime {
             whatever!("Escaped module names are not supported");
         }
 
-        if self.options.log {
-            log::info!("Validating model source file");
-        }
         if !self.source_files.iter().any(|source_file| {
             match (
                 source_file.canonicalize_utf8(),
@@ -848,11 +817,6 @@ impl VerilatorRuntime {
                 let local_artifacts_directory =
                     self.artifact_directory.join(&local_directory_name);
 
-                if self.options.log {
-                    log::info!(
-                        "Creating artifacts directory {local_artifacts_directory}",
-                    );
-                }
                 fs::create_dir_all(&local_artifacts_directory)
                     .whatever_context(format!(
                         "Failed to create artifacts directory {local_artifacts_directory}",
@@ -899,9 +863,6 @@ impl VerilatorRuntime {
                 // # Safety
                 // build_library is not thread-safe, so we have to lock the
                 // directory
-                if self.options.log {
-                    log::info!("Acquiring file lock on build directory");
-                }
                 let lockfile = fs::OpenOptions::new()
                     .read(true)
                     .write(true)
@@ -928,9 +889,6 @@ impl VerilatorRuntime {
 
                 let start = Instant::now();
 
-                if self.options.log {
-                    log::info!("Building the dynamic library with verilator");
-                }
                 let (library_path, was_rebuilt) = build_library(
                     &self.source_files,
                     self.build_target,
@@ -942,7 +900,6 @@ impl VerilatorRuntime {
                     &self.options,
                     config,
                     self.verilator_version,
-                    self.options.log,
                     || {
                         eprintln_nocapture!(
                             "{} {}#{} ({})",
@@ -957,9 +914,6 @@ impl VerilatorRuntime {
                     "Failed to build verilator dynamic library",
                 )?;
 
-                if self.options.log {
-                    log::info!("Opening the dynamic library");
-                }
                 let library = unsafe { Library::new(library_path) }
                     .whatever_context(
                         "Failed to load verilator dynamic library",
@@ -969,7 +923,6 @@ impl VerilatorRuntime {
                     &library,
                     &self.dpi_functions,
                     config.enable_tracing,
-                    &self.options,
                 )?;
 
                 let library_idx = self.library_arena.push(library);

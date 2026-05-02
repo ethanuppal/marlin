@@ -27,7 +27,7 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
         &["src/wide_main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
@@ -81,7 +81,7 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
         &["src/wide_main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
@@ -117,7 +117,7 @@ fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
         &["src/wide_main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 

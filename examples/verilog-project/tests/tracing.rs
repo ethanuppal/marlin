@@ -30,7 +30,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 

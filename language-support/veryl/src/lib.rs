@@ -101,9 +101,6 @@ impl VerylRuntime {
     /// thread safe. You can enable this with [`VerylRuntimeOptions`] or just
     /// run it beforehand.
     pub fn new(options: VerylRuntimeOptions) -> Result<Self, Whatever> {
-        if options.verilator_options.log {
-            log::info!("Searching for Veryl project root");
-        }
         let Some(veryl_toml_path) = search_for_veryl_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -120,10 +117,6 @@ impl VerylRuntime {
         veryl_project_path.pop();
 
         if options.call_veryl_build {
-            if options.verilator_options.log {
-                log::info!("Invoking `veryl build` (this may take a while)");
-            }
-
             let veryl_toml_contents = fs::read_to_string(&veryl_toml_path)
                 .whatever_context(format!(
                 "Failed to read contents of {VERYL_TOML} at {veryl_toml_path}"
