@@ -50,6 +50,10 @@ use crate::{
     ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
 };
 
+pub mod reexports {
+    pub use libloading;
+}
+
 /// Verilator-defined types for C FFI.
 pub mod types {
     /// From the Verilator documentation: "Data representing 'bit' of 1-8 packed
