@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, path::Path};
 
 #[doc(hidden)]
 pub mod __private {
@@ -111,4 +111,8 @@ impl Vcd<'_> {
     pub fn close(self) {
         drop(self.inner);
     }
+}
+
+pub trait OpenVcd<'ctx> {
+    fn open_vcd(&mut self, path: impl AsRef<Path>) -> Vcd<'ctx>;
 }

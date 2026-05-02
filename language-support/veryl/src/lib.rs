@@ -23,7 +23,9 @@ pub mod __reexports {
 pub mod prelude {
     pub use crate as veryl;
     pub use crate::{VerylRuntime, VerylRuntimeOptions};
-    pub use marlin_verilator::{AsDynamicVerilatedModel, AsVerilatedModel};
+    pub use marlin_verilator::{
+        AsDynamicVerilatedModel, AsVerilatedModel, vcd::OpenVcd,
+    };
     pub use marlin_veryl_macro::veryl;
 }
 
