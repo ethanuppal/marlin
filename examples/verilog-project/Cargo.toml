@@ -15,7 +15,6 @@ path = "src/tutorial.rs"
 
 [dependencies]
 snafu.workspace = true
-env_logger.workspace = true
 marlin = { path = "../../", features = ["verilog"] }
 
 [package.metadata.release]

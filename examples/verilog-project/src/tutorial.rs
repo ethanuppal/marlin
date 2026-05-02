@@ -15,7 +15,7 @@
 use std::env;
 
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
+    verilator::{verilator_version, VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -25,16 +25,12 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 

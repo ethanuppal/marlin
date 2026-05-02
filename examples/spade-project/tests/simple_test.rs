@@ -21,10 +21,6 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
     let runtime = SpadeRuntime::new(
         SpadeRuntimeOptions::default()
             .call_swim_build(

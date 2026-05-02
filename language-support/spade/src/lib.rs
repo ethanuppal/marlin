@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -67,15 +67,6 @@ impl Default for SpadeRuntimeOptions {
 }
 
 impl SpadeRuntimeOptions {
-    /// The same as the [`Default`] implementation except that the log crate is
-    /// used.
-    pub fn default_logging() -> Self {
-        Self {
-            verilator_options: VerilatorRuntimeOptions::default_logging(),
-            ..Default::default()
-        }
-    }
-
     pub fn swim_executable(self, swim_executable: OsString) -> Self {
         Self {
             swim_executable,
@@ -120,9 +111,6 @@ impl SpadeRuntime {
     /// thread safe. You can enable this with [`SwimRuntimeOptions`] or just
     /// run it beforehand.
     pub fn new(options: SpadeRuntimeOptions) -> Result<Self, Whatever> {
-        if options.verilator_options.log {
-            log::info!("Searching for swim project root");
-        }
         let Some(swim_toml_path) = search_for_swim_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -148,10 +136,6 @@ impl SpadeRuntime {
             ))?;
 
         if options.call_swim_build {
-            if options.verilator_options.log {
-                log::info!("Invoking `swim build` (this may take a while)");
-            }
-
             let swim_project_name = swim_toml
                 .get("name")
                 .and_then(|name| name.as_str())

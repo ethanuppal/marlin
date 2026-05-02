@@ -16,7 +16,7 @@ use std::env;
 
 use example_verilog_project::{DpiMain, MoreDpiMain};
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
+    verilator::{verilator_version, VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -31,16 +31,12 @@ pub extern "C" fn set_out(output: &mut i32) {
 #[test]
 #[snafu::report]
 fn main_tutorial() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],
         &[],
         [set_out],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
@@ -78,7 +74,7 @@ fn other_test() -> Result<(), Whatever> {
         &["src/more_dpi.sv".as_ref()],
         &[],
         [set_unsigned_int_out, check_unsigned_int_out, set_bool_out],
-        VerilatorRuntimeOptions::default_logging()
+        VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 

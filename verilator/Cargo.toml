@@ -13,7 +13,6 @@ license.workspace = true
 snafu.workspace = true
 camino.workspace = true
 libloading.workspace = true
-log.workspace = true
 file-guard.workspace = true
 owo-colors.workspace = true
 dashmap.workspace = true
