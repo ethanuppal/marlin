@@ -110,7 +110,7 @@ pub fn build_verilated_struct(
     });
     verilated_model_init_self.push(quote! {
         eval_model,
-        model,
+        _internal_model: model,
         _marker: std::marker::PhantomData
     });
 
@@ -217,11 +217,11 @@ pub fn build_verilated_struct(
                 });
                 if port_width <= 64 {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident);
+                        (self.#setter)(self._internal_model, self.#port_name_ident);
                     });
                 } else {
                     preeval_impl.push(quote! {
-                        (self.#setter)(self.model, self.#port_name_ident.as_ptr());
+                        (self.#setter)(self._internal_model, self.#port_name_ident.as_ptr());
                     });
                 }
 
@@ -287,11 +287,11 @@ pub fn build_verilated_struct(
                 });
                 if port_width <= 64 {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = (self.#getter)(self.model);
+                        self.#port_name_ident = (self.#getter)(self._internal_model);
                     });
                 } else {
                     posteval_impl.push(quote! {
-                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self.model));
+                        self.#port_name_ident = #port_type_without_generics::from_ptr((self.#getter)(self._internal_model));
                     });
                 }
 
@@ -335,13 +335,13 @@ pub fn build_verilated_struct(
     quote! {
         #vis struct #struct_name<'ctx> {
             #[doc(hidden)]
-            vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
+            _internal_vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
             #[doc(hidden)]
-            opened_vcd: bool,
+            _internal_opened_vcd: bool,
             #(#struct_members),*,
             #[doc = "# Safety\nThe Rust binding to the model will not outlive the runtime this model was created from (with lifetime `'ctx`) and is dropped when the runtime is."]
             #[doc(hidden)]
-            model: *mut std::ffi::c_void,
+            _internal_model: *mut std::ffi::c_void,
             #[doc(hidden)]
             _marker: std::marker::PhantomData<&'ctx ()>,
             #[doc(hidden)]
@@ -354,13 +354,13 @@ pub fn build_verilated_struct(
                 path: impl std::convert::AsRef<std::path::Path>,
             ) -> #crate_name::__reexports::verilator::vcd::Vcd<'ctx> {
                 let path = path.as_ref();
-                if let Some(vcd_api) = &self.vcd_api {
-                    if self.opened_vcd {
+                if let Some(vcd_api) = &self._internal_vcd_api {
+                    if self._internal_opened_vcd {
                         panic!("Verilator does not support opening multiple VCD traces (see issue #5813). You can instead split the already-opened VCD.");
                     }
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
-                    let vcd_ptr = (vcd_api.open_trace)(self.model, c_path.as_ptr());
-                    self.opened_vcd = true;
+                    let vcd_ptr = (vcd_api.open_trace)(self._internal_model, c_path.as_ptr());
+                    self._internal_opened_vcd = true;
                     #crate_name::__reexports::verilator::vcd::__private::new_vcd(
                         vcd_ptr,
                         vcd_api.dump,
@@ -411,22 +411,22 @@ pub fn build_verilated_struct(
                     };
 
                 Self {
-                    vcd_api,
-                    opened_vcd: false,
+                    _internal_vcd_api: vcd_api,
+                    _internal_opened_vcd: false,
                     #(#verilated_model_init_self),*,
                     _unsend_unsync: std::marker::PhantomData
                 }
             }
 
             unsafe fn model(&self) -> *mut std::ffi::c_void {
-                self.model
+                self._internal_model
             }
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::AsDynamicVerilatedModel<'ctx> for #struct_name<'ctx> {
             fn eval(&mut self) {
                 #(#preeval_impl)*
-                (self.eval_model)(self.model);
+                (self.eval_model)(self._internal_model);
                 #(#posteval_impl)*
             }
 
