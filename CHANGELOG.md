@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.14.0](https://github.com/ethanuppal/marlin/compare/v0.13.0...v0.14.0) (2026-05-02)
+
+
+### Features
+
+* Add trait for opening VCD traces ([#230](https://github.com/ethanuppal/marlin/issues/230)) ([775f9fe](https://github.com/ethanuppal/marlin/commit/775f9fe007a2114f2ddad041bb9af260a83f7d71))
+
+## [0.13.0](https://github.com/ethanuppal/marlin/compare/v0.12.0...v0.13.0) (2026-05-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove `log` crate functionality ([#225](https://github.com/ethanuppal/marlin/issues/225))
+
+### refactor
+
+* Remove `log` crate functionality ([#225](https://github.com/ethanuppal/marlin/issues/225)) ([5e5d579](https://github.com/ethanuppal/marlin/commit/5e5d5797e35984c6b7ab52a802ec48ddea0244fd))
+
+## [0.12.0](https://github.com/ethanuppal/marlin/compare/v0.11.3...v0.12.0) (2026-05-01)
+
+
+### Features
+
+* Add builder methods to config structs ([#219](https://github.com/ethanuppal/marlin/issues/219)) ([8d2db4e](https://github.com/ethanuppal/marlin/commit/8d2db4e9b84355c4c0f6ec3813e79b564f8be898))
+
+## [0.11.3](https://github.com/ethanuppal/marlin/compare/v0.11.2...v0.11.3) (2026-05-01)
+
+
+### Bug Fixes
+
+* **ffi:** Remove unnecessary `const` ([#205](https://github.com/ethanuppal/marlin/issues/205)) ([df99255](https://github.com/ethanuppal/marlin/commit/df9925526d8f922adb8cfeb48c4b425f2e5cbf44))
+
+## [0.11.2](https://github.com/ethanuppal/marlin/compare/v0.11.1...v0.11.2) (2026-05-01)
+
+
+### Bug Fixes
+
+* **verilator:** Build dynamic library without relying on Verilator ([#215](https://github.com/ethanuppal/marlin/issues/215)) ([bf8916b](https://github.com/ethanuppal/marlin/commit/bf8916bf84379c372e3498ecec0f683da7c04999))
+
 ## [0.11.1](https://github.com/ethanuppal/marlin/compare/v0.11.0...v0.11.1) (2026-02-27)
 
 

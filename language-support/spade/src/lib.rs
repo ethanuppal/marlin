@@ -26,7 +26,9 @@ pub mod prelude {
     pub use crate as spade;
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
-    pub use marlin_verilator::{AsDynamicVerilatedModel, AsVerilatedModel};
+    pub use marlin_verilator::{
+        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+    };
 }
 
 const SWIM_TOML: &str = "swim.toml";
@@ -44,8 +46,7 @@ fn search_for_swim_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
 /// Optional configuration for creating a [`SpadeRuntime`]. Usually, you can
 /// just use [`SpadeRuntimeOptions::default()`].
 pub struct SpadeRuntimeOptions {
-    /// The name of the `swim` executable, interpreted in some way by the
-    /// OS/shell.
+    /// The name of the `swim` executable; interpreted by [`Command`].
     pub swim_executable: OsString,
 
     /// Whether `swim build` should be automatically called. This switch is
@@ -68,12 +69,27 @@ impl Default for SpadeRuntimeOptions {
 }
 
 impl SpadeRuntimeOptions {
-    /// The same as the [`Default`] implementation except that the log crate is
-    /// used.
-    pub fn default_logging() -> Self {
+    pub fn swim_executable(self, swim_executable: OsString) -> Self {
         Self {
-            verilator_options: VerilatorRuntimeOptions::default_logging(),
-            ..Default::default()
+            swim_executable,
+            ..self
+        }
+    }
+
+    pub fn call_swim_build(self, call_swim_build: bool) -> Self {
+        Self {
+            call_swim_build,
+            ..self
+        }
+    }
+
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
+    ) -> Self {
+        Self {
+            verilator_options: f(self.verilator_options),
+            ..self
         }
     }
 }
@@ -97,9 +113,6 @@ impl SpadeRuntime {
     /// thread safe. You can enable this with [`SwimRuntimeOptions`] or just
     /// run it beforehand.
     pub fn new(options: SpadeRuntimeOptions) -> Result<Self, Whatever> {
-        if options.verilator_options.log {
-            log::info!("Searching for swim project root");
-        }
         let Some(swim_toml_path) = search_for_swim_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -125,10 +138,6 @@ impl SpadeRuntime {
             ))?;
 
         if options.call_swim_build {
-            if options.verilator_options.log {
-                log::info!("Invoking `swim build` (this may take a while)");
-            }
-
             let swim_project_name = swim_toml
                 .get("name")
                 .and_then(|name| name.as_str())

@@ -4,15 +4,15 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, path::Path};
 
 #[doc(hidden)]
 pub mod __private {
     use std::{ffi, marker::PhantomData};
 
-    use super::Vcd;
+    use super::Trace;
 
-    pub(crate) struct VcdImpl {
+    pub(crate) struct TraceImpl {
         pub(crate) handle: *mut ffi::c_void,
         pub(crate) dump: extern "C" fn(*mut ffi::c_void, u64),
         pub(crate) open_next: extern "C" fn(*mut ffi::c_void, bool),
@@ -20,13 +20,13 @@ pub mod __private {
         close_and_delete: extern "C" fn(*mut ffi::c_void),
     }
 
-    impl Drop for VcdImpl {
+    impl Drop for TraceImpl {
         fn drop(&mut self) {
             (self.close_and_delete)(self.handle);
         }
     }
     #[derive(Clone, Copy)]
-    pub struct VcdApi {
+    pub struct TraceApi {
         pub open_trace: extern "C" fn(
             *mut ffi::c_void,
             *const ffi::c_char,
@@ -37,15 +37,15 @@ pub mod __private {
         pub close_and_delete: extern "C" fn(*mut ffi::c_void),
     }
 
-    pub fn new_vcd<'ctx>(
+    pub fn new_trace<'ctx>(
         handle: *mut ffi::c_void,
         dump: extern "C" fn(*mut ffi::c_void, u64),
         open_next: extern "C" fn(*mut ffi::c_void, bool),
         flush: extern "C" fn(*mut ffi::c_void),
         close_and_delete: extern "C" fn(*mut ffi::c_void),
-    ) -> Vcd<'ctx> {
-        Vcd {
-            inner: Some(VcdImpl {
+    ) -> Trace<'ctx> {
+        Trace {
+            inner: Some(TraceImpl {
                 handle,
                 dump,
                 open_next,
@@ -56,21 +56,31 @@ pub mod __private {
         }
     }
 
-    pub fn new_vcd_useless<'ctx>() -> Vcd<'ctx> {
-        Vcd {
+    pub fn new_trace_useless<'ctx>() -> Trace<'ctx> {
+        Trace {
             inner: None,
             _marker: PhantomData,
         }
     }
 }
 
-/// A VCD dump.
-pub struct Vcd<'ctx> {
-    inner: Option<__private::VcdImpl>,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Waveform {
+    Vcd,
+    Fst,
+}
+
+/// A waveform trace.
+///
+/// From Verilator's website:
+/// > The thread used to perform certain global operations, such as saving and
+/// > tracing, must be done by a “main thread”.
+pub struct Trace<'ctx> {
+    inner: Option<__private::TraceImpl>,
     _marker: PhantomData<&'ctx ()>,
 }
 
-impl Vcd<'_> {
+impl Trace<'_> {
     /// Documentation taken from the Verilator header file:
     ///
     /// > Write one cycle of dump data
@@ -82,7 +92,9 @@ impl Vcd<'_> {
         }
     }
 
-    /// Documentation taken from the Verilator header file:
+    /// This function is only supported for VCD traces.
+    ///
+    /// Documentation taken from the Verilator header file for VCD traces:
     ///
     /// > Continue a VCD dump by rotating to a new file name
     /// > The header is only in the first file created, this allows
@@ -102,9 +114,13 @@ impl Vcd<'_> {
         }
     }
 
-    /// The VCD is automatically closed when dropped, but it may be useful to
+    /// The file is automatically closed when dropped, but it may be useful to
     /// call this manually.
     pub fn close(self) {
         drop(self.inner);
     }
+}
+
+pub trait OpenTrace<'ctx> {
+    fn open_trace(&mut self, path: impl AsRef<Path>) -> Trace<'ctx>;
 }

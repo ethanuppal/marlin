@@ -145,7 +145,7 @@ let runtime = VerilatorRuntime::new(
     &["src/main.sv".as_ref()],                  // source files
     &[],                                        // include search paths
     [],                                         // DPI functions
-    VerilatorRuntimeOptions::default_logging(), // configuration
+    VerilatorRuntimeOptions::default(),         // configuration
 )?;
 ```
 
@@ -166,7 +166,3 @@ we assign to values and call `eval()` on the model object! (Yes, that is the
 same as Verilator's evaluation method).
 
 Finally, we can simply use `cargo test` to drive our design!
-
-[colog]: https://docs.rs/colog/latest/colog/
-[log]: https://docs.rs/log/latest/log/
-[env_logger]: https://docs.rs/env_logger/latest/env_logger/

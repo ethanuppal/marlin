@@ -9,13 +9,18 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions: {}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Install nightly rustfmt
         # https://stegosaurusdormant.com/rustfmt-nightly/
         run: rustup toolchain install nightly --allow-downgrade -c rustfmt

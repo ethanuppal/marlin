@@ -12,24 +12,25 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::env;
-
 use example_spade_project::Main;
-use marlin::spade::prelude::*;
+use marlin::{spade::prelude::*, verilator::verilator_version};
 use snafu::Whatever;
 
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
-    let runtime = SpadeRuntime::new(SpadeRuntimeOptions {
-        call_swim_build: true, /* warning: not thread safe! don't use if you
-                                * have multiple tests */
-        ..SpadeRuntimeOptions::default_logging()
-    })?;
+    let runtime = SpadeRuntime::new(
+        SpadeRuntimeOptions::default()
+            .call_swim_build(
+                true, /* warning: not thread safe! don't use if you
+                      * have multiple tests */
+            )
+            .with_inner(|verilator_options| {
+                verilator_options.allow_unsupported_verilator(Some(
+                    verilator_version!(5 020),
+                ))
+            }),
+    )?;
 
     let mut main = runtime.create_model_simple::<Main>()?;
 

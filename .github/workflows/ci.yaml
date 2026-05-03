@@ -11,6 +11,8 @@ env:
   CARGO_INCREMENTAL: 1 # since we cache
   COLOG: 1
 
+permissions: {}
+
 jobs:
   test_verilog:
     strategy:
@@ -18,9 +20,13 @@ jobs:
         os: [ubuntu-latest, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      # TODO: there is currently no good way to actually test the minimum supported Verilator because I can't actually install it
       - name: Install Verilator
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
@@ -52,9 +58,12 @@ jobs:
         os: [ubuntu-latest, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Install Verilator
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
@@ -74,9 +83,12 @@ jobs:
         os: [ubuntu-latest, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
       - name: Install Verilator
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
@@ -85,6 +97,6 @@ jobs:
             sudo apt-get install -y verilator
           fi
       - name: Install Veryl
-        uses: veryl-lang/setup-veryl@v1
+        uses: veryl-lang/setup-veryl@591f8c366dd0b3c58dd358350c91fc57512ea812
       - name: Test
         run: RUST_LOG=trace cargo test --package example-veryl-project

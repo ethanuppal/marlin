@@ -23,7 +23,9 @@ pub mod __reexports {
 pub mod prelude {
     pub use crate as veryl;
     pub use crate::{VerylRuntime, VerylRuntimeOptions};
-    pub use marlin_verilator::{AsDynamicVerilatedModel, AsVerilatedModel};
+    pub use marlin_verilator::{
+        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+    };
     pub use marlin_veryl_macro::veryl;
 }
 
@@ -42,8 +44,7 @@ fn search_for_veryl_toml(mut start: Utf8PathBuf) -> Option<Utf8PathBuf> {
 /// Optional configuration for creating a [`VerylRuntime`]. Usually, you can
 /// just use [`VerylRuntimeOptions::default()`].
 pub struct VerylRuntimeOptions {
-    /// The name of the `veryl` executable, interpreted in some way by the
-    /// OS/shell.
+    /// The name of the `veryl` executable; interpreted by [`Command`].
     pub veryl_executable: OsString,
 
     /// Whether `veryl build` should be automatically called. This switch is
@@ -65,6 +66,32 @@ impl Default for VerylRuntimeOptions {
     }
 }
 
+impl VerylRuntimeOptions {
+    pub fn veryl_executable(self, veryl_executable: OsString) -> Self {
+        Self {
+            veryl_executable,
+            ..self
+        }
+    }
+
+    pub fn call_veryl_build(self, call_veryl_build: bool) -> Self {
+        Self {
+            call_veryl_build,
+            ..self
+        }
+    }
+
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatorRuntimeOptions) -> VerilatorRuntimeOptions,
+    ) -> Self {
+        Self {
+            verilator_options: f(self.verilator_options),
+            ..self
+        }
+    }
+}
+
 /// Runtime for Veryl code.
 pub struct VerylRuntime {
     verilator_runtime: VerilatorRuntime,
@@ -76,9 +103,6 @@ impl VerylRuntime {
     /// thread safe. You can enable this with [`VerylRuntimeOptions`] or just
     /// run it beforehand.
     pub fn new(options: VerylRuntimeOptions) -> Result<Self, Whatever> {
-        if options.verilator_options.log {
-            log::info!("Searching for Veryl project root");
-        }
         let Some(veryl_toml_path) = search_for_veryl_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -95,10 +119,6 @@ impl VerylRuntime {
         veryl_project_path.pop();
 
         if options.call_veryl_build {
-            if options.verilator_options.log {
-                log::info!("Invoking `veryl build` (this may take a while)");
-            }
-
             let veryl_toml_contents = fs::read_to_string(&veryl_toml_path)
                 .whatever_context(format!(
                 "Failed to read contents of {VERYL_TOML} at {veryl_toml_path}"

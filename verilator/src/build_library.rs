@@ -17,21 +17,33 @@ use camino::{Utf8Path, Utf8PathBuf};
 use snafu::{Whatever, prelude::*};
 
 use crate::{
-    PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    compute_wdata_word_count_from_width_not_msb,
+    BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
+    VerilatorVersion, compute_wdata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
-        self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
-        VCD_FLUSH, VCD_OPEN_NEXT,
+        self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
+        TRACE_EVER_ON, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
-    types,
+    tracing::Waveform,
+    types, verilator_version,
 };
 
 fn build_ffi_for_tracing(
     buffer: &mut String,
     top_module: &str,
+    waveform: Waveform,
 ) -> Result<(), Whatever> {
     let open_trace = ffi_names::open_trace(top_module);
+    let waveform_class = match waveform {
+        Waveform::Vcd => "VerilatedVcdC",
+        Waveform::Fst => "VerilatedFstC",
+    };
+    let open_next_body = match waveform {
+        Waveform::Vcd => "trace->openNext(increment_filename);",
+        Waveform::Fst => "/* does not exist */",
+    };
+
+    let trace_levels = 99;
     writeln!(
         buffer,
         r#"
@@ -39,28 +51,29 @@ fn build_ffi_for_tracing(
         Verilated::traceEverOn(everOn);
     }}
 
-    VerilatedVcdC* {open_trace}(V{top_module}* top, const char* path) {{
-        VerilatedVcdC* vcd = new VerilatedVcdC;
-        top->trace(vcd, 99);
-        vcd->open(path);
-        return vcd;
+    #include <stdio.h>
+    {waveform_class}* {open_trace}(V{top_module}* top, const char* path) {{
+        {waveform_class}* trace = new {waveform_class};
+        top->trace(trace, {trace_levels});
+        trace->open(path);
+        return trace;
     }}
 
-    void {VCD_DUMP}(VerilatedVcdC* vcd, uint64_t timestamp) {{
-        vcd->dump(timestamp);
+    void {TRACE_DUMP}({waveform_class}* trace, uint64_t timestamp) {{
+        trace->dump(timestamp);
     }}
 
-    void {VCD_OPEN_NEXT}(VerilatedVcdC* vcd, bool increment_filename) {{
-        vcd->openNext(increment_filename);
+    void {TRACE_OPEN_NEXT}({waveform_class}* trace, bool increment_filename) {{
+        {open_next_body}
     }}
 
-    void {VCD_FLUSH}(VerilatedVcdC* vcd) {{
-        vcd->flush();
+    void {TRACE_FLUSH}({waveform_class}* trace) {{
+        trace->flush();
     }}
 
-    void {VCD_CLOSE_AND_DELETE}(VerilatedVcdC* vcd) {{
-        vcd->close();
-        delete vcd;
+    void {TRACE_CLOSE_AND_DELETE}({waveform_class}* trace) {{
+        trace->close();
+        delete trace;
     }}
 "#
     )
@@ -95,14 +108,17 @@ fn build_ffi(
     artifact_directory: &Utf8Path,
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
-    enable_tracing: bool,
+    enable_tracing: Option<Waveform>,
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
     let mut buffer = String::new();
 
-    if enable_tracing {
-        buffer.push_str("#include \"verilated_vcd_c.h\"\n");
+    if let Some(waveform) = enable_tracing {
+        buffer.push_str(match waveform {
+            Waveform::Vcd => "#include \"verilated_vcd_c.h\"\n",
+            Waveform::Fst => "#include \"verilated_fst_c.h\"\n",
+        });
         buffer.push_str("#include <stdint.h>\n");
     }
 
@@ -161,7 +177,7 @@ extern "C" {{
                     "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
                 )
             } else {
-                format!("const WData* const {name_or_empty}")
+                format!("const WData* {name_or_empty}")
             }
         };
 
@@ -205,10 +221,11 @@ extern "C" {{
         }
     }
 
-    if enable_tracing {
-        build_ffi_for_tracing(&mut buffer, top_module).whatever_context(
-            "Failed to generate FFI bindings to Verilator tracing APIs",
-        )?;
+    if let Some(waveform) = enable_tracing {
+        build_ffi_for_tracing(&mut buffer, top_module, waveform)
+            .whatever_context(
+                "Failed to generate FFI bindings to Verilator tracing APIs",
+            )?;
     }
 
     writeln!(&mut buffer, "}} // extern \"C\"")
@@ -231,7 +248,6 @@ fn bind_dpi_if_needed(
     top_module: &str,
     dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
-    verbose: bool,
 ) -> Result<(Option<Utf8PathBuf>, bool), Whatever> {
     if dpi_functions.is_empty() {
         return Ok((None, false));
@@ -301,14 +317,7 @@ extern \"C\" void {name}({signature}) {{
         .map(|current_file_code| current_file_code == file_code)
         .unwrap_or(false)
     {
-        if verbose {
-            log::info!("| Skipping regeneration of DPI due to no changes");
-        }
         return Ok((Some(dpi_file), false));
-    }
-
-    if verbose {
-        log::info!("| Generating DPI bindings");
     }
 
     fs::write(dpi_artifact_directory.join("dpi.cpp"), file_code)
@@ -390,6 +399,7 @@ fn needs_verilator_rebuild(
 #[allow(clippy::too_many_arguments)]
 pub fn build_library(
     source_files: &[Utf8PathBuf],
+    build_target: BuildTarget,
     include_directories: &[Utf8PathBuf],
     dpi_functions: &[&'static dyn DpiFunction],
     top_module: &str,
@@ -397,13 +407,9 @@ pub fn build_library(
     artifact_directory: &Utf8Path,
     options: &VerilatorRuntimeOptions,
     config: &VerilatedModelConfig,
-    verbose: bool,
+    verilator_version: VerilatorVersion,
     on_rebuild: impl FnOnce() -> Result<(), Whatever>,
 ) -> Result<(Utf8PathBuf, bool), Whatever> {
-    if verbose {
-        log::info!("| Preparing artifacts directory");
-    }
-
     let ffi_artifact_directory = artifact_directory.join("ffi");
     fs::create_dir_all(&ffi_artifact_directory).whatever_context(
         "Failed to create ffi/ subdirectory under artifacts directory",
@@ -413,17 +419,16 @@ pub fn build_library(
     fs::create_dir_all(&dpi_artifact_directory).whatever_context(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
-    let library_name = format!("marlin_V{top_module}");
-    let library_path =
-        verilator_artifact_directory.join(format!("lib{library_name}.so"));
+    let shared_library_name = format!("marlin_V{top_module}");
+    let shared_library_path = verilator_artifact_directory
+        .join(format!("lib{shared_library_name}.so"));
+    let static_library_path =
+        verilator_artifact_directory.join(format!("libV{top_module}.a"));
+    let libverilated_path = verilator_artifact_directory.join("libverilated.a");
 
-    let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
-        top_module,
-        dpi_functions,
-        &dpi_artifact_directory,
-        verbose,
-    )
-    .whatever_context("Failed to build DPI functions")?;
+    let (dpi_file, dpi_rebuilt) =
+        bind_dpi_if_needed(top_module, dpi_functions, &dpi_artifact_directory)
+            .whatever_context("Failed to build DPI functions")?;
 
     if !options.force_verilator_rebuild
         && (!needs_verilator_rebuild(
@@ -433,12 +438,7 @@ pub fn build_library(
         .whatever_context("Failed to check if artifacts need rebuilding")?
             && !dpi_rebuilt)
     {
-        if verbose {
-            log::info!(
-                "| Skipping rebuild of verilated model due to no changes"
-            );
-        }
-        return Ok((library_path, false));
+        return Ok((shared_library_path, false));
     }
 
     on_rebuild()?;
@@ -454,25 +454,31 @@ pub fn build_library(
     // bug in verilator#5226 means the directory must be relative to -Mdir
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
-    let mut cflags = "-shared -fpic".to_string();
+    let mut cflags = vec!["-shared", "-fpic"];
     if let Some(cxx_standard) = config.cxx_standard {
-        cflags += " -std=";
-        cflags += match cxx_standard {
-            crate::CxxStandard::Cxx98 => "c++98",
-            crate::CxxStandard::Cxx11 => "c++11",
-            crate::CxxStandard::Cxx14 => "c++14",
-            crate::CxxStandard::Cxx17 => "c++17",
-            crate::CxxStandard::Cxx20 => "c++20",
-            crate::CxxStandard::Cxx23 => "c++23",
-            crate::CxxStandard::Cxx26 => "c++26",
-        };
+        cflags.push(match cxx_standard {
+            crate::CxxStandard::Cxx98 => "-std=c++98",
+            crate::CxxStandard::Cxx11 => "-std=c++11",
+            crate::CxxStandard::Cxx14 => "-std=c++14",
+            crate::CxxStandard::Cxx17 => "-std=c++17",
+            crate::CxxStandard::Cxx20 => "-std=c++20",
+            crate::CxxStandard::Cxx23 => "-std=c++23",
+            crate::CxxStandard::Cxx26 => "-std=c++26",
+        });
     }
+
+    // https://github.com/verilator/verilator/blob/master/docs/guide/faq.rst#why-do-i-get-undefined-reference-to-sc_time_stamp
+    cflags.push("-DVL_TIME_CONTEXT");
+
+    let cflags_string = cflags.join(" ");
+
+    let makeflags = format!("CXX={}", config.cxx_executable);
 
     let mut verilator_command = Command::new(&options.verilator_executable);
     verilator_command
         .args(["--cc", "-sv", "-j", "0", "--build"])
-        .args(["-CFLAGS", &cflags])
-        .args(["--lib-create", &library_name])
+        .args(["-CFLAGS", &cflags_string])
+        .args(["-MAKEFLAGS", &makeflags])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
         .args(["--top-module", top_module])
         .args(source_files)
@@ -494,11 +500,21 @@ pub fn build_library(
     for ignored_warning in &config.ignored_warnings {
         verilator_command.arg(format!("-Wno-{ignored_warning}"));
     }
-    if config.enable_tracing {
-        verilator_command.arg("--trace");
-    }
-    if verbose {
-        log::info!("| Verilator invocation: {:?}", verilator_command);
+    if let Some(waveform) = config.enable_tracing {
+        match waveform {
+            Waveform::Vcd => {
+                verilator_command.arg(
+                    if verilator_version < verilator_version!(5 036) {
+                        "--trace"
+                    } else {
+                        "--trace-vcd"
+                    },
+                );
+            }
+            Waveform::Fst => {
+                verilator_command.arg("--trace-fst");
+            }
+        }
     }
     let verilator_output = verilator_command
         .output()
@@ -508,10 +524,43 @@ pub fn build_library(
         whatever!(
             "Invocation of verilator failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
             verilator_output.status,
-            String::from_utf8(verilator_output.stdout).unwrap_or_default(),
-            String::from_utf8(verilator_output.stderr).unwrap_or_default()
+            String::from_utf8_lossy(&verilator_output.stdout),
+            String::from_utf8_lossy(&verilator_output.stderr)
         );
     }
 
-    Ok((library_path, true))
+    // `--build` will create a static library at `lib{prefix}.a``:
+    // - https://veripool.org/guide/latest/exe_verilator.html#cmdoption-build
+    // - https://veripool.org/guide/latest/files.html
+
+    let mut cxx_command = Command::new(&config.cxx_executable);
+    cxx_command
+        .arg("-shared")
+        .args(cflags)
+        .arg(match build_target {
+            BuildTarget::Linux => "-Wl,--whole-archive",
+            BuildTarget::MacOS => "-Wl,-force_load",
+        })
+        .args(["-o", shared_library_path.as_str()])
+        .args([static_library_path, libverilated_path]);
+    if matches!(build_target, BuildTarget::Linux) {
+        cxx_command.arg("-Wl,--no-whole-archive");
+    }
+    if matches!(config.enable_tracing, Some(Waveform::Fst)) {
+        cxx_command.arg("-lz");
+    }
+    let cxx_output = cxx_command
+        .output()
+        .whatever_context("Invocation of C++ compiler failed")?;
+
+    if !cxx_output.status.success() {
+        whatever!(
+            "Invocation of C++ failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
+            cxx_output.status,
+            String::from_utf8_lossy(&cxx_output.stdout),
+            String::from_utf8_lossy(&cxx_output.stderr)
+        );
+    }
+
+    Ok((shared_library_path, true))
 }

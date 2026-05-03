@@ -12,27 +12,22 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::env;
-
 use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
-    VerilatorRuntime, VerilatorRuntimeOptions,
+    VerilatorRuntime, VerilatorRuntimeOptions, verilator_version,
 };
 use snafu::Whatever;
 
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    if env::var("RUST_LOG").is_ok() {
-        env_logger::init();
-    }
-
     let runtime = VerilatorRuntime::new(
         "artifacts2".into(),
         &["src/main.sv".as_ref()],
         &[],
         [],
-        VerilatorRuntimeOptions::default_logging(),
+        VerilatorRuntimeOptions::default()
+            .allow_unsupported_verilator(Some(verilator_version!(5 020))),
     )?;
 
     let mut main = runtime.create_dyn_model(

@@ -12,11 +12,9 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use std::env;
-
 use example_verilog_project::Main;
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -26,18 +24,13 @@ macro_rules! test {
         #[test]
         #[snafu::report]
         fn $name() -> Result<(), Whatever> {
-            if stringify!($name) == "verbose_test" {
-                if env::var("RUST_LOG").is_ok() {
-                    env_logger::init();
-                }
-            }
-
             let runtime = VerilatorRuntime::new(
                 "artifacts".into(),
                 &["src/main.sv".as_ref()],
                 &[],
                 [],
-                VerilatorRuntimeOptions::default_logging(),
+                VerilatorRuntimeOptions::default()
+                    .allow_unsupported_verilator(Some(verilator_version!(5 020))),
             )?;
 
             let mut main = runtime.create_model_simple::<Main>()?;
@@ -54,7 +47,7 @@ macro_rules! test {
     };
 }
 
-test!(verbose_test);
+test!(zeroth_test);
 test!(first_test);
 test!(second_test);
 test!(third_test);

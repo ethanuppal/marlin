@@ -14,10 +14,10 @@ pub fn open_trace(top_module: &str) -> String {
     format!("ffi_V{top_module}_open_trace")
 }
 
-pub const VCD_DUMP: &str = "ffi_VerilatedVcdC_dump";
-pub const VCD_OPEN_NEXT: &str = "ffi_VerilatedVcdC_open_next";
-pub const VCD_FLUSH: &str = "ffi_VerilatedVcdC_flush";
-pub const VCD_CLOSE_AND_DELETE: &str = "ffi_VerilatedVcdC_close_and_delete";
+pub const TRACE_DUMP: &str = "ffi_trace_dump";
+pub const TRACE_OPEN_NEXT: &str = "ffi_trace_open_next";
+pub const TRACE_FLUSH: &str = "ffi_trace_flush";
+pub const TRACE_CLOSE_AND_DELETE: &str = "ffi_trace_close_and_delete";
 
 pub fn new_top(top_module: &str) -> String {
     format!(" ffi_new_V{top_module}")
