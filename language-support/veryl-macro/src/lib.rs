@@ -13,7 +13,7 @@ use proc_macro::TokenStream;
 use veryl_parser::{
     Parser,
     veryl_grammar_trait::{
-        FactorTypeGroup, FirstToken, ModuleDeclaration,
+        Factor, FactorTypeGroup, IntegralNumber, ModuleDeclaration, Number,
         PortDeclarationGroupGroup, PortDeclarationItemGroup, ScalarTypeGroup,
     },
     veryl_walker::VerylWalker,
@@ -90,10 +90,6 @@ impl VerylWalker for ModuleFinder<'_, '_> {
                                 veryl_parser::veryl_grammar_trait::Direction::Input(_) => PortDirection::Input,
                                 veryl_parser::veryl_grammar_trait::Direction::Output(_) => PortDirection::Output,
                                 veryl_parser::veryl_grammar_trait::Direction::Inout(_) => PortDirection::Inout,
-                                veryl_parser::veryl_grammar_trait::Direction::Ref(_) => {
-                                    self.error = Some(syn::Error::new_spanned(&self.args.name, format!("`{port_name}` is a ref port, which is currently not supported")));
-                                    return;
-                                },
                                 veryl_parser::veryl_grammar_trait::Direction::Modport(_) => {
                                     self.error = Some(syn::Error::new_spanned(&self.args.name, format!("`{port_name}` is a modport, which is currently not supported")));
                                     return;
@@ -121,7 +117,13 @@ impl VerylWalker for ModuleFinder<'_, '_> {
                                     match &*scalar_type_group_factor_type.factor_type.factor_type_group {
                                         FactorTypeGroup::VariableTypeFactorTypeOpt(factor_type_group_variable_type_factor_type_opt) => {
                                             if let Some(factor_type) = factor_type_group_variable_type_factor_type_opt.factor_type_opt.as_ref() {
-                                                factor_type.width.expression.token().to_string().parse::<usize>().expect("Veryl bug: parsed number but cannot convert to usize") - 1
+                                                if let Factor::Number(factor_number) = factor_type.width.expression.if_expression.expression01.expression02.factor.as_ref()
+                                                && let Number::IntegralNumber(number) = factor_number.number.as_ref()
+                                                && let IntegralNumber::BaseLess(baseless) = number.integral_number.as_ref() {
+                                                    baseless.base_less.base_less_token.to_string().parse::<usize>().expect("Veryl bug: parsed number but cannot convert to usize") - 1
+                                                } else {
+                                                    panic!("Ony baseless integral numbers are supported for port widths")
+                                                }
                                             //match &*factor_type.width.expression fixed_type {
                                             //    FixedType::U32(fixed_type_u32) => &fixed_type_u32.u32.u32_token,
                                             //    FixedType::U64(fixed_type_u64) => &fixed_type_u64.u64.u64_token,

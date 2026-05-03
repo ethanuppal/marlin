@@ -16,3 +16,6 @@ use marlin::veryl::prelude::*;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
 pub struct Wire;
+
+#[veryl(src = "src/main.veryl", name = "U8Counter")]
+pub struct U8Counter;
