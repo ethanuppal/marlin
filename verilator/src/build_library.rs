@@ -425,8 +425,6 @@ pub fn build_library(
     let static_library_path =
         verilator_artifact_directory.join(format!("libV{top_module}.a"));
     let libverilated_path = verilator_artifact_directory.join("libverilated.a");
-    let vall_library_path =
-        verilator_artifact_directory.join(format!("V{top_module}__ALL.a"));
 
     let (dpi_file, dpi_rebuilt) =
         bind_dpi_if_needed(top_module, dpi_functions, &dpi_artifact_directory)
@@ -544,7 +542,7 @@ pub fn build_library(
             BuildTarget::MacOS => "-Wl,-force_load",
         })
         .args(["-o", shared_library_path.as_str()])
-        .args([static_library_path, libverilated_path, vall_library_path]);
+        .args([static_library_path, libverilated_path]);
     if matches!(build_target, BuildTarget::Linux) {
         cxx_command.arg("-Wl,--no-whole-archive");
     }
