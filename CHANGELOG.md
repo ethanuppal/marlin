@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/ethanuppal/marlin/compare/v0.14.0...v0.15.0) (2026-05-03)
+
+
+### Features
+
+* **verilator:** Support FST tracing ([#232](https://github.com/ethanuppal/marlin/issues/232)) ([5d29970](https://github.com/ethanuppal/marlin/commit/5d299702ae6b63e5a30eef1ae4fb761c4fb1c9ad))
+
 ## [0.14.0](https://github.com/ethanuppal/marlin/compare/v0.13.0...v0.14.0) (2026-05-02)
 
 
