@@ -15,8 +15,8 @@
 use example_verilog_project::Main;
 use marlin::{
     verilator::{
-        VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
-        verilator_version,
+        tracing::Waveform, verilator_version, VerilatedModelConfig,
+        VerilatorRuntime, VerilatorRuntimeOptions,
     },
     verilog::prelude::*,
 };
@@ -35,7 +35,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
     )?;
 
     let mut main = runtime.create_model::<Main>(
-        &VerilatedModelConfig::default().enable_tracing(true),
+        &VerilatedModelConfig::default().enable_tracing(Some(Waveform::Vcd)),
     )?;
 
     let mut vcd = main.open_vcd("foo.vcd");

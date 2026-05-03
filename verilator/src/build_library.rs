@@ -14,24 +14,30 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::{prelude::*, Whatever};
 
 use crate::{
-    BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    VerilatorVersion, compute_wdata_word_count_from_width_not_msb,
+    compute_wdata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
-        self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
-        VCD_FLUSH, VCD_OPEN_NEXT,
+        self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
+        TRACE_EVER_ON, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
-    types, verilator_version,
+    tracing::Waveform,
+    types, verilator_version, BuildTarget, PortDirection, VerilatedModelConfig,
+    VerilatorRuntimeOptions, VerilatorVersion,
 };
 
 fn build_ffi_for_tracing(
     buffer: &mut String,
     top_module: &str,
+    waveform: Waveform,
 ) -> Result<(), Whatever> {
     let open_trace = ffi_names::open_trace(top_module);
+    let waveform_class = match waveform {
+        Waveform::Vcd => "VerilatedVcdC",
+        Waveform::Fst => "VerilatedFstC",
+    };
     let trace_levels = 99;
     writeln!(
         buffer,
@@ -41,28 +47,28 @@ fn build_ffi_for_tracing(
     }}
 
     #include <stdio.h>
-    VerilatedVcdC* {open_trace}(V{top_module}* top, const char* path) {{
-        VerilatedVcdC* vcd = new VerilatedVcdC;
-        top->trace(vcd, {trace_levels});
-        vcd->open(path);
-        return vcd;
+    {waveform_class}* {open_trace}(V{top_module}* top, const char* path) {{
+        {waveform_class}* trace = new {waveform_class};
+        top->trace(trace, {trace_levels});
+        trace->open(path);
+        return trace;
     }}
 
-    void {VCD_DUMP}(VerilatedVcdC* vcd, uint64_t timestamp) {{
-        vcd->dump(timestamp);
+    void {TRACE_DUMP}({waveform_class}* trace, uint64_t timestamp) {{
+        trace->dump(timestamp);
     }}
 
-    void {VCD_OPEN_NEXT}(VerilatedVcdC* vcd, bool increment_filename) {{
-        vcd->openNext(increment_filename);
+    void {TRACE_OPEN_NEXT}({waveform_class}* trace, bool increment_filename) {{
+        trace->openNext(increment_filename);
     }}
 
-    void {VCD_FLUSH}(VerilatedVcdC* vcd) {{
-        vcd->flush();
+    void {TRACE_FLUSH}({waveform_class}* trace) {{
+        trace->flush();
     }}
 
-    void {VCD_CLOSE_AND_DELETE}(VerilatedVcdC* vcd) {{
-        vcd->close();
-        delete vcd;
+    void {TRACE_CLOSE_AND_DELETE}({waveform_class}* trace) {{
+        trace->close();
+        delete trace;
     }}
 "#
     )
@@ -97,14 +103,17 @@ fn build_ffi(
     artifact_directory: &Utf8Path,
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
-    enable_tracing: bool,
+    enable_tracing: Option<Waveform>,
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
     let mut buffer = String::new();
 
-    if enable_tracing {
-        buffer.push_str("#include \"verilated_vcd_c.h\"\n");
+    if let Some(waveform) = enable_tracing {
+        buffer.push_str(match waveform {
+            Waveform::Vcd => "#include \"verilated_vcd_c.h\"\n",
+            Waveform::Fst => "#include \"verilated_fst_c.h\"\n",
+        });
         buffer.push_str("#include <stdint.h>\n");
     }
 
@@ -207,10 +216,11 @@ extern "C" {{
         }
     }
 
-    if enable_tracing {
-        build_ffi_for_tracing(&mut buffer, top_module).whatever_context(
-            "Failed to generate FFI bindings to Verilator tracing APIs",
-        )?;
+    if let Some(waveform) = enable_tracing {
+        build_ffi_for_tracing(&mut buffer, top_module, waveform)
+            .whatever_context(
+                "Failed to generate FFI bindings to Verilator tracing APIs",
+            )?;
     }
 
     writeln!(&mut buffer, "}} // extern \"C\"")
@@ -485,14 +495,21 @@ pub fn build_library(
     for ignored_warning in &config.ignored_warnings {
         verilator_command.arg(format!("-Wno-{ignored_warning}"));
     }
-    if config.enable_tracing {
-        verilator_command.arg(
-            if verilator_version < verilator_version!(5 036) {
-                "--trace"
-            } else {
-                "--trace-vcd"
-            },
-        );
+    if let Some(waveform) = config.enable_tracing {
+        match waveform {
+            Waveform::Vcd => {
+                verilator_command.arg(
+                    if verilator_version < verilator_version!(5 036) {
+                        "--trace"
+                    } else {
+                        "--trace-vcd"
+                    },
+                );
+            }
+            Waveform::Fst => {
+                verilator_command.arg("--trace-fst");
+            }
+        }
     }
     let verilator_output = verilator_command
         .output()
