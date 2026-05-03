@@ -23,6 +23,9 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
+
+> Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`:
+
 <table>
 <tr>
 <td> <code>tests/demo.rs</code> </td> <td> shell </td> 
@@ -91,10 +94,6 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 <!-- </td> -->
 </tr>
 </table>
-
-
-
-> Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`.
 
 ## Motivation
 
