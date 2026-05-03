@@ -26,13 +26,13 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 
 > Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`:
 
-<table>
-<tr>
-<td> <code>tests/demo.rs</code> </td> <td> shell </td> 
-        <!-- <td> <code>tests/u8_counter.sv</code> </td> -->
-</tr>
-<tr>
-<td>
+<!-- <table> -->
+<!-- <tr> -->
+<!-- <td> <code>tests/demo.rs</code> </td> <td> shell </td>  -->
+<!--         <!-- <td> <code>tests/u8_counter.sv</code> </td> --> 
+<!-- </tr> -->
+<!-- <tr> -->
+<!-- <td> -->
 
 ```rs
 use marlin::verilog::prelude::*;
@@ -58,42 +58,19 @@ fn counter_resets<'a>(
 }
 ```
 
-</td>
-<td>
-
-```
-$ cargo test
-
-running 1 test
-   Compiling u8_counter#8724665540442200216 (/project/tests/u8_counter.sv)
-    Finished `verilator-O0` profile [unoptimized] target in 1.17s
-test counter_resets ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
-```
-
-</td>
+<!-- </td> -->
 <!-- <td> -->
 <!---->
-<!-- ```sv -->
-<!--   module u8_counter( -->
-<!--     input logic clk, -->
-<!--     input logic reset, -->
-<!--     input logic enable, -->
-<!--     output reg[7:0] value -->
-<!-- ); -->
-<!--     always_ff @(posedge clk) begin -->
-<!--         if (reset) -->
-<!--             value <= 0; -->
-<!--         else -->
-<!--             value <= enable ? (value + 1) : value; -->
-<!--     end -->
-<!-- endmodule -->
 <!-- ``` -->
+<!-- $ cargo test -->
 <!---->
-<!-- </td> -->
-</tr>
-</table>
+<!-- running 1 test -->
+<!--    Compiling u8_counter#8724665540442200216 (/project/tests/u8_counter.sv) -->
+<!--     Finished `verilator-O0` profile [unoptimized] target in 1.17s -->
+<!-- test counter_resets ... ok -->
+<!---->
+<!-- test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s -->
+<!-- ``` -->
 
 ## Motivation
 
