@@ -23,11 +23,23 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
-![Early example of using this with Spade](./assets/demo-alpha.png)
+```rs
+use marlin::verilog::prelude::*;
+use marlin_test::prelude::*;
 
-> [!NOTE]
-> The above screenshot is pre-0.1.0, so it's a bit out of date -- Marlin has
-> improved a lot since then!
+#[verilog(src = "tests/u8_counter.sv", name = "u8_counter")]
+struct U8Counter;
+
+#[marlin_verilog_test]
+#[vcd("seq_counter.vcd")]
+fn seq_counter<'a>(mut counter: Seq<'a, U8Counter<'a>>) {
+    counter.reset = 1;
+    counter.tick();
+    counter.reset = 0;
+    assert_eq!(counter.value, 0);
+}
+```
+> Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`.
 
 ## Motivation
 
