@@ -8,8 +8,8 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
-    eprintln_nocapture,
+    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions, eprintln_nocapture,
 };
 use owo_colors::OwoColorize;
 use snafu::{OptionExt, ResultExt, Whatever, whatever};
@@ -183,7 +183,8 @@ impl VerylRuntime {
     /// [`VerilatorRuntime::create_model`].
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
+        config: &VerilatedModelConfig,
     ) -> Result<M, Whatever> {
-        self.verilator_runtime.create_model_simple()
+        self.verilator_runtime.create_model(config)
     }
 }

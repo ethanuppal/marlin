@@ -13,7 +13,10 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_veryl_project::{U8Counter, Wire};
-use marlin::{verilator::verilator_version, veryl::prelude::*};
+use marlin::{
+    verilator::{VerilatedModelConfig, verilator_version},
+    veryl::prelude::*,
+};
 use snafu::Whatever;
 
 #[test]
@@ -32,7 +35,8 @@ fn forwards_correctly() -> Result<(), Whatever> {
             }),
     )?;
 
-    let mut main = runtime.create_model::<Wire>()?;
+    let mut main =
+        runtime.create_model::<Wire>(&VerilatedModelConfig::default())?;
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);
@@ -60,7 +64,8 @@ fn counter_resets() -> Result<(), Whatever> {
             }),
     )?;
 
-    let mut main = runtime.create_model::<U8Counter>()?;
+    let mut main =
+        runtime.create_model::<U8Counter>(&VerilatedModelConfig::default())?;
 
     main.i_reset = 1;
 
