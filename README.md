@@ -25,7 +25,7 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 
 <table>
 <tr>
-<td> <code>demo.rs</code> </td> <td> shell </td>
+<td> <code style="text-align:center;">demo.rs</code> </td> <td> shell </td>
 </tr>
 <tr>
 <td>
