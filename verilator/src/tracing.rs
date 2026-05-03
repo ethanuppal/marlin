@@ -92,6 +92,8 @@ impl Trace<'_> {
         }
     }
 
+    /// This function is only supported for VCD traces.
+    ///
     /// Documentation taken from the Verilator header file for VCD traces:
     ///
     /// > Continue a VCD dump by rotating to a new file name
