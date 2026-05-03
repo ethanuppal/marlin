@@ -24,9 +24,10 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
 <table>
-<tr>
-<td> <code>tests/demo.rs</code> </td> <td> shell </td> <td> <code>tests/u8_counter.sv</code> </td>
-</tr>
+<!-- <tr> -->
+<!-- <td> <code>tests/demo.rs</code> </td> <td> shell </td>  -->
+        <!-- <td> <code>tests/u8_counter.sv</code> </td> -->
+<!-- </tr> -->
 <tr>
 <td>
 
@@ -59,9 +60,6 @@ fn counter_resets<'a>(
 
 ```
 $ cargo test
-   Compiling demo v0.1.0 (/project)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
-     Running tests/demo.rs (target/debug/deps/demo-9154602d5ae1a421)
 
 running 1 test
    Compiling u8_counter#8724665540442200216 (/project/tests/u8_counter.sv)
@@ -72,25 +70,25 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 ```
 
 </td>
-<td>
-
-```sv
-  module u8_counter(
-    input logic clk,
-    input logic reset,
-    input logic enable,
-    output reg[7:0] value
-);
-    always_ff @(posedge clk) begin
-        if (reset)
-            value <= 0;
-        else
-            value <= enable ? (value + 1) : value;
-    end
-endmodule
-```
-
-</td>
+<!-- <td> -->
+<!---->
+<!-- ```sv -->
+<!--   module u8_counter( -->
+<!--     input logic clk, -->
+<!--     input logic reset, -->
+<!--     input logic enable, -->
+<!--     output reg[7:0] value -->
+<!-- ); -->
+<!--     always_ff @(posedge clk) begin -->
+<!--         if (reset) -->
+<!--             value <= 0; -->
+<!--         else -->
+<!--             value <= enable ? (value + 1) : value; -->
+<!--     end -->
+<!-- endmodule -->
+<!-- ``` -->
+<!---->
+<!-- </td> -->
 </tr>
 </table>
 
