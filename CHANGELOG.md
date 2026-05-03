@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.16.0](https://github.com/ethanuppal/marlin/compare/v0.15.0...v0.16.0) (2026-05-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **verilator:** Avoid exposing `camino` in public API ([#236](https://github.com/ethanuppal/marlin/issues/236))
+
+### refactor
+
+* **verilator:** Avoid exposing `camino` in public API ([#236](https://github.com/ethanuppal/marlin/issues/236)) ([e056679](https://github.com/ethanuppal/marlin/commit/e056679a204b93cb94ae35e30edb3e9f20c98ec3))
+
 ## [0.15.0](https://github.com/ethanuppal/marlin/compare/v0.14.0...v0.15.0) (2026-05-03)
 
 
