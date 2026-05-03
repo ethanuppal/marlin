@@ -24,10 +24,10 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
 <table>
-<!-- <tr> -->
-<!-- <td> <code>tests/demo.rs</code> </td> <td> shell </td>  -->
+<tr>
+<td> <code>tests/demo.rs</code> </td> <td> shell </td> 
         <!-- <td> <code>tests/u8_counter.sv</code> </td> -->
-<!-- </tr> -->
+</tr>
 <tr>
 <td>
 
