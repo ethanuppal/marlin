@@ -23,54 +23,31 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
-
 > Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`:
-
-<!-- <table> -->
-<!-- <tr> -->
-<!-- <td> <code>tests/demo.rs</code> </td> <td> shell </td>  -->
-<!--         <!-- <td> <code>tests/u8_counter.sv</code> </td> --> 
-<!-- </tr> -->
-<!-- <tr> -->
-<!-- <td> -->
-
-```rs
-use marlin::verilog::prelude::*;
-use marlin_test::prelude::*;
-
-#[verilog(
-    src = "tests/u8_counter.sv",
-    name = "u8_counter"
-)]
-struct U8Counter;
-
-#[marlin_verilog_test]
-#[vcd("counter_resets.vcd")]
-fn counter_resets<'a>(
-    mut counter: Seq<
-        'a, U8Counter<'a>
-    >
-) {
-    counter.reset = 1;
-    counter.tick();
-    counter.reset = 0;
-    assert_eq!(counter.value, 0);
-}
-```
-
-<!-- </td> -->
-<!-- <td> -->
-<!---->
-<!-- ``` -->
-<!-- $ cargo test -->
-<!---->
-<!-- running 1 test -->
-<!--    Compiling u8_counter#8724665540442200216 (/project/tests/u8_counter.sv) -->
-<!--     Finished `verilator-O0` profile [unoptimized] target in 1.17s -->
-<!-- test counter_resets ... ok -->
-<!---->
-<!-- test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s -->
-<!-- ``` -->
+>
+> ```rs
+> use marlin::verilog::prelude::*;
+> use marlin_test::prelude::*;
+> 
+> #[verilog(
+>     src = "tests/u8_counter.sv",
+>     name = "u8_counter"
+> )]
+> struct U8Counter;
+> 
+> #[marlin_verilog_test]
+> #[vcd("counter_resets.vcd")]
+> fn counter_resets<'a>(
+>     mut counter: Seq<
+>         'a, U8Counter<'a>
+>     >
+> ) {
+>     counter.reset = 1;
+>     counter.tick();
+>     counter.reset = 0;
+>     assert_eq!(counter.value, 0);
+> }
+> ```
 
 ## Motivation
 
