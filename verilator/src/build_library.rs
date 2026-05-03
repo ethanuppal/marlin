@@ -38,6 +38,11 @@ fn build_ffi_for_tracing(
         Waveform::Vcd => "VerilatedVcdC",
         Waveform::Fst => "VerilatedFstC",
     };
+    let open_next_body = match waveform {
+        Waveform::Vcd => "trace->openNext(increment_filename);",
+        Waveform::Fst => "/* does not exist */",
+    };
+
     let trace_levels = 99;
     writeln!(
         buffer,
@@ -59,7 +64,7 @@ fn build_ffi_for_tracing(
     }}
 
     void {TRACE_OPEN_NEXT}({waveform_class}* trace, bool increment_filename) {{
-        trace->openNext(increment_filename);
+        {open_next_body}
     }}
 
     void {TRACE_FLUSH}({waveform_class}* trace) {{
@@ -420,6 +425,8 @@ pub fn build_library(
     let static_library_path =
         verilator_artifact_directory.join(format!("libV{top_module}.a"));
     let libverilated_path = verilator_artifact_directory.join("libverilated.a");
+    let vall_library_path =
+        verilator_artifact_directory.join(format!("V{top_module}__ALL.a"));
 
     let (dpi_file, dpi_rebuilt) =
         bind_dpi_if_needed(top_module, dpi_functions, &dpi_artifact_directory)
@@ -537,9 +544,12 @@ pub fn build_library(
             BuildTarget::MacOS => "-Wl,-force_load",
         })
         .args(["-o", shared_library_path.as_str()])
-        .args([static_library_path, libverilated_path]);
+        .args([static_library_path, libverilated_path, vall_library_path]);
     if matches!(build_target, BuildTarget::Linux) {
         cxx_command.arg("-Wl,--no-whole-archive");
+    }
+    if matches!(config.enable_tracing, Some(Waveform::Fst)) {
+        cxx_command.arg("-lz");
     }
     let cxx_output = cxx_command
         .output()

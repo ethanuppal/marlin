@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -27,7 +27,7 @@ pub mod prelude {
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, vcd::OpenVcd,
+        tracing::OpenTrace, AsDynamicVerilatedModel, AsVerilatedModel,
     };
 }
 

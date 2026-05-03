@@ -338,9 +338,9 @@ pub fn build_verilated_struct(
     quote! {
         #vis struct #struct_name<'ctx> {
             #[doc(hidden)]
-            _internal_vcd_api: Option<#crate_name::__reexports::verilator::vcd::__private::VcdApi>,
+            _internal_trace_api: Option<#crate_name::__reexports::verilator::tracing::__private::TraceApi>,
             #[doc(hidden)]
-            _internal_opened_vcd: bool,
+            _internal_opened_trace: bool,
             #(#struct_members),*,
             #[doc = "# Safety\nThe Rust binding to the model will not outlive the runtime this model was created from (with lifetime `'ctx`) and is dropped when the runtime is."]
             #[doc(hidden)]
@@ -351,28 +351,28 @@ pub fn build_verilated_struct(
             _unsend_unsync: std::marker::PhantomData<(std::cell::Cell<()>, std::sync::MutexGuard<'static, ()>)>
         }
 
-        impl<'ctx> #crate_name::__reexports::verilator::vcd::OpenVcd<'ctx> for #struct_name<'ctx> {
-            fn open_vcd(
+        impl<'ctx> #crate_name::__reexports::verilator::tracing::OpenTrace<'ctx> for #struct_name<'ctx> {
+            fn open_trace(
                 &mut self,
                 path: impl std::convert::AsRef<std::path::Path>,
-            ) -> #crate_name::__reexports::verilator::vcd::Vcd<'ctx> {
+            ) -> #crate_name::__reexports::verilator::tracing::Trace<'ctx> {
                 let path = path.as_ref();
-                if let Some(vcd_api) = &self._internal_vcd_api {
-                    if self._internal_opened_vcd {
+                if let Some(trace_api) = &self._internal_trace_api {
+                    if self._internal_opened_trace {
                         panic!("Verilator does not support opening multiple VCD traces (see issue #5813). You can instead split the already-opened VCD.");
                     }
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
-                    let vcd_ptr = (vcd_api.open_trace)(self._internal_model, c_path.as_ptr());
-                    self._internal_opened_vcd = true;
-                    #crate_name::__reexports::verilator::vcd::__private::new_vcd(
-                        vcd_ptr,
-                        vcd_api.dump,
-                        vcd_api.open_next,
-                        vcd_api.flush,
-                        vcd_api.close_and_delete
+                    let trace_ptr = (trace_api.open_trace)(self._internal_model, c_path.as_ptr());
+                    self._internal_opened_trace = true;
+                    #crate_name::__reexports::verilator::tracing::__private::new_trace(
+                        trace_ptr,
+                        trace_api.dump,
+                        trace_api.open_next,
+                        trace_api.flush,
+                        trace_api.close_and_delete
                     )
                 } else {
-                    #crate_name::__reexports::verilator::vcd::__private::new_vcd_useless()
+                    #crate_name::__reexports::verilator::tracing::__private::new_trace_useless()
                 }
             }
         }
@@ -394,9 +394,9 @@ pub fn build_verilated_struct(
             fn init_from(library: &'ctx #crate_name::__reexports::libloading::Library, tracing_enabled: bool) -> Self {
                 #(#verilated_model_init_impl)*
 
-                let vcd_api =
+                let trace_api =
                     if tracing_enabled {
-                        use #crate_name::__reexports::verilator::vcd::__private::VcdApi;
+                        use #crate_name::__reexports::verilator::tracing::__private::TraceApi;
 
                         let open_trace: extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_char) -> *mut std::ffi::c_void =
                             *unsafe { library.get(concat!("ffi_V", #top_name, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
@@ -408,14 +408,14 @@ pub fn build_verilated_struct(
                             *unsafe { library.get(#TRACE_FLUSH.as_bytes()).expect("failed to get flush symbol") };
                         let close_and_delete: extern "C" fn(*mut std::ffi::c_void) =
                             *unsafe { library.get(#TRACE_CLOSE_AND_DELETE.as_bytes()).expect("failed to get close_and_delete symbol") };
-                        Some(VcdApi { open_trace, dump, open_next, flush, close_and_delete })
+                        Some(TraceApi { open_trace, dump, open_next, flush, close_and_delete })
                     } else {
                         None
                     };
 
                 Self {
-                    _internal_vcd_api: vcd_api,
-                    _internal_opened_vcd: false,
+                    _internal_trace_api: trace_api,
+                    _internal_opened_trace: false,
                     #(#verilated_model_init_self),*,
                     _unsend_unsync: std::marker::PhantomData
                 }

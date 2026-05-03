@@ -42,7 +42,6 @@ pub mod dynamic;
 pub mod ffi_names;
 pub mod nocapture;
 pub mod tracing;
-pub mod vcd;
 
 pub use dynamic::AsDynamicVerilatedModel;
 use tracing::Waveform;
