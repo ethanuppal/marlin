@@ -14,7 +14,7 @@
 
 use example_verilog_project::Main;
 use marlin::{
-    verilator::{verilator_version, VerilatorRuntime, VerilatorRuntimeOptions},
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
 use snafu::Whatever;

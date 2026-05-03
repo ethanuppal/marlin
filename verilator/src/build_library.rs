@@ -14,18 +14,18 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{prelude::*, Whatever};
+use snafu::{Whatever, prelude::*};
 
 use crate::{
-    compute_wdata_word_count_from_width_not_msb,
+    BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
+    VerilatorVersion, compute_wdata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
         TRACE_EVER_ON, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
     tracing::Waveform,
-    types, verilator_version, BuildTarget, PortDirection, VerilatedModelConfig,
-    VerilatorRuntimeOptions, VerilatorVersion,
+    types, verilator_version,
 };
 
 fn build_ffi_for_tracing(
