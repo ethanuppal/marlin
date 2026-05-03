@@ -74,7 +74,7 @@ Still, a lot of these are less than optimal.
 - Works completely drop-in in your existing projects
 - Safe VCD tracing support
 - Declarative API for usability + Dynamic API for programmability
-- DPI support in Rust: call Rust functions from (System)Verilog
+- DPI support in Rust: call Rust functions from Verilog
 - Integration with modern HDLs
 - Rust. Did I say Rust?
 
