@@ -16,7 +16,7 @@ use core::convert::Into;
 use std::{
     cell::RefCell,
     cmp,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -35,7 +35,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{whatever, OptionExt, ResultExt, Whatever};
+use snafu::{OptionExt, ResultExt, Whatever, whatever};
 
 mod build_library;
 pub mod dpi;

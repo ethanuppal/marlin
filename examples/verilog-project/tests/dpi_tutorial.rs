@@ -16,7 +16,7 @@ use std::path::Path;
 
 use example_verilog_project::{DpiMain, MoreDpiMain};
 use marlin::{
-    verilator::{verilator_version, VerilatorRuntime, VerilatorRuntimeOptions},
+    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
 use snafu::Whatever;

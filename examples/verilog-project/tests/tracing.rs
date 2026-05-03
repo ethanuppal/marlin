@@ -17,8 +17,8 @@ use std::path::Path;
 use example_verilog_project::Main;
 use marlin::{
     verilator::{
-        tracing::Waveform, verilator_version, VerilatedModelConfig,
-        VerilatorRuntime, VerilatorRuntimeOptions,
+        VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions,
+        tracing::Waveform, verilator_version,
     },
     verilog::prelude::*,
 };

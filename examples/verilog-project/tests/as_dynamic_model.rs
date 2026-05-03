@@ -16,8 +16,8 @@ use std::path::Path;
 
 use example_verilog_project::Main;
 use marlin::verilator::{
-    verilator_version, AsDynamicVerilatedModel, VerilatorRuntime,
-    VerilatorRuntimeOptions,
+    AsDynamicVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+    verilator_version,
 };
 use snafu::Whatever;
 
