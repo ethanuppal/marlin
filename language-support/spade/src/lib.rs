@@ -27,7 +27,7 @@ pub mod prelude {
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, vcd::OpenVcd,
+        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
     };
 }
 

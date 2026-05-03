@@ -5,8 +5,8 @@
 // obtain one at https://mozilla.org/MPL/2.0/.
 
 //! This module implements the Verilator runtime for instantiating hardware
-//! modules. The Marlin Verilator runtime supports DPI, VCDs, and dynamic
-//! models in addition to standard models.
+//! modules. The Marlin Verilator runtime supports DPI, VCD/FST tracing, and
+//! dynamic models in addition to standard models.
 //!
 //! For an example of how to use this runtime to add support for your own custom
 //! HDL, see `SpadeRuntime` (under the "language-support/spade/" directory),
@@ -41,9 +41,10 @@ pub mod dpi;
 pub mod dynamic;
 pub mod ffi_names;
 pub mod nocapture;
-pub mod vcd;
+pub mod tracing;
 
 pub use dynamic::AsDynamicVerilatedModel;
+use tracing::Waveform;
 
 use crate::{
     dynamic::DynamicPortInfo,
@@ -219,7 +220,7 @@ pub struct VerilatedModelConfig {
     pub ignored_warnings: Vec<String>,
 
     /// Whether this model should be compiled with tracing support.
-    pub enable_tracing: bool,
+    pub enable_tracing: Option<Waveform>,
 
     /// The name of the C++ compiler executable; interpreted by [`Command`] and
     /// in some way by Verilator.
@@ -249,9 +250,9 @@ impl VerilatedModelConfig {
         }
     }
 
-    pub fn enable_tracing(self, tracing_enabled: bool) -> Self {
+    pub fn enable_tracing(self, waveform: Option<Waveform>) -> Self {
         Self {
-            enable_tracing: tracing_enabled,
+            enable_tracing: waveform,
             ..self
         }
     }
@@ -634,7 +635,7 @@ impl VerilatorRuntime {
         }
         .expect("failed to get symbol");
 
-        let model = M::init_from(library, config.enable_tracing);
+        let model = M::init_from(library, config.enable_tracing.is_some());
 
         self.model_deallocators.borrow_mut().push(ModelDeallocator {
             // SAFETY: The `model` cannot outlive the runtime, and it is the
@@ -926,7 +927,7 @@ impl VerilatorRuntime {
                 one_time_library_setup(
                     &library,
                     &self.dpi_functions,
-                    config.enable_tracing,
+                    config.enable_tracing.is_some(),
                 )?;
 
                 let library_idx = self.library_arena.push(library);
