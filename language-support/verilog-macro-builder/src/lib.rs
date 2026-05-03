@@ -358,7 +358,7 @@ pub fn build_verilated_struct(
                 let path = path.as_ref();
                 if let Some(trace_api) = &self._internal_trace_api {
                     if self._internal_opened_trace {
-                        panic!("Verilator does not support opening multiple VCD traces (see issue #5813). You can instead split the already-opened VCD.");
+                        panic!("Verilator does not support opening multiple traces (see issue #5813). You can instead split the already-opened trace if you are using a VCD.");
                     }
                     let c_path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).expect("Failed to convert provided VCD path to C string");
                     let trace_ptr = (trace_api.open_trace)(self._internal_model, c_path.as_ptr());

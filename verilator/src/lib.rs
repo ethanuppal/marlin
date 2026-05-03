@@ -5,8 +5,8 @@
 // obtain one at https://mozilla.org/MPL/2.0/.
 
 //! This module implements the Verilator runtime for instantiating hardware
-//! modules. The Marlin Verilator runtime supports DPI, VCDs, and dynamic
-//! models in addition to standard models.
+//! modules. The Marlin Verilator runtime supports DPI, VCD/FST tracing, and
+//! dynamic models in addition to standard models.
 //!
 //! For an example of how to use this runtime to add support for your own custom
 //! HDL, see `SpadeRuntime` (under the "language-support/spade/" directory),
