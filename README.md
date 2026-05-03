@@ -29,19 +29,12 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 > use marlin::verilog::prelude::*;
 > use marlin_test::prelude::*;
 > 
-> #[verilog(
->     src = "tests/u8_counter.sv",
->     name = "u8_counter"
-> )]
+> #[verilog(src = "tests/u8_counter.sv", name = "u8_counter")]
 > struct U8Counter;
 > 
 > #[marlin_verilog_test]
 > #[vcd("counter_resets.vcd")]
-> fn counter_resets<'a>(
->     mut counter: Seq<
->         'a, U8Counter<'a>
->     >
-> ) {
+> fn counter_resets<'a>(mut counter: Seq<'a, U8Counter<'a>>) {
 >     counter.reset = 1;
 >     counter.tick();
 >     counter.reset = 0;
