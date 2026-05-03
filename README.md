@@ -23,16 +23,29 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
-![Early example of using this with Spade](./assets/demo-alpha.png)
-
-> [!NOTE]
-> The above screenshot is pre-0.1.0, so it's a bit out of date -- Marlin has
-> improved a lot since then!
+> Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`:
+>
+> ```rs
+> use marlin::verilog::prelude::*;
+> use marlin_test::prelude::*;
+> 
+> #[verilog(src = "tests/u8_counter.sv", name = "u8_counter")]
+> struct U8Counter;
+> 
+> #[marlin_verilog_test]
+> #[vcd("counter_resets.vcd")]
+> fn counter_resets<'a>(mut counter: Seq<'a, U8Counter<'a>>) {
+>     counter.reset = 1;
+>     counter.tick();
+>     counter.reset = 0;
+>     assert_eq!(counter.value, 0);
+> }
+> ```
 
 ## Motivation
 
 Why does hardware testing suck? Consider the ways we have to test
-(System)Verilog:
+Verilog:
 
 - **Test natively**: Verilog is already a terrible enough language, and writing
   tests *in* Verilog is really annoying.
@@ -46,10 +59,11 @@ solutions:
 
 - [Calyx](https://calyxir.org): the canonical way of testing Calyx code is to
   read from JSON files representing byte arrays and write to JSON files
-  representing byte arrays.
+  representing byte arrays (_yes, Calyx is not really a 'custom HDL'_).
 - [Spade](https://spade-lang.org): `verilator` integration involves [absurd
   macro magic](https://docs.spade-lang.org/simulation.html#verilator) and [using
-  `cocotb`](https://docs.spade-lang.org/simulation.html#cocotb) requires putting the design-under-test in a code comment.
+  `cocotb`](https://docs.spade-lang.org/simulation.html#cocotb) requires putting
+  the design-under-test in a code comment.
 - [Veryl](https://veryl-lang.org): you literally [write inline Verilog or Python](https://doc.veryl-lang.org/book/05_language_reference/13_integrated_test.html). Yes, inside Veryl code.
 
 Still, a lot of these are less than optimal.
@@ -60,7 +74,7 @@ Still, a lot of these are less than optimal.
 - Works completely drop-in in your existing projects
 - Safe VCD tracing support
 - Declarative API for usability + Dynamic API for programmability
-- DPI support in Rust: call Rust functions from (System)Verilog
+- DPI support in Rust: call Rust functions from Verilog
 - Integration with modern HDLs
 - Rust. Did I say Rust?
 
