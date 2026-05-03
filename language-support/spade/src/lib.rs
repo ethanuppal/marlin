@@ -223,9 +223,9 @@ impl SpadeRuntime {
         }
 
         Ok(Self {
-            verilator_runtime: VerilatorRuntime::new(
+            verilator_runtime: VerilatorRuntime::new2(
                 // https://discord.com/channels/962274366043873301/962296357018828822/1332274022280466503
-                &swim_project_path.join("build/thirdparty/marlin"),
+                swim_project_path.join("build/thirdparty/marlin"),
                 &source_files,
                 &include_files,
                 [],

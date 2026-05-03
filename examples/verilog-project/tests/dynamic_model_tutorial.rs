@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::path::Path;
+
 use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
     VerilatorRuntime, VerilatorRuntimeOptions, verilator_version,
@@ -21,10 +23,10 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/main.sv".as_ref()],
-        &[],
+    let runtime = VerilatorRuntime::new2(
+        "artifacts2",
+        &["src/main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),

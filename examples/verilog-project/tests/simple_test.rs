@@ -24,10 +24,10 @@ macro_rules! test {
         #[test]
         #[snafu::report]
         fn $name() -> Result<(), Whatever> {
-            let runtime = VerilatorRuntime::new(
-                "artifacts".into(),
-                &["src/main.sv".as_ref()],
-                &[],
+            let runtime = VerilatorRuntime::new2(
+                "artifacts",
+                &["src/main.sv"],
+                &[] as &[&std::path::Path],
                 [],
                 VerilatorRuntimeOptions::default()
                     .allow_unsupported_verilator(Some(verilator_version!(5 020))),

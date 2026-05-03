@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::path::Path;
+
 use example_verilog_project::WideMain;
 use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
@@ -22,10 +24,10 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+    let runtime = VerilatorRuntime::new2(
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
@@ -76,10 +78,10 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
 #[test]
 #[snafu::report]
 fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+    let runtime = VerilatorRuntime::new2(
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
@@ -112,10 +114,10 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
 #[test]
 #[snafu::report]
 fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+    let runtime = VerilatorRuntime::new2(
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),

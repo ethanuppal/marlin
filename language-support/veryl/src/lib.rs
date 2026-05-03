@@ -169,10 +169,10 @@ impl VerylRuntime {
             .collect::<Vec<_>>();
 
         Ok(Self {
-            verilator_runtime: VerilatorRuntime::new(
-                &veryl_project_path.join("dependencies/whatever"),
+            verilator_runtime: VerilatorRuntime::new2(
+                veryl_project_path.join("dependencies/whatever"),
                 &verilog_source_files_ref,
-                &[],
+                &[] as &[Utf8PathBuf],
                 [],
                 options.verilator_options,
             )?,
