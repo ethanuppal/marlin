@@ -23,8 +23,14 @@ modules as `struct`s like any other Rust `struct`. Hook them up to `tokio` or
 
 Marlin works out of the box on macOS and Linux (verified under continuous integration).
 
-| a | b |
-| --- | --- |
+<table>
+<tr>
+<td> Status </td> <td> Response </td>
+</tr>
+<tr>
+<td> 200 </td>
+<td>
+
 ```rs
 use marlin::verilog::prelude::*;
 use marlin_test::prelude::*;
@@ -41,7 +47,13 @@ fn counter_resets<'a>(mut counter: Seq<'a, U8Counter<'a>>) {
     assert_eq!(counter.value, 0);
 }
 ```
-|
+
+</td>
+</tr>
+<tr>
+<td> 400 </td>
+<td>
+
 ```
 $ cargo test
    Compiling demo v0.1.0 (/project)
@@ -55,6 +67,13 @@ test counter_resets ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
 ```
+
+</td>
+</tr>
+</table>
+
+
+
 > Example using [`marlin-test`](https://crates.io/crates/marlin-test), a set of macros replacing `#[test]`.
 
 ## Motivation
