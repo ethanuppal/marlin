@@ -5,9 +5,8 @@
 [![Crates.io Version](https://img.shields.io/crates/v/marlin)](https://crates.io/crates/marlin)
 [![docs.rs](https://img.shields.io/docsrs/marlin)](https://docs.rs/marlin/latest/marlin)
 [![Crates.io License](https://img.shields.io/crates/l/marlin)](./LICENSE)
-[![Supported Spade version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.spade-parser.version&label=Spade)](https://github.com/ethanuppal/marlin/blob/main/language-support/spade)
-[![Supported Veryl version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2Fethanuppal%2Fmarlin%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=workspace.dependencies.veryl-parser.version&label=Veryl)](https://github.com/ethanuppal/marlin/blob/main/language-support/veryl)
 [![Matrix](https://img.shields.io/matrix/marlin-project%3Amatrix.org?label=Matrix)](https://matrix.to/#/#marlin-project:matrix.org)
+[![Position paper](https://img.shields.io/badge/Paper-LATTE_'26-blue)](https://capra.cs.cornell.edu/latte26/paper/latte26-final16.pdf)
 
 **[Read the documentation](https://ethanuppal.com/marlin)** | **[Read the API reference](https://docs.rs/marlin/latest/marlin)**
 
