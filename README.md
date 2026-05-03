@@ -28,7 +28,6 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 <td> Status </td> <td> Response </td>
 </tr>
 <tr>
-<td> 200 </td>
 <td>
 
 ```rs
@@ -49,9 +48,6 @@ fn counter_resets<'a>(mut counter: Seq<'a, U8Counter<'a>>) {
 ```
 
 </td>
-</tr>
-<tr>
-<td> 400 </td>
 <td>
 
 ```
