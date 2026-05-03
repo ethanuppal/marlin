@@ -25,7 +25,7 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 
 <table>
 <tr>
-<td> <code style="text-align:center;">demo.rs</code> </td> <td> shell </td>
+<td> <code>tests/demo.rs</code> </td> <td> shell </td> <td> <code>tests/u8_counter.sv</code> </td>
 </tr>
 <tr>
 <td>
@@ -62,6 +62,25 @@ running 1 test
 test counter_resets ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
+```
+
+</td>
+<td>
+
+```sv
+  module u8_counter(
+    input logic clk,
+    input logic reset,
+    input logic enable,
+    output reg[7:0] value
+);
+    always_ff @(posedge clk) begin
+        if (reset)
+            value <= 0;
+        else
+            value <= enable ? (value + 1) : value;
+    end
+endmodule
 ```
 
 </td>
