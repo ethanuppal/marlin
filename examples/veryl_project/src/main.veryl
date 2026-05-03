@@ -4,3 +4,18 @@ module Wire(
 ) {
     assign medium_output = medium_input;
 }
+
+module U8Counter(
+    i_clk: input clock,
+    i_reset: input logic,
+    enable: input logic,
+    value: output logic<8>
+) {
+    always_ff {
+        if i_reset {
+            value = 0;
+        } else {
+            value = if enable ? (value + 1) : value;
+        }
+    }
+}
