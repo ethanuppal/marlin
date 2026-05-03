@@ -45,7 +45,7 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 ## Motivation
 
 Why does hardware testing suck? Consider the ways we have to test
-(System)Verilog:
+Verilog:
 
 - **Test natively**: Verilog is already a terrible enough language, and writing
   tests *in* Verilog is really annoying.
@@ -59,10 +59,11 @@ solutions:
 
 - [Calyx](https://calyxir.org): the canonical way of testing Calyx code is to
   read from JSON files representing byte arrays and write to JSON files
-  representing byte arrays.
+  representing byte arrays (_yes, Calyx is not really a 'custom HDL'_).
 - [Spade](https://spade-lang.org): `verilator` integration involves [absurd
   macro magic](https://docs.spade-lang.org/simulation.html#verilator) and [using
-  `cocotb`](https://docs.spade-lang.org/simulation.html#cocotb) requires putting the design-under-test in a code comment.
+  `cocotb`](https://docs.spade-lang.org/simulation.html#cocotb) requires putting
+  the design-under-test in a code comment.
 - [Veryl](https://veryl-lang.org): you literally [write inline Verilog or Python](https://doc.veryl-lang.org/book/05_language_reference/13_integrated_test.html). Yes, inside Veryl code.
 
 Still, a lot of these are less than optimal.
