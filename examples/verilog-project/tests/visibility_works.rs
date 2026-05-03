@@ -12,9 +12,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::path::Path;
+
 use example_verilog_project::enclosed;
 use marlin::{
-    verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
+    verilator::{verilator_version, VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
 };
 use snafu::Whatever;
@@ -23,9 +25,9 @@ use snafu::Whatever;
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
-        "artifacts3".into(),
-        &["src/main.sv".as_ref()],
-        &[],
+        "artifacts3",
+        &["src/main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),

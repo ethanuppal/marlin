@@ -8,11 +8,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
-    eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatorRuntime,
+    VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -24,7 +24,7 @@ pub mod prelude {
     pub use crate as veryl;
     pub use crate::{VerylRuntime, VerylRuntimeOptions};
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+        tracing::OpenTrace, AsDynamicVerilatedModel, AsVerilatedModel,
     };
     pub use marlin_veryl_macro::veryl;
 }
@@ -170,9 +170,9 @@ impl VerylRuntime {
 
         Ok(Self {
             verilator_runtime: VerilatorRuntime::new(
-                &veryl_project_path.join("dependencies/whatever"),
+                veryl_project_path.join("dependencies/whatever"),
                 &verilog_source_files_ref,
-                &[],
+                &[] as &[Utf8PathBuf],
                 [],
                 options.verilator_options,
             )?,

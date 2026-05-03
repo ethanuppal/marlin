@@ -12,10 +12,12 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::path::Path;
+
 use example_verilog_project::WideMain;
 use marlin::verilator::{
-    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
-    VerilatorRuntime, VerilatorRuntimeOptions, WideIn, verilator_version,
+    verilator_version, AsDynamicVerilatedModel, PortDirection,
+    VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions, WideIn,
 };
 use snafu::Whatever;
 
@@ -23,9 +25,9 @@ use snafu::Whatever;
 #[snafu::report]
 fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
@@ -77,9 +79,9 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
 #[snafu::report]
 fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),
@@ -113,9 +115,9 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
 #[snafu::report]
 fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
     let runtime = VerilatorRuntime::new(
-        "artifacts2".into(),
-        &["src/wide_main.sv".as_ref()],
-        &[],
+        "artifacts2",
+        &["src/wide_main.sv"],
+        &[] as &[&Path],
         [],
         VerilatorRuntimeOptions::default()
             .allow_unsupported_verilator(Some(verilator_version!(5 020))),

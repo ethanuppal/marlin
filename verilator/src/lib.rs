@@ -16,10 +16,11 @@ use core::convert::Into;
 use std::{
     cell::RefCell,
     cmp,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
+    path::Path,
     process::Command,
     slice,
     sync::{LazyLock, Mutex},
@@ -34,7 +35,7 @@ use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 mod build_library;
 pub mod dpi;
@@ -528,12 +529,13 @@ impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
     pub fn new(
-        artifact_directory: &Utf8Path,
-        source_files: &[&Utf8Path],
-        include_directories: &[&Utf8Path],
+        artifact_directory: impl AsRef<Path>,
+        source_files: &[impl AsRef<Path>],
+        include_directories: &[impl AsRef<Path>],
         dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
     ) -> Result<Self, Whatever> {
+        let artifact_directory = artifact_directory.as_ref();
         let verilator_version =
             retrieve_verilator_version(&options.verilator_executable)?;
         if let Some(allowed_version) = options.allow_unsupported_verilator {
@@ -547,10 +549,10 @@ impl VerilatorRuntime {
         }
 
         for source_file in source_files {
-            if !source_file.is_file() {
+            if !source_file.as_ref().is_file() {
                 whatever!(
                     "Source file {} does not exist or is not a file. Note that if it's a relative path, you must be in the correct directory",
-                    source_file
+                    source_file.as_ref().display()
                 );
             }
         }
@@ -578,16 +580,33 @@ impl VerilatorRuntime {
         };
 
         Ok(Self {
-            artifact_directory: artifact_directory.to_owned(),
+            artifact_directory: artifact_directory
+                .to_path_buf()
+                .try_into()
+                .whatever_context("Artifact directory path was not UTF-8")?,
             build_target,
             source_files: source_files
                 .iter()
-                .map(|path| path.to_path_buf())
-                .collect(),
+                .map(|path| {
+                    path.as_ref().to_path_buf().try_into().whatever_context(
+                        format!(
+                            "Source file {} was not UTF-8",
+                            path.as_ref().display()
+                        ),
+                    )
+                })
+                .collect::<Result<Vec<Utf8PathBuf>, _>>()?,
             include_directories: include_directories
                 .iter()
-                .map(|path| path.to_path_buf())
-                .collect(),
+                .map(|path| {
+                    path.as_ref().to_path_buf().try_into().whatever_context(
+                        format!(
+                            "Include directory {} was not UTF-8",
+                            path.as_ref().display()
+                        ),
+                    )
+                })
+                .collect::<Result<Vec<Utf8PathBuf>, _>>()?,
             dpi_functions: dpi_functions.into_iter().collect(),
             options,
             verilator_version,
@@ -660,9 +679,11 @@ impl VerilatorRuntime {
     /// the ports of the Verilog module.
     ///
     /// ```no_run
+    /// # use std::path::Path;
     /// # use marlin_verilator::*;
     /// # use marlin_verilator::dynamic::*;
-    /// # let runtime = VerilatorRuntime::new("".as_ref(), &[], &[], [], Default::default()).unwrap();
+    /// # let empty: &[&Path] = &[];
+    /// # let runtime = VerilatorRuntime::new("", empty, empty, [], Default::default()).unwrap();
     /// # || -> Result<(), snafu::Whatever> {
     /// let mut main = runtime.create_dyn_model(
     ///    "main",
