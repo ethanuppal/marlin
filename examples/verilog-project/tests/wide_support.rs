@@ -24,7 +24,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],
         &[] as &[&Path],
@@ -78,7 +78,7 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
 #[test]
 #[snafu::report]
 fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],
         &[] as &[&Path],
@@ -114,7 +114,7 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
 #[test]
 #[snafu::report]
 fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],
         &[] as &[&Path],

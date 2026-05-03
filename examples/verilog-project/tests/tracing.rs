@@ -27,7 +27,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn forwards_correctly_vcd() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],
         &[] as &[&Path],
@@ -60,7 +60,7 @@ fn forwards_correctly_vcd() -> Result<(), Whatever> {
 #[test]
 #[snafu::report]
 fn forwards_correctly_fst() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],
         &[] as &[&Path],

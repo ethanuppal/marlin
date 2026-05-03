@@ -25,7 +25,7 @@ struct Main;
 
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],
         &[] as &[&Path],

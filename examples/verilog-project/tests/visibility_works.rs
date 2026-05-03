@@ -24,7 +24,7 @@ use snafu::Whatever;
 #[test]
 #[snafu::report]
 fn main() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts3",
         &["src/main.sv"],
         &[] as &[&Path],

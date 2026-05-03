@@ -529,6 +529,23 @@ impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
     pub fn new(
+        artifact_directory: &Path,
+        source_files: &[&Path],
+        include_directories: &[&Path],
+        dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
+        options: VerilatorRuntimeOptions,
+    ) -> Result<Self, Whatever> {
+        Self::new2(
+            artifact_directory,
+            source_files,
+            include_directories,
+            dpi_functions,
+            options,
+        )
+    }
+
+    /// Convenient alternative to [`Self::new`].
+    pub fn new2(
         artifact_directory: impl AsRef<Path>,
         source_files: &[impl AsRef<Path>],
         include_directories: &[impl AsRef<Path>],

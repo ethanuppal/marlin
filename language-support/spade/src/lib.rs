@@ -10,11 +10,11 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
-    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig,
+    VerilatorRuntime, VerilatorRuntimeOptions,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{whatever, OptionExt, ResultExt, Whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -27,7 +27,7 @@ pub mod prelude {
     pub use crate::{SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+        tracing::OpenTrace, AsDynamicVerilatedModel, AsVerilatedModel,
     };
 }
 
@@ -223,9 +223,9 @@ impl SpadeRuntime {
         }
 
         Ok(Self {
-            verilator_runtime: VerilatorRuntime::new(
+            verilator_runtime: VerilatorRuntime::new2(
                 // https://discord.com/channels/962274366043873301/962296357018828822/1332274022280466503
-                &swim_project_path.join("build/thirdparty/marlin"),
+                swim_project_path.join("build/thirdparty/marlin"),
                 &source_files,
                 &include_files,
                 [],

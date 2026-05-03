@@ -24,7 +24,7 @@ macro_rules! test {
         #[test]
         #[snafu::report]
         fn $name() -> Result<(), Whatever> {
-            let runtime = VerilatorRuntime::new(
+            let runtime = VerilatorRuntime::new2(
                 "artifacts",
                 &["src/main.sv"],
                 &[] as &[&std::path::Path],

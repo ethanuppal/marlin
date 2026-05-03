@@ -31,7 +31,7 @@ pub extern "C" fn set_out(output: &mut i32) {
 #[test]
 #[snafu::report]
 fn main_tutorial() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/dpi.sv"],
         &[] as &[&Path],
@@ -69,7 +69,7 @@ pub extern "C" fn set_bool_out(output: &mut bool) {
 #[test]
 #[snafu::report]
 fn other_test() -> Result<(), Whatever> {
-    let runtime = VerilatorRuntime::new(
+    let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/more_dpi.sv"],
         &[] as &[&Path],
