@@ -25,7 +25,7 @@ Marlin works out of the box on macOS and Linux (verified under continuous integr
 
 <table>
 <tr>
-<td> Status </td> <td> Response </td>
+<td> `demo.rs` </td> <td> shell </td>
 </tr>
 <tr>
 <td>
