@@ -58,6 +58,7 @@ pub mod reexports {
 
 pub use marlin_verilator_stable::types;
 
+const VERILATOR_ESCAPE_PREFIX: &str = "__";
 const VERILATOR_MANGLED_PREFIX: &str = "__0";
 const VERILATOR_MANGLED_DOUBLE_UNDERSCORE: &str = "___05F";
 
@@ -71,9 +72,9 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
 
     // Every character _except_ double underscore can be handled as a single
     // character, so we'll split on those, and then join them with
-    // their replacement
+    // their replacement.
     Ok(name
-        .split("__")
+        .split(VERILATOR_ESCAPE_PREFIX)
         .map(|segment| {
             let mut result = String::new();
             for c in segment.chars() {
@@ -1056,7 +1057,7 @@ mod tests {
     }
 
     #[test]
-    fn name_mangling_and_demangling_is_noop() {
+    fn name_mangling_and_demangling_is_idempotent() {
         assert_eq!(
             demangle_verilator_name(
                 &mangle_verilator_name("double__underscore").unwrap()
