@@ -47,6 +47,7 @@ use crate::{
     ffi_names::{DPI_INIT_CALLBACK, TRACE_EVER_ON},
 };
 
+const VERILATOR_ESCAPE_PREFIX: &str = "__";
 const VERILATOR_MANGLED_PREFIX: &str = "__0";
 const VERILATOR_MANGLED_DOUBLE_UNDERSCORE: &str = "___05F";
 
@@ -63,9 +64,9 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, ManglingError> {
     if name.is_ascii() {
         // Every character _except_ double underscore can be handled as a single
         // character, so we'll split on those, and then join them with
-        // their replacement
+        // their replacement.
         Ok(name
-            .split("__")
+            .split(VERILATOR_ESCAPE_PREFIX)
             .map(|segment| {
                 let mut result = String::new();
                 for c in segment.chars() {
@@ -94,15 +95,15 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, ManglingError> {
 pub fn demangle_verilator_name(name: &str) -> String {
     name.split(VERILATOR_MANGLED_PREFIX)
         .enumerate()
-        .map(|(i, s)| {
+        .map(|(i, segment)| {
             if i != 0 {
                 // After the prefix, we have 2 hexadecimal digits representing
                 // the char
-                let c = u8::from_str_radix(&s[0..2], 16).unwrap();
+                let c = u8::from_str_radix(&segment[0..2], 16).unwrap();
                 let unescaped = c as char;
-                format!("{unescaped}{}", &s[2..])
+                format!("{unescaped}{}", &segment[2..])
             } else {
-                s.to_string()
+                segment.to_string()
             }
         })
         .collect::<Vec<_>>()
@@ -876,7 +877,7 @@ mod tests {
     }
 
     #[test]
-    fn name_mangling_and_demangling_is_noop() {
+    fn name_mangling_and_demangling_is_idempotent() {
         assert_eq!(
             demangle_verilator_name(
                 &mangle_verilator_name("double__underscore").unwrap()

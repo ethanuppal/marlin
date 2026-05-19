@@ -18,12 +18,12 @@ use snafu::{Whatever, prelude::*};
 
 use crate::{
     PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    demangle_verilator_name,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_EVER_ON, VCD_CLOSE_AND_DELETE, VCD_DUMP,
         VCD_FLUSH, VCD_OPEN_NEXT,
     },
+    mangle_verilator_name,
 };
 
 fn build_ffi_for_tracing(
@@ -446,7 +446,12 @@ pub fn build_library(
         .args(["-CFLAGS", &cflags])
         .args(["--lib-create", &library_name])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
-        .args(["--top-module", &demangle_verilator_name(top_module)])
+        .args([
+            "--top-module",
+            &mangle_verilator_name(top_module).with_whatever_context(|_| {
+                format!("Failed to mangle top module ({top_module})")
+            })?,
+        ])
         .args(source_files)
         .arg(ffi_wrappers);
     for include_directory in include_directories {
