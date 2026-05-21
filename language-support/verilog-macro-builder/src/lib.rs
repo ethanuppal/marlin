@@ -4,7 +4,10 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use marlin_verilator::{
     PortDirection, compute_wdata_word_count_from_width_not_msb,
@@ -21,6 +24,7 @@ mod util;
 pub struct MacroArgs {
     pub source_path: syn::LitStr,
     pub name: syn::LitStr,
+    pub include: syn::punctuated::Punctuated<syn::LitStr, syn::Token![,]>,
 
     /// Deprecated; does nothing.
     pub clock_port: Option<syn::LitStr>,
@@ -32,6 +36,7 @@ impl syn::parse::Parse for MacroArgs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         syn::custom_keyword!(src);
         syn::custom_keyword!(name);
+        syn::custom_keyword!(include);
 
         syn::custom_keyword!(clock);
         syn::custom_keyword!(reset);
@@ -45,13 +50,23 @@ impl syn::parse::Parse for MacroArgs {
         input.parse::<syn::Token![=]>()?;
         let name = input.parse::<syn::LitStr>()?;
 
+        let mut includes = syn::punctuated::Punctuated::new();
         let mut clock_port = None;
         let mut reset_port = None;
         while input.peek(syn::Token![,]) {
             input.parse::<syn::Token![,]>()?;
 
             let lookahead = input.lookahead1();
-            if lookahead.peek(clock) {
+            if lookahead.peek(include) {
+                input.parse::<include>()?;
+                input.parse::<syn::Token![=]>()?;
+                let content;
+                syn::bracketed!(content in input);
+                includes = content.parse_terminated(
+                    |input| input.parse::<syn::LitStr>(),
+                    syn::Token![,],
+                )?;
+            } else if lookahead.peek(clock) {
                 input.parse::<clock>()?;
                 input.parse::<syn::Token![=]>()?;
                 clock_port = Some(input.parse::<syn::LitStr>()?);
@@ -67,6 +82,7 @@ impl syn::parse::Parse for MacroArgs {
         Ok(Self {
             source_path,
             name,
+            include: includes,
             clock_port,
             reset_port,
         })
@@ -481,23 +497,39 @@ pub fn build_verilated_struct(
 pub fn parse_verilog_ports(
     top_name: &syn::LitStr,
     source_path: &syn::LitStr,
+    user_include_paths: &syn::punctuated::Punctuated<
+        syn::LitStr,
+        syn::Token![,],
+    >,
     verilog_source_path: &Path,
 ) -> Result<Vec<(String, usize, usize, PortDirection)>, proc_macro2::TokenStream>
 {
     let defines = HashMap::new();
-    let (ast, _) =
-        match sv::parse_sv(verilog_source_path, &defines, &["."], false, false)
-        {
-            Ok(result) => result,
-            Err(error) => {
-                return Err(syn::Error::new_spanned(
+    let source_dir = verilog_source_path.parent();
+    let mut include_paths: Vec<PathBuf> = vec![PathBuf::from(".")];
+    if let Some(source_dir) = source_dir {
+        include_paths.push(source_dir.to_path_buf());
+    }
+    for x in user_include_paths {
+        include_paths.push(PathBuf::from(x.value()));
+    }
+    let (ast, _) = match sv::parse_sv(
+        verilog_source_path,
+        &defines,
+        &include_paths,
+        false,
+        false,
+    ) {
+        Ok(result) => result,
+        Err(error) => {
+            return Err(syn::Error::new_spanned(
                 source_path,
                 error.to_string()
                     + " (Try checking, for instance, that the file exists.)",
             )
             .into_compile_error());
-            }
-        };
+        }
+    };
 
     let Some(module) = (&ast).into_iter().find_map(|node| match node {
         RefNode::ModuleDeclarationAnsi(module) => {
