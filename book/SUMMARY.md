@@ -23,6 +23,7 @@
 - [Waveform Tracing](reference/vcd.md)
 - [Model Traits](reference/model-traits.md)
 - [Dynamic API Values](reference/dynamic-api-values.md)
+- [Adding a new HDL](reference/adding-new-hdl.md)
 
 ---
 
