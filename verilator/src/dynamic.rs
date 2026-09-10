@@ -10,11 +10,10 @@ use std::{collections::HashMap, ffi, slice};
 
 use libloading::Library;
 
-use marlin_verilator_stable::core::PortDirection;
-pub use marlin_verilator_stable::dynamic::AsDynamicVerilatedModel;
-pub use marlin_verilator_stable::dynamic::DynamicVerilatedModelError;
-pub use marlin_verilator_stable::dynamic::VerilatorValue;
-use marlin_verilator_stable::types;
+pub use marlin_verilator_stable::dynamic::{
+    AsDynamicVerilatedModel, DynamicVerilatedModelError, VerilatorValue,
+};
+use marlin_verilator_stable::{core::PortDirection, types};
 
 use crate::WideOut;
 
