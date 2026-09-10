@@ -18,7 +18,7 @@ use snafu::{Whatever, prelude::*};
 
 use crate::{
     BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    VerilatorVersion, compute_wdata_word_count_from_width_not_msb,
+    VerilatorVersion, compute_edata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
@@ -190,8 +190,8 @@ extern "C" {{
                 format!("top->{port} = new_value;")
             } else {
                 let word_count =
-                    compute_wdata_word_count_from_width_not_msb(width);
-                let bytes_to_copy = word_count * size_of::<types::WData>();
+                    compute_edata_word_count_from_width_not_msb(width);
+                let bytes_to_copy = word_count * size_of::<types::EData>();
                 // https://en.cppreference.com/w/cpp/string/byte/memcpy
                 format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
             };

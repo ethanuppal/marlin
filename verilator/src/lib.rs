@@ -16,11 +16,11 @@ use core::convert::Into;
 use std::{
     cell::RefCell,
     cmp,
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
-    path::{Path},
+    path::Path,
     process::Command,
     slice,
     sync::{LazyLock, Mutex},
@@ -80,35 +80,50 @@ pub mod types {
 
     /// From the Verilator documentation: "Data representing >64 packed bits
     /// (used as pointer)."
+    #[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
     pub type WData = EData;
 
     /// From the Verilator documentation: "'bit' of >64 packed bits as array
     /// input to a function."
-    pub type WDataInP = *const WData;
+    pub type WDataInP = *const EData;
 
     /// From the Verilator documentation: "'bit' of >64 packed bits as array
     /// output from a function."
-    pub type WDataOutP = *mut WData;
+    pub type WDataOutP = *mut EData;
 }
 
-/// Computes the length of the [`types::WData`] array that Verilator generates
+/// Computes the length of the [`types::EData`] array that Verilator generates
 /// for a given wide port of bit width `width`.
 ///
-/// See also: [`compute_approx_width_from_wdata_word_count`]
+/// See also: [`compute_approx_width_from_edata_word_count`]
+pub const fn compute_edata_word_count_from_width_not_msb(
+    width: usize,
+) -> usize {
+    width.div_ceil(types::EData::BITS as usize)
+}
+
+#[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
 pub const fn compute_wdata_word_count_from_width_not_msb(
     width: usize,
 ) -> usize {
-    width.div_ceil(types::WData::BITS as usize)
+    compute_edata_word_count_from_width_not_msb(width)
 }
 
 /// Computes the width upper bound for a wide port with the given the given
 /// `word_count` of the [`types::WData`] array Verilator generates.
 ///
-/// See also: [`compute_wdata_word_count_from_width_not_msb`]
+/// See also: [`compute_edata_word_count_from_width_not_msb`]
+pub const fn compute_approx_width_from_edata_word_count(
+    word_count: usize,
+) -> usize {
+    word_count * (types::EData::BITS as usize)
+}
+
+#[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
 pub const fn compute_approx_width_from_wdata_word_count(
     word_count: usize,
 ) -> usize {
-    word_count * (types::WData::BITS as usize)
+    compute_approx_width_from_edata_word_count(word_count)
 }
 
 ///  `WORDS` is [`compute_wdata_word_count_from_width_not_msb`]`(HIGH + 1 -
@@ -116,15 +131,15 @@ pub const fn compute_approx_width_from_wdata_word_count(
 /// least.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideIn<const WORDS: usize> {
-    inner: [types::WData; WORDS],
+    inner: [types::EData; WORDS],
 }
 
 impl<const WORDS: usize> WideIn<WORDS> {
-    pub fn new(value: [types::WData; WORDS]) -> Self {
+    pub fn new(value: [types::EData; WORDS]) -> Self {
         Self { inner: value }
     }
 
-    pub fn value(&self) -> &[types::WData; WORDS] {
+    pub fn value(&self) -> &[types::EData; WORDS] {
         &self.inner
     }
 
@@ -146,11 +161,11 @@ impl<const WORDS: usize> Default for WideIn<WORDS> {
 /// See [`WideIn`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct WideOut<const WORDS: usize> {
-    inner: [types::WData; WORDS],
+    inner: [types::EData; WORDS],
 }
 
 impl<const WORDS: usize> WideOut<WORDS> {
-    pub fn value(&self) -> &[types::WData; WORDS] {
+    pub fn value(&self) -> &[types::EData; WORDS] {
         &self.inner
     }
 
@@ -166,7 +181,7 @@ impl<const WORDS: usize> WideOut<WORDS> {
     }
 }
 
-impl<const WORDS: usize> From<WideOut<WORDS>> for [types::WData; WORDS] {
+impl<const WORDS: usize> From<WideOut<WORDS>> for [types::EData; WORDS] {
     fn from(val: WideOut<WORDS>) -> Self {
         val.inner
     }
@@ -246,7 +261,7 @@ impl Default for VerilatedModelConfig {
             cxx_executable: "c++".into(),
             cxx_standard: Some(CxxStandard::Cxx14),
             additional_includes: Vec::default(),
-            additional_library_paths: Vec::default()
+            additional_library_paths: Vec::default(),
         }
     }
 }
@@ -285,7 +300,10 @@ impl VerilatedModelConfig {
         self
     }
 
-    pub fn additional_library_path(mut self, library_path: Utf8PathBuf) -> Self {
+    pub fn additional_library_path(
+        mut self,
+        library_path: Utf8PathBuf,
+    ) -> Self {
         self.additional_library_paths.push(library_path);
         self
     }
