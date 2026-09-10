@@ -85,6 +85,7 @@ Still, a lot of these are less than optimal.
   - Earlier versions may work but are not tested
 - [GNU Make](https://www.gnu.org/software/make/)
 - A C++ compiler that `verilator` can find; may need to [support at least C++14](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4296.pdf).
+- If you are using FST waveforms, you will need [lz4](https://github.com/lz4/lz4).
 
 ## Install
 
