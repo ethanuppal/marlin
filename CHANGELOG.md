@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/ethanuppal/marlin/compare/v0.17.1...v0.18.0) (2026-09-10)
+
+
+### Features
+
+* **verilator-stable:** Initial ([#249](https://github.com/ethanuppal/marlin/issues/249)) ([88fc3ea](https://github.com/ethanuppal/marlin/commit/88fc3eab0742d89d53024fa598308d5d6f11493a))
+
 ## [0.17.1](https://github.com/ethanuppal/marlin/compare/v0.17.0...v0.17.1) (2026-09-10)
 
 
