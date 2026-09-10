@@ -11,3 +11,4 @@ license.workspace = true
 
 [dependencies]
 libloading.workspace = true
+snafu.workspace = true

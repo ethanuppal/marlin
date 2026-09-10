@@ -6,7 +6,12 @@
 
 use std::fmt;
 
-use crate::{core::compute_approx_width_from_edata_word_count, types};
+use snafu::Snafu;
+
+use crate::{
+    core::{PortDirection, compute_approx_width_from_edata_word_count},
+    types,
+};
 
 /// See [`types`].
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -87,14 +92,50 @@ impl<const WORDS: usize> From<[types::EData; WORDS]> for VerilatorValue<'_> {
     }
 }
 
+/// Runtime port read/write error.
+#[derive(Debug, Snafu)]
+pub enum DynamicVerilatedModelError {
+    #[snafu(display(
+        "Port {port} not found on verilated module {top_module}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"
+    ))]
+    NoSuchPort {
+        top_module: String,
+        port: String,
+        #[snafu(source(false))]
+        source: Option<libloading::Error>,
+    },
+    #[snafu(display(
+        "Port {port} on verilated module {top_module} has width {width}, but used as if it was in the {attempted_lower} to {attempted_higher} width range"
+    ))]
+    InvalidPortWidth {
+        top_module: String,
+        port: String,
+        width: usize,
+        attempted_lower: usize,
+        attempted_higher: usize,
+    },
+    #[snafu(display(
+        "Port {port} on verilated module {top_module} is an {direction} port, but was used as an {attempted_direction} port"
+    ))]
+    InvalidPortDirection {
+        top_module: String,
+        port: String,
+        direction: PortDirection,
+        attempted_direction: PortDirection,
+    },
+}
+
 /// Access model ports at runtime.
-pub trait AsDynamicVerilatedModel<'ctx, Err>: 'ctx {
+pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
     /// Equivalent to the Verilator `eval` method.
     fn eval(&mut self);
 
     /// If `port` is a valid port name for this model, returns the current value
     /// of the port.
-    fn read(&self, port: impl Into<String>) -> Result<VerilatorValue<'_>, Err>;
+    fn read(
+        &self,
+        port: impl Into<String>,
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError>;
 
     /// If `port` is a valid port name for this model, and the port's width is
     /// `<=` `value.into().width()`, sets the port to `value`.
@@ -102,5 +143,5 @@ pub trait AsDynamicVerilatedModel<'ctx, Err>: 'ctx {
         &mut self,
         port: impl Into<String>,
         value: impl Into<VerilatorValue<'ctx>>,
-    ) -> Result<(), Err>;
+    ) -> Result<(), DynamicVerilatedModelError>;
 }
