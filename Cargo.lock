@@ -594,8 +594,16 @@ dependencies = [
  "dashmap",
  "file-guard",
  "libloading",
+ "marlin-verilator-stable",
  "owo-colors",
  "snafu",
+]
+
+[[package]]
+name = "marlin-verilator-stable"
+version = "1.0.0"
+dependencies = [
+ "libloading",
 ]
 
 [[package]]
