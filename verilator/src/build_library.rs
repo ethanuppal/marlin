@@ -452,6 +452,7 @@ pub fn build_library(
     .whatever_context("Failed to build FFI wrappers")?;
 
     // bug in verilator#5226 means the directory must be relative to -Mdir
+    // TODO: compute relative path explicitly
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
     let mut cflags = vec!["-shared", "-fpic"];

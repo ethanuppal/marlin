@@ -36,6 +36,10 @@ jobs:
           fi
       - name: Manual test
         run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            export LZ4_INCLUDE_PATH="$(brew --prefix lz4)/include/"
+            export LZ4_LIBRARY_PATH="$(brew --prefix lz4)/lib/"
+          fi
           cd examples/verilog-project
           cargo run --package example-verilog-project --bin tutorial
           cargo run --package example-verilog-project --bin tutorial # rerun

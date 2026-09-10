@@ -16,11 +16,11 @@ use core::convert::Into;
 use std::{
     cell::RefCell,
     cmp,
-    collections::{HashMap, hash_map::Entry},
+    collections::{hash_map::Entry, HashMap},
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
-    path::Path,
+    path::{Path},
     process::Command,
     slice,
     sync::{LazyLock, Mutex},
@@ -229,6 +229,12 @@ pub struct VerilatedModelConfig {
 
     /// Optionally specify the C++ standard used by Verilator.
     pub cxx_standard: Option<CxxStandard>,
+
+    /// Additional directories containing header files for Verilator to search in.
+    pub additional_includes: Vec<Utf8PathBuf>,
+
+    /// Additional directories containing libraries for Verilator to search in.
+    pub additional_library_paths: Vec<Utf8PathBuf>,
 }
 
 impl Default for VerilatedModelConfig {
@@ -239,6 +245,8 @@ impl Default for VerilatedModelConfig {
             enable_tracing: Default::default(),
             cxx_executable: "c++".into(),
             cxx_standard: Some(CxxStandard::Cxx14),
+            additional_includes: Vec::default(),
+            additional_library_paths: Vec::default()
         }
     }
 }
@@ -270,6 +278,16 @@ impl VerilatedModelConfig {
             cxx_standard,
             ..self
         }
+    }
+
+    pub fn additional_include(mut self, include: Utf8PathBuf) -> Self {
+        self.additional_includes.push(include);
+        self
+    }
+
+    pub fn additional_library_path(mut self, library_path: Utf8PathBuf) -> Self {
+        self.additional_library_paths.push(library_path);
+        self
     }
 }
 
