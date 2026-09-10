@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/ethanuppal/marlin/compare/v0.16.0...v0.17.0) (2026-09-10)
+
+
+### Features
+
+* **verilator:** Support custom include and library search paths ([#245](https://github.com/ethanuppal/marlin/issues/245)) ([6950a51](https://github.com/ethanuppal/marlin/commit/6950a511bc4c57dd6cd36e71ad3c21a2bb9850ac))
+
 ## [0.16.0](https://github.com/ethanuppal/marlin/compare/v0.15.0...v0.16.0) (2026-05-03)
 
 
