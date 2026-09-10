@@ -14,6 +14,11 @@ Until <https://github.com/verilator/verilator/issues/5813> gets fixed, `.open_vc
 
 You can consult the reference documentation for traces [here](https://docs.rs/marlin/latest/marlin/verilator/tracing/struct.Trace.html).
 
+### FST Tracing
+
+Since Verilator 5.052, you will need lz4 in your include and library search paths.
+You can specify this via `VerilatedModelConfig` if necessary.
+
 ## Tips
 
 You might find yourself wanting to write a function on your model (let's say you declared it as `struct Top`) to simulate a clock cycle.
