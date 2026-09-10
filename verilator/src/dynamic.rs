@@ -9,68 +9,14 @@
 use std::{collections::HashMap, ffi, slice};
 
 use libloading::Library;
-use snafu::Snafu;
 
-use crate::{PortDirection, WideOut, types};
-
-pub trait AsDynamicVerilatedModel<'ctx> {
-    /// Equivalent to the Verilator `eval` method.
-    fn eval(&mut self);
-
-    /// If `port` is a valid port name for this model, returns the current value
-    /// of the port.
-    fn read(
-        &self,
-        port: impl Into<String>,
-    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError>;
-
-    /// If `port` is a valid port name for this model, and the port's width is
-    /// `<=` `value.into().width()`, sets the port to `value`.
-    fn pin(
-        &mut self,
-        port: impl Into<String>,
-        value: impl Into<VerilatorValue<'ctx>>,
-    ) -> Result<(), DynamicVerilatedModelError>;
-}
-
-impl<
-    'ctx,
-    T: marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
-            'ctx,
-            DynamicVerilatedModelError,
-        >,
-> AsDynamicVerilatedModel<'ctx> for T
-{
-    fn eval(&mut self) {
-        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
-            'ctx,
-            DynamicVerilatedModelError,
-        >>::eval(self);
-    }
-
-    fn read(
-        &self,
-        port: impl Into<String>,
-    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError> {
-        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
-            'ctx,
-            DynamicVerilatedModelError,
-        >>::read(self, port)
-    }
-
-    fn pin(
-        &mut self,
-        port: impl Into<String>,
-        value: impl Into<VerilatorValue<'ctx>>,
-    ) -> Result<(), DynamicVerilatedModelError> {
-        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
-            'ctx,
-            DynamicVerilatedModelError,
-        >>::pin(self, port, value)
-    }
-}
-
+use marlin_verilator_stable::core::PortDirection;
+pub use marlin_verilator_stable::dynamic::AsDynamicVerilatedModel;
+pub use marlin_verilator_stable::dynamic::DynamicVerilatedModelError;
 pub use marlin_verilator_stable::dynamic::VerilatorValue;
+use marlin_verilator_stable::types;
+
+use crate::WideOut;
 
 impl<const WORDS: usize> From<WideOut<WORDS>> for VerilatorValue<'_> {
     fn from(value: WideOut<WORDS>) -> Self {
@@ -93,39 +39,6 @@ pub struct DynamicVerilatedModel<'ctx> {
     pub(crate) main: *mut ffi::c_void,
     pub(crate) eval_main: extern "C" fn(*mut ffi::c_void),
     pub(crate) library: &'ctx Library,
-}
-
-/// Runtime port read/write error.
-#[derive(Debug, Snafu)]
-pub enum DynamicVerilatedModelError {
-    #[snafu(display(
-        "Port {port} not found on verilated module {top_module}: did you forget to specify it in the runtime `create_dyn_model` constructor?: {source:?}"
-    ))]
-    NoSuchPort {
-        top_module: String,
-        port: String,
-        #[snafu(source(false))]
-        source: Option<libloading::Error>,
-    },
-    #[snafu(display(
-        "Port {port} on verilated module {top_module} has width {width}, but used as if it was in the {attempted_lower} to {attempted_higher} width range"
-    ))]
-    InvalidPortWidth {
-        top_module: String,
-        port: String,
-        width: usize,
-        attempted_lower: usize,
-        attempted_higher: usize,
-    },
-    #[snafu(display(
-        "Port {port} on verilated module {top_module} is an {direction} port, but was used as an {attempted_direction} port"
-    ))]
-    InvalidPortDirection {
-        top_module: String,
-        port: String,
-        direction: PortDirection,
-        attempted_direction: PortDirection,
-    },
 }
 
 impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {

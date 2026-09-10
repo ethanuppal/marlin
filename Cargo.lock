@@ -604,6 +604,7 @@ name = "marlin-verilator-stable"
 version = "1.0.0"
 dependencies = [
  "libloading",
+ "snafu",
 ]
 
 [[package]]
