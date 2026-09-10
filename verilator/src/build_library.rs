@@ -109,6 +109,7 @@ fn build_ffi(
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
     enable_tracing: Option<Waveform>,
+    verilator_version: VerilatorVersion,
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
@@ -177,47 +178,62 @@ extern "C" {{
                     "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
                 )
             } else {
-                format!("const WData* {name_or_empty}")
+                format!(
+                    "const {}* {name_or_empty}",
+                    // https://github.com/verilator/verilator/pull/7642
+                    if verilator_version >= verilator_version!(5 052) {
+                        "EData"
+                    } else {
+                        "WData"
+                    }
+                )
             }
         };
 
         let pin_port = ffi_names::pin_port(top_module, port);
         let read_port = ffi_names::read_port(top_module, port);
 
-        if matches!(direction, PortDirection::Input | PortDirection::Inout) {
-            let input_type = const_type_macro(Some("new_value"));
-            let pin_code = if width <= 64 {
-                format!("top->{port} = new_value;")
-            } else {
-                let word_count =
-                    compute_edata_word_count_from_width_not_msb(width);
-                let bytes_to_copy = word_count * size_of::<types::EData>();
-                // https://en.cppreference.com/w/cpp/string/byte/memcpy
-                format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
-            };
-            writeln!(
-                &mut buffer,
-                r#"
+        match direction {
+            PortDirection::Input | PortDirection::Inout => {
+                let input_type = const_type_macro(Some("new_value"));
+                let pin_code = if width <= 64 {
+                    format!("top->{port} = new_value;")
+                } else {
+                    let to_pointer =
+                    // https://github.com/verilator/verilator/pull/7642
+                    if verilator_version >= verilator_version!(5 052) { ".data()" } else { "" };
+                    let word_count =
+                        compute_edata_word_count_from_width_not_msb(width);
+                    let bytes_to_copy = word_count * size_of::<types::EData>();
+                    // https://en.cppreference.com/w/cpp/string/byte/memcpy
+                    format!(
+                        "std::memcpy(top->{port}{to_pointer}, new_value, {bytes_to_copy});"
+                    )
+                };
+                writeln!(
+                    &mut buffer,
+                    r#"
     void {pin_port}(V{top_module}* top, {input_type}) {{
         {pin_code}
     }}
             "#
-            )
-            .whatever_context("Failed to format input port FFI")?;
-        }
-
-        if matches!(direction, PortDirection::Output | PortDirection::Inout) {
-            let to_pointer_if_wide = if width > 64 { ".data()" } else { "" };
-            let return_type = const_type_macro(None);
-            writeln!(
-                &mut buffer,
-                r#"
+                )
+                .whatever_context("Failed to format input port FFI")?;
+            }
+            PortDirection::Output => {
+                let to_pointer_if_wide =
+                    if width > 64 { ".data()" } else { "" };
+                let return_type = const_type_macro(None);
+                writeln!(
+                    &mut buffer,
+                    r#"
     {return_type} {read_port}(V{top_module}* top) {{
         return top->{port}{to_pointer_if_wide};
     }}
             "#
-            )
-            .whatever_context("Failed to format output port FFI")?;
+                )
+                .whatever_context("Failed to format output port FFI")?;
+            }
         }
     }
 
@@ -448,6 +464,7 @@ pub fn build_library(
         top_module,
         ports,
         config.enable_tracing,
+        verilator_version,
     )
     .whatever_context("Failed to build FFI wrappers")?;
 

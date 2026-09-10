@@ -80,7 +80,9 @@ pub mod types {
 
     /// From the Verilator documentation: "Data representing >64 packed bits
     /// (used as pointer)."
-    #[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
+    #[deprecated(
+        note = "Verilator 5.052 or later no longer uses this type (#7642)"
+    )]
     pub type WData = EData;
 
     /// From the Verilator documentation: "'bit' of >64 packed bits as array
@@ -102,7 +104,9 @@ pub const fn compute_edata_word_count_from_width_not_msb(
     width.div_ceil(types::EData::BITS as usize)
 }
 
-#[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
+#[deprecated(
+    note = "Verilator 5.052 or later no longer uses this type (#7642)"
+)]
 pub const fn compute_wdata_word_count_from_width_not_msb(
     width: usize,
 ) -> usize {
@@ -119,7 +123,9 @@ pub const fn compute_approx_width_from_edata_word_count(
     word_count * (types::EData::BITS as usize)
 }
 
-#[deprecated(note = "Verilator 5.052 or later no longer uses this type")]
+#[deprecated(
+    note = "Verilator 5.052 or later no longer uses this type (#7642)"
+)]
 pub const fn compute_approx_width_from_wdata_word_count(
     word_count: usize,
 ) -> usize {
