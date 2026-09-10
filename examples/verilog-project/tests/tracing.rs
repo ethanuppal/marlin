@@ -72,18 +72,18 @@ fn forwards_correctly_fst() -> Result<(), Whatever> {
     let lz4_include_path_opt = option_env!("LZ4_INCLUDE_PATH");
     let lz4_library_path_opt = option_env!("LZ4_LIBRARY_PATH");
 
-    let mut config = VerilatedModelConfig::default().enable_tracing(Some(Waveform::Fst));
+    let mut config =
+        VerilatedModelConfig::default().enable_tracing(Some(Waveform::Fst));
     if let Some(lz4_include_path) = lz4_include_path_opt {
-        panic!();
         config.additional_includes.push(lz4_include_path.into());
     }
     if let Some(lz4_library_path) = lz4_library_path_opt {
-        config.additional_includes.push(lz4_library_path.into());
+        config
+            .additional_library_paths
+            .push(lz4_library_path.into());
     }
 
-    let mut main = runtime.create_model::<Main>(
-        &config,
-    )?;
+    let mut main = runtime.create_model::<Main>(&config)?;
 
     let mut fst = main.open_trace("foo.fst");
 

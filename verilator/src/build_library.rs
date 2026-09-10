@@ -455,21 +455,31 @@ pub fn build_library(
     // TODO: compute relative path explicitly
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
-    let mut cflags = vec!["-shared", "-fpic"];
+    let mut cflags = vec!["-shared".into(), "-fpic".into()];
     if let Some(cxx_standard) = config.cxx_standard {
-        cflags.push(match cxx_standard {
-            crate::CxxStandard::Cxx98 => "-std=c++98",
-            crate::CxxStandard::Cxx11 => "-std=c++11",
-            crate::CxxStandard::Cxx14 => "-std=c++14",
-            crate::CxxStandard::Cxx17 => "-std=c++17",
-            crate::CxxStandard::Cxx20 => "-std=c++20",
-            crate::CxxStandard::Cxx23 => "-std=c++23",
-            crate::CxxStandard::Cxx26 => "-std=c++26",
-        });
+        cflags.push(
+            match cxx_standard {
+                crate::CxxStandard::Cxx98 => "-std=c++98",
+                crate::CxxStandard::Cxx11 => "-std=c++11",
+                crate::CxxStandard::Cxx14 => "-std=c++14",
+                crate::CxxStandard::Cxx17 => "-std=c++17",
+                crate::CxxStandard::Cxx20 => "-std=c++20",
+                crate::CxxStandard::Cxx23 => "-std=c++23",
+                crate::CxxStandard::Cxx26 => "-std=c++26",
+            }
+            .into(),
+        );
     }
 
     // https://github.com/verilator/verilator/blob/master/docs/guide/faq.rst#why-do-i-get-undefined-reference-to-sc_time_stamp
-    cflags.push("-DVL_TIME_CONTEXT");
+    cflags.push("-DVL_TIME_CONTEXT".into());
+
+    for additional_include in &config.additional_includes {
+        cflags.push(format!("-I{additional_include}"));
+    }
+    for additional_library_path in &config.additional_library_paths {
+        cflags.push(format!("-L{additional_library_path}"));
+    }
 
     let cflags_string = cflags.join(" ");
 
@@ -549,6 +559,9 @@ pub fn build_library(
     }
     if matches!(config.enable_tracing, Some(Waveform::Fst)) {
         cxx_command.arg("-lz");
+        if verilator_version >= verilator_version!(5 050) {
+            cxx_command.arg("-llz4");
+        }
     }
     let cxx_output = cxx_command
         .output()
