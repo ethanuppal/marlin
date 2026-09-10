@@ -74,6 +74,7 @@ fn forwards_correctly_fst() -> Result<(), Whatever> {
 
     let mut config = VerilatedModelConfig::default().enable_tracing(Some(Waveform::Fst));
     if let Some(lz4_include_path) = lz4_include_path_opt {
+        panic!();
         config.additional_includes.push(lz4_include_path.into());
     }
     if let Some(lz4_library_path) = lz4_library_path_opt {
