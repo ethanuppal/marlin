@@ -56,43 +56,7 @@ pub mod reexports {
     pub use libloading;
 }
 
-/// Verilator-defined types for C FFI.
-pub mod types {
-    /// From the Verilator documentation: "Data representing 'bit' of 1-8 packed
-    /// bits."
-    pub type CData = u8;
-
-    /// From the Verilator documentation: "Data representing 'bit' of 9-16
-    /// packed bits"
-    pub type SData = u16;
-
-    /// From the Verilator documentation: "Data representing 'bit' of 17-32
-    /// packed bits."
-    pub type IData = u32;
-
-    /// From the Verilator documentation: "Data representing 'bit' of 33-64
-    /// packed bits."
-    pub type QData = u64;
-
-    /// From the Verilator documentation: "Data representing one element of
-    /// WData array."
-    pub type EData = u32;
-
-    /// From the Verilator documentation: "Data representing >64 packed bits
-    /// (used as pointer)."
-    #[deprecated(
-        note = "Verilator 5.052 or later no longer uses this type (#7642)"
-    )]
-    pub type WData = EData;
-
-    /// From the Verilator documentation: "'bit' of >64 packed bits as array
-    /// input to a function."
-    pub type WDataInP = *const EData;
-
-    /// From the Verilator documentation: "'bit' of >64 packed bits as array
-    /// output from a function."
-    pub type WDataOutP = *mut EData;
-}
+pub use marlin_verilator_stable::types;
 
 /// Computes the length of the [`types::EData`] array that Verilator generates
 /// for a given wide port of bit width `width`.
@@ -113,15 +77,7 @@ pub const fn compute_wdata_word_count_from_width_not_msb(
     compute_edata_word_count_from_width_not_msb(width)
 }
 
-/// Computes the width upper bound for a wide port with the given the given
-/// `word_count` of the [`types::WData`] array Verilator generates.
-///
-/// See also: [`compute_edata_word_count_from_width_not_msb`]
-pub const fn compute_approx_width_from_edata_word_count(
-    word_count: usize,
-) -> usize {
-    word_count * (types::EData::BITS as usize)
-}
+pub use marlin_verilator_stable::core::compute_approx_width_from_edata_word_count;
 
 #[deprecated(
     note = "Verilator 5.052 or later no longer uses this type (#7642)"
@@ -199,23 +155,9 @@ impl<const WORDS: usize> Default for WideOut<WORDS> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum PortDirection {
-    Input,
-    Output,
-    Inout,
-}
+pub use marlin_verilator_stable::core::PortDirection;
 
-impl fmt::Display for PortDirection {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            PortDirection::Input => "input",
-            PortDirection::Output => "output",
-            PortDirection::Inout => "inout",
-        }
-        .fmt(f)
-    }
-}
+pub use marlin_verilator_stable::generated::AsVerilatedModel;
 
 /// Based off of the [C++ standards supported by GCC](https://gcc.gnu.org/projects/cxx-status.html) as
 /// of June 6th, 2025.
@@ -314,26 +256,6 @@ impl VerilatedModelConfig {
         self.additional_library_paths.push(library_path);
         self
     }
-}
-
-/// You should not implement this `trait` manually. Instead, use a procedural
-/// macro like `#[verilog(...)]` to derive it for you.
-pub trait AsVerilatedModel<'ctx>: 'ctx {
-    /// The source-level name of the module.
-    fn name() -> &'static str;
-
-    /// The path of the module's definition.
-    fn source_path() -> &'static str;
-
-    /// The module's interface; each element is `(port_name, port_msb, port_lsb,
-    /// port_direction)`.
-    fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
-
-    #[doc(hidden)]
-    fn init_from(library: &'ctx Library, tracing_enabled: bool) -> Self;
-
-    #[doc(hidden)]
-    unsafe fn model(&self) -> *mut ffi::c_void;
 }
 
 /// Optional configuration for creating a [`VerilatorRuntime`]. Usually, you can

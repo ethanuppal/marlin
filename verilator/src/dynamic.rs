@@ -6,102 +6,14 @@
 
 //! Support for dynamic models.
 
-use std::{collections::HashMap, ffi, fmt, slice};
+use std::{collections::HashMap, ffi, slice};
 
 use libloading::Library;
 use snafu::Snafu;
 
-use crate::{
-    PortDirection, WideOut, compute_approx_width_from_edata_word_count, types,
-};
+use crate::{PortDirection, WideOut, types};
 
-/// See [`types`].
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub enum VerilatorValue<'a> {
-    CData(types::CData),
-    SData(types::SData),
-    IData(types::IData),
-    QData(types::QData),
-    WDataInP(&'a [types::EData]),
-    WDataOutP(Box<[types::EData]>),
-}
-
-impl VerilatorValue<'_> {
-    /// The maximum number of bits this value takes up.
-    pub fn width(&self) -> usize {
-        match self {
-            Self::CData(_) => 8,
-            Self::SData(_) => 16,
-            Self::IData(_) => 32,
-            Self::QData(_) => 64,
-            Self::WDataInP(values) => {
-                compute_approx_width_from_edata_word_count(values.len())
-            }
-            Self::WDataOutP(values) => {
-                compute_approx_width_from_edata_word_count(values.len())
-            }
-        }
-    }
-}
-
-impl fmt::Display for VerilatorValue<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VerilatorValue::CData(cdata) => cdata.fmt(f),
-            VerilatorValue::SData(sdata) => sdata.fmt(f),
-            VerilatorValue::IData(idata) => idata.fmt(f),
-            VerilatorValue::QData(qdata) => qdata.fmt(f),
-            Self::WDataInP(_values) => "wide (fmt is todo)".fmt(f),
-            Self::WDataOutP(_values) => "wide (fmt is todo)".fmt(f),
-        }
-    }
-}
-
-impl From<types::CData> for VerilatorValue<'_> {
-    fn from(value: types::CData) -> Self {
-        Self::CData(value)
-    }
-}
-
-impl From<types::SData> for VerilatorValue<'_> {
-    fn from(value: types::SData) -> Self {
-        Self::SData(value)
-    }
-}
-impl From<types::IData> for VerilatorValue<'_> {
-    fn from(value: types::IData) -> Self {
-        Self::IData(value)
-    }
-}
-
-impl From<types::QData> for VerilatorValue<'_> {
-    fn from(value: types::QData) -> Self {
-        Self::QData(value)
-    }
-}
-
-impl<'a, const WORDS: usize> From<&'a [types::EData; WORDS]>
-    for VerilatorValue<'a>
-{
-    fn from(value: &'a [types::EData; WORDS]) -> Self {
-        Self::WDataInP(value)
-    }
-}
-
-impl<const WORDS: usize> From<[types::EData; WORDS]> for VerilatorValue<'_> {
-    fn from(value: [types::EData; WORDS]) -> Self {
-        Self::WDataOutP(value.into())
-    }
-}
-
-impl<const WORDS: usize> From<WideOut<WORDS>> for VerilatorValue<'_> {
-    fn from(value: WideOut<WORDS>) -> Self {
-        Self::WDataOutP(value.inner.into())
-    }
-}
-
-/// Access model ports at runtime.
-pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
+pub trait AsDynamicVerilatedModel<'ctx> {
     /// Equivalent to the Verilator `eval` method.
     fn eval(&mut self);
 
@@ -119,6 +31,51 @@ pub trait AsDynamicVerilatedModel<'ctx>: 'ctx {
         port: impl Into<String>,
         value: impl Into<VerilatorValue<'ctx>>,
     ) -> Result<(), DynamicVerilatedModelError>;
+}
+
+impl<
+    'ctx,
+    T: marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
+            'ctx,
+            DynamicVerilatedModelError,
+        >,
+> AsDynamicVerilatedModel<'ctx> for T
+{
+    fn eval(&mut self) {
+        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
+            'ctx,
+            DynamicVerilatedModelError,
+        >>::eval(self);
+    }
+
+    fn read(
+        &self,
+        port: impl Into<String>,
+    ) -> Result<VerilatorValue<'_>, DynamicVerilatedModelError> {
+        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
+            'ctx,
+            DynamicVerilatedModelError,
+        >>::read(self, port)
+    }
+
+    fn pin(
+        &mut self,
+        port: impl Into<String>,
+        value: impl Into<VerilatorValue<'ctx>>,
+    ) -> Result<(), DynamicVerilatedModelError> {
+        <T as marlin_verilator_stable::dynamic::AsDynamicVerilatedModel<
+            'ctx,
+            DynamicVerilatedModelError,
+        >>::pin(self, port, value)
+    }
+}
+
+pub use marlin_verilator_stable::dynamic::VerilatorValue;
+
+impl<const WORDS: usize> From<WideOut<WORDS>> for VerilatorValue<'_> {
+    fn from(value: WideOut<WORDS>) -> Self {
+        Self::WDataOutP(value.inner.into())
+    }
 }
 
 #[derive(Clone, Copy)]

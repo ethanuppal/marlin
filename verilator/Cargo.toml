@@ -10,6 +10,7 @@ readme.workspace = true
 license.workspace = true
 
 [dependencies]
+marlin-verilator-stable.workspace = true
 snafu.workspace = true
 camino.workspace = true
 libloading.workspace = true
