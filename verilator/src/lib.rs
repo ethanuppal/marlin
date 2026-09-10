@@ -251,7 +251,8 @@ pub struct VerilatedModelConfig {
     /// Optionally specify the C++ standard used by Verilator.
     pub cxx_standard: Option<CxxStandard>,
 
-    /// Additional directories containing header files for Verilator to search in.
+    /// Additional directories containing header files for Verilator to search
+    /// in.
     pub additional_includes: Vec<Utf8PathBuf>,
 
     /// Additional directories containing libraries for Verilator to search in.
