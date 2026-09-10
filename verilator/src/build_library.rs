@@ -180,8 +180,7 @@ extern "C" {{
             } else {
                 format!(
                     "const {}* {name_or_empty}",
-                    // https://github.com/verilator/verilator/pull/7642
-                    if verilator_version >= verilator_version!(5 052) {
+                    if verilator_version >= verilator_version!(5 050) {
                         "EData"
                     } else {
                         "WData"
