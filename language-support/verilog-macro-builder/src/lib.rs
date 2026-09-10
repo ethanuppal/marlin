@@ -7,7 +7,7 @@
 use std::{collections::HashMap, path::Path};
 
 use marlin_verilator::{
-    PortDirection, compute_wdata_word_count_from_width_not_msb,
+    PortDirection, compute_edata_word_count_from_width_not_msb,
     ffi_names::{
         TRACE_CLOSE_AND_DELETE, TRACE_DUMP, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
@@ -156,7 +156,7 @@ pub fn build_verilated_struct(
             verilator_interface_port_type.clone()
         } else {
             let length =
-                compute_wdata_word_count_from_width_not_msb(port_width);
+                compute_edata_word_count_from_width_not_msb(port_width);
             match port_direction {
                 PortDirection::Input => {
                     quote! { #crate_name::__reexports::verilator::WideIn<#length> }

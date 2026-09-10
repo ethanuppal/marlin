@@ -30,12 +30,13 @@ jobs:
       - name: Install Verilator
         run: |
           if [[ "$(uname)" == 'Darwin' ]]; then
-            brew install verilator
+            brew install verilator lz4
           else
             sudo apt-get install -y verilator
           fi
       - name: Manual test
         run: |
+          # any fst tracing test you add here needs the env var stuff
           cd examples/verilog-project
           cargo run --package example-verilog-project --bin tutorial
           cargo run --package example-verilog-project --bin tutorial # rerun
@@ -43,7 +44,14 @@ jobs:
           cargo test --package example-verilog-project --test dpi_tutorial -- --exact main
           cargo test --package example-verilog-project --test visibility_works -- --exact main
       - name: Cargo test
-        run: cargo test --package example-verilog-project
+        run: |
+          if [[ "$(uname)" == 'Darwin' ]]; then
+            LZ4_INCLUDE_PATH="$(brew --prefix lz4)/include/" \
+              LZ4_LIBRARY_PATH="$(brew --prefix lz4)/lib/" \
+              cargo test --package example-verilog-project
+          else
+            cargo test --package example-verilog-project
+          fi
       - name: Ensure parallel tests don't clobber
         run: |
           cd examples/verilog-project

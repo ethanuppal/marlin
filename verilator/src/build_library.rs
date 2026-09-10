@@ -18,7 +18,7 @@ use snafu::{Whatever, prelude::*};
 
 use crate::{
     BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    VerilatorVersion, compute_wdata_word_count_from_width_not_msb,
+    VerilatorVersion, compute_edata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
@@ -109,6 +109,7 @@ fn build_ffi(
     top_module: &str,
     ports: &[(&str, usize, usize, PortDirection)],
     enable_tracing: Option<Waveform>,
+    verilator_version: VerilatorVersion,
 ) -> Result<Utf8PathBuf, Whatever> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
@@ -177,47 +178,62 @@ extern "C" {{
                     "{macro_prefix}{macro_suffix}({name_or_empty}, {msb}, {lsb})",
                 )
             } else {
-                format!("const WData* {name_or_empty}")
+                format!(
+                    "const {}* {name_or_empty}",
+                    // https://github.com/verilator/verilator/pull/7642
+                    if verilator_version >= verilator_version!(5 052) {
+                        "EData"
+                    } else {
+                        "WData"
+                    }
+                )
             }
         };
 
         let pin_port = ffi_names::pin_port(top_module, port);
         let read_port = ffi_names::read_port(top_module, port);
 
-        if matches!(direction, PortDirection::Input | PortDirection::Inout) {
-            let input_type = const_type_macro(Some("new_value"));
-            let pin_code = if width <= 64 {
-                format!("top->{port} = new_value;")
-            } else {
-                let word_count =
-                    compute_wdata_word_count_from_width_not_msb(width);
-                let bytes_to_copy = word_count * size_of::<types::WData>();
-                // https://en.cppreference.com/w/cpp/string/byte/memcpy
-                format!("std::memcpy(top->{port}, new_value, {bytes_to_copy});")
-            };
-            writeln!(
-                &mut buffer,
-                r#"
+        match direction {
+            PortDirection::Input | PortDirection::Inout => {
+                let input_type = const_type_macro(Some("new_value"));
+                let pin_code = if width <= 64 {
+                    format!("top->{port} = new_value;")
+                } else {
+                    let to_pointer =
+                    // https://github.com/verilator/verilator/pull/7642
+                    if verilator_version >= verilator_version!(5 052) { ".data()" } else { "" };
+                    let word_count =
+                        compute_edata_word_count_from_width_not_msb(width);
+                    let bytes_to_copy = word_count * size_of::<types::EData>();
+                    // https://en.cppreference.com/w/cpp/string/byte/memcpy
+                    format!(
+                        "std::memcpy(top->{port}{to_pointer}, new_value, {bytes_to_copy});"
+                    )
+                };
+                writeln!(
+                    &mut buffer,
+                    r#"
     void {pin_port}(V{top_module}* top, {input_type}) {{
         {pin_code}
     }}
             "#
-            )
-            .whatever_context("Failed to format input port FFI")?;
-        }
-
-        if matches!(direction, PortDirection::Output | PortDirection::Inout) {
-            let to_pointer_if_wide = if width > 64 { ".data()" } else { "" };
-            let return_type = const_type_macro(None);
-            writeln!(
-                &mut buffer,
-                r#"
+                )
+                .whatever_context("Failed to format input port FFI")?;
+            }
+            PortDirection::Output => {
+                let to_pointer_if_wide =
+                    if width > 64 { ".data()" } else { "" };
+                let return_type = const_type_macro(None);
+                writeln!(
+                    &mut buffer,
+                    r#"
     {return_type} {read_port}(V{top_module}* top) {{
         return top->{port}{to_pointer_if_wide};
     }}
             "#
-            )
-            .whatever_context("Failed to format output port FFI")?;
+                )
+                .whatever_context("Failed to format output port FFI")?;
+            }
         }
     }
 
@@ -448,27 +464,39 @@ pub fn build_library(
         top_module,
         ports,
         config.enable_tracing,
+        verilator_version,
     )
     .whatever_context("Failed to build FFI wrappers")?;
 
     // bug in verilator#5226 means the directory must be relative to -Mdir
+    // TODO: compute relative path explicitly
     let ffi_wrappers = Utf8Path::new("../ffi/ffi.cpp");
 
-    let mut cflags = vec!["-shared", "-fpic"];
+    let mut cflags = vec!["-shared".into(), "-fpic".into()];
     if let Some(cxx_standard) = config.cxx_standard {
-        cflags.push(match cxx_standard {
-            crate::CxxStandard::Cxx98 => "-std=c++98",
-            crate::CxxStandard::Cxx11 => "-std=c++11",
-            crate::CxxStandard::Cxx14 => "-std=c++14",
-            crate::CxxStandard::Cxx17 => "-std=c++17",
-            crate::CxxStandard::Cxx20 => "-std=c++20",
-            crate::CxxStandard::Cxx23 => "-std=c++23",
-            crate::CxxStandard::Cxx26 => "-std=c++26",
-        });
+        cflags.push(
+            match cxx_standard {
+                crate::CxxStandard::Cxx98 => "-std=c++98",
+                crate::CxxStandard::Cxx11 => "-std=c++11",
+                crate::CxxStandard::Cxx14 => "-std=c++14",
+                crate::CxxStandard::Cxx17 => "-std=c++17",
+                crate::CxxStandard::Cxx20 => "-std=c++20",
+                crate::CxxStandard::Cxx23 => "-std=c++23",
+                crate::CxxStandard::Cxx26 => "-std=c++26",
+            }
+            .into(),
+        );
     }
 
     // https://github.com/verilator/verilator/blob/master/docs/guide/faq.rst#why-do-i-get-undefined-reference-to-sc_time_stamp
-    cflags.push("-DVL_TIME_CONTEXT");
+    cflags.push("-DVL_TIME_CONTEXT".into());
+
+    for additional_include in &config.additional_includes {
+        cflags.push(format!("-I{additional_include}"));
+    }
+    for additional_library_path in &config.additional_library_paths {
+        cflags.push(format!("-L{additional_library_path}"));
+    }
 
     let cflags_string = cflags.join(" ");
 
@@ -548,6 +576,9 @@ pub fn build_library(
     }
     if matches!(config.enable_tracing, Some(Waveform::Fst)) {
         cxx_command.arg("-lz");
+        if verilator_version >= verilator_version!(5 050) {
+            cxx_command.arg("-llz4");
+        }
     }
     let cxx_output = cxx_command
         .output()
