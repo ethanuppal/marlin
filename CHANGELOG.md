@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/ethanuppal/marlin/compare/v0.18.0...v0.18.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **verilator-stable:** Move `AsDynamicVerilatedModel` to stable fully ([#251](https://github.com/ethanuppal/marlin/issues/251)) ([81222bf](https://github.com/ethanuppal/marlin/commit/81222bfdc507a30dea83bcd7b667a129a80aa688))
+
 ## [0.18.0](https://github.com/ethanuppal/marlin/compare/v0.17.1...v0.18.0) (2026-09-10)
 
 
