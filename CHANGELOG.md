@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/ethanuppal/marlin/compare/v0.17.0...v0.17.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **verilator:** Adjust version check for WData ([#247](https://github.com/ethanuppal/marlin/issues/247)) ([6aa4dbe](https://github.com/ethanuppal/marlin/commit/6aa4dbe9ff0187be9c80c8d9728e72dccca32643))
+
 ## [0.17.0](https://github.com/ethanuppal/marlin/compare/v0.16.0...v0.17.0) (2026-09-10)
 
 
