@@ -4,9 +4,10 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-pub mod core;
-pub mod dynamic;
-pub mod generated;
-pub mod tracing;
-/// Verilator-defined types for C FFI.
-pub mod types;
+use std::path::Path;
+
+pub trait OpenTrace<'ctx> {
+    type Trace<'a>;
+
+    fn open_trace(&mut self, path: impl AsRef<Path>) -> Self::Trace<'ctx>;
+}

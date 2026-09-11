@@ -47,7 +47,7 @@ spade-parser = { version = "0.16.0", default-features = false }
 spade-ast = { version = "0.16.0", default-features = false }
 veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
-marlin-verilator-stable = { path = "verilator-stable", version = "1.0.0" }
+marlin-verilator-stable = { path = "verilator-stable", version = "2.0.0" }
 marlin-verilator = { path = "verilator", version = "0.18.1" }
 marlin-verilog = { path = "language-support/verilog", version = "0.18.1" }
 marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.18.1" }

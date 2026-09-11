@@ -121,6 +121,4 @@ impl Trace<'_> {
     }
 }
 
-pub trait OpenTrace<'ctx> {
-    fn open_trace(&mut self, path: impl AsRef<Path>) -> Trace<'ctx>;
-}
+pub use marlin_verilator_stable::tracing::OpenTrace;

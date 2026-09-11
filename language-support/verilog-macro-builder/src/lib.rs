@@ -351,10 +351,12 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::tracing::OpenTrace<'ctx> for #struct_name<'ctx> {
+            type Trace<'a> = #crate_name::__reexports::verilator::tracing::Trace<'a>;
+
             fn open_trace(
                 &mut self,
                 path: impl std::convert::AsRef<std::path::Path>,
-            ) -> #crate_name::__reexports::verilator::tracing::Trace<'ctx> {
+            ) -> Self::Trace<'ctx> {
                 let path = path.as_ref();
                 if let Some(trace_api) = &self._internal_trace_api {
                     if self._internal_opened_trace {
