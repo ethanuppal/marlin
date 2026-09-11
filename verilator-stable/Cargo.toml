@@ -12,3 +12,7 @@ license.workspace = true
 [dependencies]
 libloading.workspace = true
 snafu.workspace = true
+
+[package.metadata.release]
+release = false
+publish = false
