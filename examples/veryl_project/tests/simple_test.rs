@@ -13,7 +13,10 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_veryl_project::Wire;
-use marlin::{verilator::verilator_version, veryl::prelude::*};
+use marlin::{
+    verilator::verilator_version,
+    veryl::{VerylModelConfig, prelude::*},
+};
 use snafu::Whatever;
 
 #[test]
@@ -32,7 +35,7 @@ fn forwards_correctly() -> Result<(), Whatever> {
             }),
     )?;
 
-    let mut main = runtime.create_model::<Wire>()?;
+    let mut main = runtime.create_model::<Wire>(&VerylModelConfig::default())?;
 
     main.medium_input = u32::MAX;
     println!("{}", main.medium_output);

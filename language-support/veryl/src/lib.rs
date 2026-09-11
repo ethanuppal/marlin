@@ -8,8 +8,8 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
-    AsVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
-    eprintln_nocapture,
+    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions, eprintln_nocapture,
 };
 use owo_colors::OwoColorize;
 use snafu::{OptionExt, ResultExt, Whatever, whatever};
@@ -22,7 +22,7 @@ pub mod __reexports {
 
 pub mod prelude {
     pub use crate as veryl;
-    pub use crate::{VerylRuntime, VerylRuntimeOptions};
+    pub use crate::{VerylModelConfig, VerylRuntime, VerylRuntimeOptions};
     pub use marlin_verilator::{
         AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
     };
@@ -88,6 +88,25 @@ impl VerylRuntimeOptions {
         Self {
             verilator_options: f(self.verilator_options),
             ..self
+        }
+    }
+}
+
+/// Optional configuration for creating an [`AsVerilatedModel`]. Usually, you
+/// can just use [`VerylModelConfig::default()`].
+#[derive(Default)]
+pub struct VerylModelConfig {
+    /// See [`VerilatedModelConfig`].
+    pub verilator_config: VerilatedModelConfig,
+}
+
+impl VerylModelConfig {
+    pub fn with_inner(
+        self,
+        f: impl FnOnce(VerilatedModelConfig) -> VerilatedModelConfig,
+    ) -> Self {
+        Self {
+            verilator_config: f(self.verilator_config),
         }
     }
 }
@@ -183,7 +202,9 @@ impl VerylRuntime {
     /// [`VerilatorRuntime::create_model`].
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
+        config: &VerylModelConfig,
     ) -> Result<M, Whatever> {
-        self.verilator_runtime.create_model_simple()
+        self.verilator_runtime
+            .create_model(&config.verilator_config)
     }
 }
