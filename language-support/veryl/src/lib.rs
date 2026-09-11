@@ -8,7 +8,8 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 
 use camino::Utf8PathBuf;
 use marlin_verilator::{
-    eprintln_nocapture, AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime, VerilatorRuntimeOptions
+    AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
+    VerilatorRuntimeOptions, eprintln_nocapture,
 };
 use owo_colors::OwoColorize;
 use snafu::{OptionExt, ResultExt, Whatever, whatever};
@@ -21,7 +22,7 @@ pub mod __reexports {
 
 pub mod prelude {
     pub use crate as veryl;
-    pub use crate::{VerylRuntime, VerylRuntimeOptions, VerylModelConfig};
+    pub use crate::{VerylModelConfig, VerylRuntime, VerylRuntimeOptions};
     pub use marlin_verilator::{
         AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
     };
@@ -106,7 +107,6 @@ impl VerylModelConfig {
     ) -> Self {
         Self {
             verilator_config: f(self.verilator_config),
-            ..self
         }
     }
 }
@@ -202,8 +202,9 @@ impl VerylRuntime {
     /// [`VerilatorRuntime::create_model`].
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
-        config: &VerylModelConfig
+        config: &VerylModelConfig,
     ) -> Result<M, Whatever> {
-        self.verilator_runtime.create_model(&config.verilator_config)
+        self.verilator_runtime
+            .create_model(&config.verilator_config)
     }
 }

@@ -24,7 +24,7 @@ pub mod __reexports {
 
 pub mod prelude {
     pub use crate as spade;
-    pub use crate::{SpadeRuntime, SpadeRuntimeOptions, SpadeModelConfig};
+    pub use crate::{SpadeModelConfig, SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
     pub use marlin_verilator::{
         AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
@@ -109,7 +109,6 @@ impl SpadeModelConfig {
     ) -> Self {
         Self {
             verilator_config: f(self.verilator_config),
-            ..self
         }
     }
 }

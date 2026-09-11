@@ -13,7 +13,10 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_veryl_project::Wire;
-use marlin::{verilator::verilator_version, veryl::{prelude::*, VerylModelConfig}};
+use marlin::{
+    verilator::verilator_version,
+    veryl::{VerylModelConfig, prelude::*},
+};
 use snafu::Whatever;
 
 #[test]
