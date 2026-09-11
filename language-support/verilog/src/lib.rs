@@ -17,7 +17,7 @@ pub use marlin_verilog_macro::dpi;
 pub mod prelude {
     pub use crate as verilog;
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace, VerilatedModelConfig
     };
     pub use marlin_verilog_macro::verilog;
 }
