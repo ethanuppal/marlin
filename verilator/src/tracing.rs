@@ -135,5 +135,4 @@ impl TraceWrite for TraceFile<'_> {
     }
 }
 
-pub use marlin_verilator_stable::tracing::OpenTrace;
-pub use marlin_verilator_stable::tracing::TraceWrite;
+pub use marlin_verilator_stable::tracing::{OpenTrace, TraceWrite};
