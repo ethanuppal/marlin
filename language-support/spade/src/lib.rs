@@ -257,7 +257,7 @@ impl SpadeRuntime {
     /// [`VerilatorRuntime::create_model`].
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
-        config: SpadeModelConfig,
+        config: &SpadeModelConfig,
     ) -> Result<M, Whatever> {
         self.verilator_runtime
             .create_model(&config.verilator_config)
