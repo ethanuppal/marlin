@@ -23,6 +23,7 @@ pub fn verilog(args: TokenStream, item: TokenStream) -> TokenStream {
     let ports = match parse_verilog_ports(
         &args.name,
         &args.source_path,
+        &args.include,
         &source_path,
     ) {
         Ok(ports) => ports,
