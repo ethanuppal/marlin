@@ -121,7 +121,7 @@ impl TraceFile<'_> {
     }
 }
 
-impl TraceWrite for TraceFile<'_> {
+impl<'ctx> TraceWrite<'ctx> for TraceFile<'ctx> {
     fn dump(&mut self, timestamp: u64) {
         self.dump(timestamp);
     }
