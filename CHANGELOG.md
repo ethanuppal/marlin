@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/ethanuppal/marlin/compare/v0.20.0...v0.20.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **spade:** Take reference to model config ([#260](https://github.com/ethanuppal/marlin/issues/260)) ([92194f0](https://github.com/ethanuppal/marlin/commit/92194f03508210277af202faa4ea30071b543d6a))
+
 ## [0.20.0](https://github.com/ethanuppal/marlin/compare/v0.19.0...v0.20.0) (2026-09-11)
 
 
