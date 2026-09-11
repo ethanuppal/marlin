@@ -10,12 +10,12 @@
 
 "Code: Spade Support":
   - changed-files:
-      - any-glob-to-any-file: "language-support/spade/"
+      - any-glob-to-any-file: "language-support/spade/**"
       - any-glob-to-any-file: "language-support/spade-macro/**"
 
 "Code: Veryl Support":
   - changed-files:
-      - any-glob-to-any-file: "language-support/veryl/"
+      - any-glob-to-any-file: "language-support/veryl/**"
       - any-glob-to-any-file: "language-support/veryl-macro/**"
 
 "Infra: CI":
