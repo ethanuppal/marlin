@@ -351,7 +351,7 @@ pub fn build_verilated_struct(
         }
 
         impl<'ctx> #crate_name::__reexports::verilator::tracing::OpenTrace<'ctx> for #struct_name<'ctx> {
-            type Trace<'a> = #crate_name::__reexports::verilator::tracing::Trace<'a>;
+            type Trace<'a> = #crate_name::__reexports::verilator::tracing::TraceFile<'a>;
 
             fn open_trace(
                 &mut self,
