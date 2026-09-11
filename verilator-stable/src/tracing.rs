@@ -6,8 +6,14 @@
 
 use std::path::Path;
 
+pub trait TraceWrite {
+    fn dump(&mut self, timestamp: u64);
+    fn flush(&mut self);
+    fn close(self);
+}
+
 pub trait OpenTrace<'ctx> {
-    type Trace<'a>;
+    type Trace<'a>: TraceWrite;
 
     fn open_trace(&mut self, path: impl AsRef<Path>) -> Self::Trace<'ctx>;
 }

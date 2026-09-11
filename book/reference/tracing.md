@@ -12,12 +12,12 @@ Lifetimes enforce that you cannot use the trace past the scope of the runtime wh
 
 Until <https://github.com/verilator/verilator/issues/5813> gets fixed, `.open_vcd` will panic if you call it more than once.
 
-You can consult the reference documentation for traces [here](https://docs.rs/marlin/latest/marlin/verilator/tracing/struct.Trace.html).
+You can consult the reference documentation for traces [here](https://docs.rs/marlin/latest/marlin/verilator/tracing/struct.TraceFile.html).
 
 ### FST Tracing
 
 Since Verilator 5.052, you will need lz4 in your include and library search paths.
-You can specify this via `VerilatedModelConfig` if necessary.
+You can specify this via `VerilatedModelConfig` if necessary (needed on macOS if you install via `brew` as of 9/10/26).
 
 ## Tips
 
@@ -26,7 +26,7 @@ You will need to remember to update the trace, just like in Verilator.
 For instance:
 ```rs
 impl Top<'_> {
-    fn tick(&mut self, trace: &mut Trace<'_>, timestamp: &mut u64) {
+    fn tick(&mut self, trace: &mut TraceFile<'_>, timestamp: &mut u64) {
         self.clk = 0;
         self.eval();
         *timestamp += 1;
@@ -39,16 +39,16 @@ impl Top<'_> {
 }
 ```
 
-You could also wrap the `Trace` in another `struct`:
+You could also wrap the `TraceFile` in another `struct`:
 
 ```rs
 pub struct GoodTrace<'a> {
-    inner: Trace<'a>,
+    inner: TraceFile<'a>,
     timestamp: u64,
 }
 
-impl<'a> From<Trace<'a>> for GoodTrace<'a> {
-    fn from(inner: Trace<'a>) -> Self {
+impl<'a> From<TraceFile<'a>> for GoodTrace<'a> {
+    fn from(inner: TraceFile<'a>) -> Self {
         Self {
             inner,
             timestamp: 0,
