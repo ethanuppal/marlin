@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/ethanuppal/marlin/compare/v0.19.0...v0.20.0) (2026-09-11)
+
+
+### Features
+
+* **spade,veryl:** Add `with_inner` builders to Spade and Veryl model configs ([#256](https://github.com/ethanuppal/marlin/issues/256)) ([9d41f7c](https://github.com/ethanuppal/marlin/commit/9d41f7cc0869eedd2c2034cf2c7229049fd11c92))
+
 ## [0.19.0](https://github.com/ethanuppal/marlin/compare/v0.18.1...v0.19.0) (2026-09-11)
 
 
