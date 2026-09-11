@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/ethanuppal/marlin/compare/v0.18.1...v0.19.0) (2026-09-11)
+
+
+### Features
+
+* **verilator-stable:** Define stable tracing API ([#253](https://github.com/ethanuppal/marlin/issues/253)) ([3c0f88c](https://github.com/ethanuppal/marlin/commit/3c0f88c885d280487c72cb661df351d870b9a088))
+
 ## [0.18.1](https://github.com/ethanuppal/marlin/compare/v0.18.0...v0.18.1) (2026-09-10)
 
 
