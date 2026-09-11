@@ -249,7 +249,10 @@ impl VerilatedModelConfig {
         self
     }
 
-    pub fn additional_includes(mut self, includes: impl Iterator<Item = Utf8PathBuf>) -> Self {
+    pub fn additional_includes(
+        mut self,
+        includes: impl Iterator<Item = Utf8PathBuf>,
+    ) -> Self {
         self.additional_includes.extend(includes);
         self
     }
@@ -262,7 +265,10 @@ impl VerilatedModelConfig {
         self
     }
 
-    pub fn additional_library_paths(mut self, library_paths: impl Iterator<Item = Utf8PathBuf>) -> Self {
+    pub fn additional_library_paths(
+        mut self,
+        library_paths: impl Iterator<Item = Utf8PathBuf>,
+    ) -> Self {
         self.additional_library_paths.extend(library_paths);
         self
     }
