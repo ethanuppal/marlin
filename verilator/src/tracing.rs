@@ -4,15 +4,15 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::{marker::PhantomData, path::Path};
+use std::marker::PhantomData;
 
 #[doc(hidden)]
 pub mod __private {
     use std::{ffi, marker::PhantomData};
 
-    use super::Trace;
+    use super::TraceFile;
 
-    pub(crate) struct TraceImpl {
+    pub(crate) struct TraceFileImpl {
         pub(crate) handle: *mut ffi::c_void,
         pub(crate) dump: extern "C" fn(*mut ffi::c_void, u64),
         pub(crate) open_next: extern "C" fn(*mut ffi::c_void, bool),
@@ -20,7 +20,7 @@ pub mod __private {
         close_and_delete: extern "C" fn(*mut ffi::c_void),
     }
 
-    impl Drop for TraceImpl {
+    impl Drop for TraceFileImpl {
         fn drop(&mut self) {
             (self.close_and_delete)(self.handle);
         }
@@ -43,9 +43,9 @@ pub mod __private {
         open_next: extern "C" fn(*mut ffi::c_void, bool),
         flush: extern "C" fn(*mut ffi::c_void),
         close_and_delete: extern "C" fn(*mut ffi::c_void),
-    ) -> Trace<'ctx> {
-        Trace {
-            inner: Some(TraceImpl {
+    ) -> TraceFile<'ctx> {
+        TraceFile {
+            inner: Some(TraceFileImpl {
                 handle,
                 dump,
                 open_next,
@@ -56,8 +56,8 @@ pub mod __private {
         }
     }
 
-    pub fn new_trace_useless<'ctx>() -> Trace<'ctx> {
-        Trace {
+    pub fn new_trace_useless<'ctx>() -> TraceFile<'ctx> {
+        TraceFile {
             inner: None,
             _marker: PhantomData,
         }
@@ -75,12 +75,12 @@ pub enum Waveform {
 /// From Verilator's website:
 /// > The thread used to perform certain global operations, such as saving and
 /// > tracing, must be done by a “main thread”.
-pub struct Trace<'ctx> {
-    inner: Option<__private::TraceImpl>,
+pub struct TraceFile<'ctx> {
+    inner: Option<__private::TraceFileImpl>,
     _marker: PhantomData<&'ctx ()>,
 }
 
-impl Trace<'_> {
+impl TraceFile<'_> {
     /// Documentation taken from the Verilator header file:
     ///
     /// > Write one cycle of dump data
@@ -121,6 +121,18 @@ impl Trace<'_> {
     }
 }
 
-pub trait OpenTrace<'ctx> {
-    fn open_trace(&mut self, path: impl AsRef<Path>) -> Trace<'ctx>;
+impl<'ctx> TraceWrite<'ctx> for TraceFile<'ctx> {
+    fn dump(&mut self, timestamp: u64) {
+        self.dump(timestamp);
+    }
+
+    fn flush(&mut self) {
+        self.flush();
+    }
+
+    fn close(self) {
+        self.close();
+    }
 }
+
+pub use marlin_verilator_stable::tracing::{OpenTrace, TraceWrite};

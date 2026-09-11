@@ -59,7 +59,7 @@ impl<'ctx> AsDynamicVerilatedModel<'ctx> for DynamicVerilatedModel<'ctx> {
                 source: None,
             })?;
 
-        if !matches!(direction, PortDirection::Output | PortDirection::Inout,) {
+        if !matches!(direction, PortDirection::Output | PortDirection::Inout) {
             return Err(DynamicVerilatedModelError::InvalidPortDirection {
                 top_module: self.name.clone(),
                 port,
