@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.3](https://github.com/ethanuppal/marlin/compare/v0.20.2...v0.20.3) (2026-09-12)
+
+
+### Bug Fixes
+
+* Handle future Rust lints ([#264](https://github.com/ethanuppal/marlin/issues/264)) ([7449b29](https://github.com/ethanuppal/marlin/commit/7449b29f98b45b6fb84ef363c6e27c500a512284))
+
 ## [0.20.2](https://github.com/ethanuppal/marlin/compare/v0.20.1...v0.20.2) (2026-09-12)
 
 
