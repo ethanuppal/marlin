@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.2](https://github.com/ethanuppal/marlin/compare/v0.20.1...v0.20.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **verilator:** Mangle identifiers with special characters ([#262](https://github.com/ethanuppal/marlin/issues/262)) ([e448c96](https://github.com/ethanuppal/marlin/commit/e448c96f95b70999f6664cbfc3670eb60e2a1a76))
+
 ## [0.20.1](https://github.com/ethanuppal/marlin/compare/v0.20.0...v0.20.1) (2026-09-11)
 
 
