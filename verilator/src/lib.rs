@@ -67,7 +67,7 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
     if !name.is_ascii() {
         whatever!(
             "Non-ascii names are not supported for name demangling. Got {name}"
-        )
+        );
     }
 
     // Every character _except_ double underscore can be handled as a single
@@ -595,7 +595,7 @@ impl VerilatorRuntime {
             if verilator_version < allowed_version {
                 whatever!(
                     "Unsupported Verilator version {verilator_version} ({allowed_version} was explicitly allowed)"
-                )
+                );
             }
         } else {
             check_verilator_version(verilator_version)?;
