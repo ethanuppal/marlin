@@ -17,8 +17,8 @@ use camino::{Utf8Path, Utf8PathBuf};
 use snafu::{Whatever, prelude::*};
 
 use crate::{
-    BuildTarget, MangledVerilatorNameRef, PortDirection, VerilatedModelConfig,
-    VerilatorRuntimeOptions, VerilatorVersion,
+    BuildTarget, CxxStandard, MangledVerilatorNameRef, PortDirection,
+    VerilatedModelConfig, VerilatorRuntimeOptions, VerilatorVersion,
     compute_edata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
@@ -480,13 +480,13 @@ pub fn build_library(
     if let Some(cxx_standard) = config.cxx_standard {
         cflags.push(
             match cxx_standard {
-                crate::CxxStandard::Cxx98 => "-std=c++98",
-                crate::CxxStandard::Cxx11 => "-std=c++11",
-                crate::CxxStandard::Cxx14 => "-std=c++14",
-                crate::CxxStandard::Cxx17 => "-std=c++17",
-                crate::CxxStandard::Cxx20 => "-std=c++20",
-                crate::CxxStandard::Cxx23 => "-std=c++23",
-                crate::CxxStandard::Cxx26 => "-std=c++26",
+                CxxStandard::Cxx98 => "-std=c++98",
+                CxxStandard::Cxx11 => "-std=c++11",
+                CxxStandard::Cxx14 => "-std=c++14",
+                CxxStandard::Cxx17 => "-std=c++17",
+                CxxStandard::Cxx20 => "-std=c++20",
+                CxxStandard::Cxx23 => "-std=c++23",
+                CxxStandard::Cxx26 => "-std=c++26",
             }
             .into(),
         );
@@ -548,6 +548,7 @@ pub fn build_library(
             }
         }
     }
+    println!("{verilator_command:?}");
     let verilator_output = verilator_command
         .output()
         .whatever_context("Invocation of Verilator failed")?;

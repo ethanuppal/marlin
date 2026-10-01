@@ -126,6 +126,12 @@ pub fn mangle_verilator_name(
     Ok(MangledVerilatorName(mangled_name))
 }
 
+/// See [`mangle_verilator_name`] and <https://github.com/verilator/verilator/issues/8569>.
+pub fn mangle_verilator_name_hack(
+    name: &str,
+) -> Result<MangledVerilatorName, Whatever> {
+    mangle_verilator_name(&mangle_verilator_name(name)?.0)
+}
 /// Performs the inverse of Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
 pub fn demangle_verilator_name(name: MangledVerilatorNameRef) -> String {
     name.0
@@ -901,7 +907,7 @@ impl VerilatorRuntime {
             );
         }
 
-        let mangled_name = mangle_verilator_name(name)
+        let mangled_name = mangle_verilator_name_hack(name)
             .whatever_context("Failed to mangle module name")?;
 
         let mut hasher = hash::DefaultHasher::new();
