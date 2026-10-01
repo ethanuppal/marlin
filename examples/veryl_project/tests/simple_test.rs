@@ -15,13 +15,15 @@
 use example_veryl_project::Wire;
 use marlin::{
     verilator::verilator_version,
-    veryl::{VerylModelConfig, prelude::*},
+    veryl::{
+        VerylModelConfig,
+        prelude::{VerilatorError, *},
+    },
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn forwards_correctly() -> Result<(), Whatever> {
+fn forwards_correctly() -> Result<(), VerilatorError> {
     let runtime = VerylRuntime::new(
         VerylRuntimeOptions::default()
             .call_veryl_build(

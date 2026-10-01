@@ -86,10 +86,9 @@ use marlin::verilator::{
     AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
     VerilatorRuntime, VerilatorRuntimeOptions,
 };
-use snafu::Whatever;
 
 //#[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new(
         "build2".into(),
         &["src/main.sv".as_ref()],

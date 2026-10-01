@@ -15,15 +15,17 @@
 use std::path::Path;
 
 use example_verilog_project::WideMain;
-use marlin::verilator::{
-    AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
-    VerilatorRuntime, VerilatorRuntimeOptions, WideIn, verilator_version,
+use marlin::{
+    verilator::{
+        AsDynamicVerilatedModel, PortDirection, VerilatedModelConfig,
+        VerilatorRuntime, VerilatorRuntimeOptions, WideIn, verilator_version,
+    },
+    verilog::prelude::VerilatorError,
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
+fn all_wide_mains_forward_correctly() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],
@@ -77,7 +79,7 @@ fn all_wide_mains_forward_correctly() -> Result<(), Whatever> {
 
 #[test]
 #[snafu::report]
-fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
+fn wide_main_forwards_correctly_dynamically() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],
@@ -113,7 +115,7 @@ fn wide_main_forwards_correctly_dynamically() -> Result<(), Whatever> {
 
 #[test]
 #[snafu::report]
-fn wide_main4_forwards_correctly_dynamically() -> Result<(), Whatever> {
+fn wide_main4_forwards_correctly_dynamically() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/wide_main.sv"],

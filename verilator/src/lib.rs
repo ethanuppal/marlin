@@ -34,13 +34,15 @@ use camino::{Utf8Path, Utf8PathBuf};
 use dashmap::DashMap;
 use dpi::DpiFunction;
 use dynamic::DynamicVerilatedModel;
+use error::VerilatorError;
 use libloading::Library;
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{OptionExt, ResultExt, whatever};
 
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
+pub mod error;
 pub mod ffi_names;
 pub mod nocapture;
 pub mod tracing;
@@ -54,7 +56,9 @@ use crate::{
 };
 
 pub mod reexports {
+    pub use camino;
     pub use libloading;
+    pub use snafu;
 }
 
 pub use marlin_verilator_stable::types;
@@ -95,7 +99,7 @@ impl MangledVerilatorName {
 /// Performs Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
 pub fn mangle_verilator_name(
     name: &str,
-) -> Result<MangledVerilatorName, Whatever> {
+) -> Result<MangledVerilatorName, VerilatorError> {
     if !name.is_ascii() {
         whatever!(
             "Non-ascii names are not supported for name demangling. Got {name}"
@@ -132,7 +136,7 @@ pub fn mangle_verilator_name(
 /// See [`mangle_verilator_name`] and <https://github.com/verilator/verilator/issues/8569>.
 pub fn mangle_verilator_name_hack(
     name: &str,
-) -> Result<MangledVerilatorName, Whatever> {
+) -> Result<MangledVerilatorName, VerilatorError> {
     match detect_os().whatever_context("Failed to detect OS")? {
         BuildTarget::Linux => mangle_verilator_name(name),
         BuildTarget::MacOS => {
@@ -500,7 +504,7 @@ fn one_time_library_setup(
     library: &Library,
     dpi_functions: &[&'static dyn DpiFunction],
     tracing_enabled: bool,
-) -> Result<(), Whatever> {
+) -> Result<(), VerilatorError> {
     if !dpi_functions.is_empty() {
         let dpi_init_callback: extern "C" fn(*const *const ffi::c_void) =
             *unsafe { library.get(DPI_INIT_CALLBACK.as_bytes()) }
@@ -572,7 +576,7 @@ pub const MINIMUM_SUPPORTED_VERILATOR: VerilatorVersion =
 
 fn retrieve_verilator_version(
     verilator_executable: &OsStr,
-) -> Result<VerilatorVersion, Whatever> {
+) -> Result<VerilatorVersion, VerilatorError> {
     let output = Command::new(verilator_executable)
         .arg("--version")
         .output()
@@ -598,7 +602,9 @@ fn retrieve_verilator_version(
     })
 }
 
-fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
+fn check_verilator_version(
+    version: VerilatorVersion,
+) -> Result<(), VerilatorError> {
     if MINIMUM_SUPPORTED_VERILATOR.major != version.major
         || version.minor < MINIMUM_SUPPORTED_VERILATOR.minor
     {
@@ -610,7 +616,7 @@ fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
 }
 
 /// Uses [`env::consts::OS`], so it is cheap to call from a proc macro.
-fn detect_os() -> Result<BuildTarget, Whatever> {
+fn detect_os() -> Result<BuildTarget, VerilatorError> {
     match env::consts::OS {
         "linux" => Ok(BuildTarget::Linux),
         "macos" | "apple" => Ok(BuildTarget::MacOS),
@@ -627,7 +633,7 @@ impl VerilatorRuntime {
         include_directories: &[&Path],
         dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
-    ) -> Result<Self, Whatever> {
+    ) -> Result<Self, VerilatorError> {
         Self::new2(
             artifact_directory,
             source_files,
@@ -644,7 +650,7 @@ impl VerilatorRuntime {
         include_directories: &[impl AsRef<Path>],
         dpi_functions: impl IntoIterator<Item = &'static dyn DpiFunction>,
         options: VerilatorRuntimeOptions,
-    ) -> Result<Self, Whatever> {
+    ) -> Result<Self, VerilatorError> {
         let artifact_directory = artifact_directory.as_ref();
         let verilator_version =
             retrieve_verilator_version(&options.verilator_executable)?;
@@ -713,7 +719,7 @@ impl VerilatorRuntime {
     /// See also: [`VerilatorRuntime::create_dyn_model`]
     pub fn create_model_simple<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
-    ) -> Result<M, Whatever> {
+    ) -> Result<M, VerilatorError> {
         self.create_model(&VerilatedModelConfig::default())
     }
 
@@ -728,7 +734,7 @@ impl VerilatorRuntime {
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
         config: &VerilatedModelConfig,
-    ) -> Result<M, Whatever> {
+    ) -> Result<M, VerilatorError> {
         let library = self
             .build_or_retrieve_library(
                 M::name(),
@@ -775,7 +781,7 @@ impl VerilatorRuntime {
     /// # use marlin_verilator::dynamic::*;
     /// # let empty: &[&Path] = &[];
     /// # let runtime = VerilatorRuntime::new("", empty, empty, [], Default::default()).unwrap();
-    /// # || -> Result<(), snafu::Whatever> {
+    /// # || -> Result<(), VerilatorError> {
     /// let mut main = runtime.create_dyn_model(
     ///    "main",
     ///    "src/main.sv",
@@ -795,7 +801,7 @@ impl VerilatorRuntime {
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
         config: VerilatedModelConfig,
-    ) -> Result<DynamicVerilatedModel<'ctx>, Whatever> {
+    ) -> Result<DynamicVerilatedModel<'ctx>, VerilatorError> {
         let library = self
             .build_or_retrieve_library(name, source_path, ports, &config)
             .whatever_context(
@@ -879,7 +885,7 @@ impl VerilatorRuntime {
         source_path: &str,
         ports: &[(&str, usize, usize, PortDirection)],
         config: &VerilatedModelConfig,
-    ) -> Result<&Library, Whatever> {
+    ) -> Result<&Library, VerilatorError> {
         if !self.source_files.iter().any(|source_file| {
             match (
                 source_file.canonicalize_utf8(),

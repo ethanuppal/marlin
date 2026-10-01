@@ -12,7 +12,9 @@ use std::{
     sync::{LazyLock, Mutex},
 };
 
-use snafu::{ResultExt, Whatever};
+use snafu::ResultExt;
+
+use crate::error::VerilatorError;
 
 // TODO: make cross-platform
 static STDERR: LazyLock<Mutex<ManuallyDrop<fs::File>>> = LazyLock::new(|| {
@@ -20,7 +22,7 @@ static STDERR: LazyLock<Mutex<ManuallyDrop<fs::File>>> = LazyLock::new(|| {
 });
 
 #[doc(hidden)]
-pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), Whatever> {
+pub fn eprintln_nocapture_impl(contents: &str) -> Result<(), VerilatorError> {
     let mut stderr = STDERR.lock().expect("poisoned");
     stderr
         .write_all(contents.as_bytes())

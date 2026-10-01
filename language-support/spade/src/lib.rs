@@ -11,10 +11,10 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 use camino::{Utf8Path, Utf8PathBuf};
 use marlin_verilator::{
     AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    VerilatorRuntimeOptions, eprintln_nocapture, error::VerilatorError,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{OptionExt, ResultExt, whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -27,7 +27,8 @@ pub mod prelude {
     pub use crate::{SpadeModelConfig, SpadeRuntime, SpadeRuntimeOptions};
     pub use marlin_spade_macro::spade;
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+        AsDynamicVerilatedModel, AsVerilatedModel, error::VerilatorError,
+        tracing::OpenTrace,
     };
 }
 
@@ -123,7 +124,7 @@ impl SpadeRuntime {
     /// Does NOT call `swim build` by defaul because `swim build` is not
     /// thread safe. You can enable this with [`SwimRuntimeOptions`] or just
     /// run it beforehand.
-    pub fn new(options: SpadeRuntimeOptions) -> Result<Self, Whatever> {
+    pub fn new(options: SpadeRuntimeOptions) -> Result<Self, VerilatorError> {
         let Some(swim_toml_path) = search_for_swim_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -249,7 +250,7 @@ impl SpadeRuntime {
     /// [`VerilatorRuntime::create_model_simple`].
     pub fn create_model_simple<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
-    ) -> Result<M, Whatever> {
+    ) -> Result<M, VerilatorError> {
         self.verilator_runtime.create_model_simple()
     }
 
@@ -258,7 +259,7 @@ impl SpadeRuntime {
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
         config: &SpadeModelConfig,
-    ) -> Result<M, Whatever> {
+    ) -> Result<M, VerilatorError> {
         self.verilator_runtime
             .create_model(&config.verilator_config)
     }

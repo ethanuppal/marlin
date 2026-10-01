@@ -14,13 +14,14 @@
 use std::{fmt::Write, fs, process::Command};
 
 use camino::{Utf8Path, Utf8PathBuf};
-use snafu::{Whatever, prelude::*};
+use snafu::prelude::*;
 
 use crate::{
     BuildTarget, CxxStandard, MangledVerilatorNameRef, PortDirection,
     VerilatedModelConfig, VerilatorRuntimeOptions, VerilatorVersion,
     compute_edata_word_count_from_width_not_msb,
     dpi::DpiFunction,
+    error::VerilatorError,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
         TRACE_EVER_ON, TRACE_FLUSH, TRACE_OPEN_NEXT,
@@ -33,7 +34,7 @@ fn build_ffi_for_tracing(
     buffer: &mut String,
     top_module_mangled: MangledVerilatorNameRef,
     waveform: Waveform,
-) -> Result<(), Whatever> {
+) -> Result<(), VerilatorError> {
     let open_trace = ffi_names::open_trace(top_module_mangled.as_str());
     let waveform_class = match waveform {
         Waveform::Vcd => "VerilatedVcdC",
@@ -111,7 +112,7 @@ fn build_ffi(
     ports: &[(&str, usize, usize, PortDirection)],
     enable_tracing: Option<Waveform>,
     verilator_version: VerilatorVersion,
-) -> Result<Utf8PathBuf, Whatever> {
+) -> Result<Utf8PathBuf, VerilatorError> {
     let ffi_wrappers = artifact_directory.join("ffi.cpp");
 
     let mut buffer = String::new();
@@ -264,7 +265,7 @@ fn bind_dpi_if_needed(
     top_module_mangled: MangledVerilatorNameRef,
     dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
-) -> Result<(Option<Utf8PathBuf>, bool), Whatever> {
+) -> Result<(Option<Utf8PathBuf>, bool), VerilatorError> {
     if dpi_functions.is_empty() {
         return Ok((None, false));
     }
@@ -349,7 +350,7 @@ extern \"C\" void {name}({signature}) {{
 fn needs_verilator_rebuild(
     source_files: &[Utf8PathBuf],
     library_path: &Utf8Path,
-) -> Result<bool, Whatever> {
+) -> Result<bool, VerilatorError> {
     if !library_path.exists() {
         return Ok(true);
     }
@@ -425,8 +426,8 @@ pub fn build_library(
     options: &VerilatorRuntimeOptions,
     config: &VerilatedModelConfig,
     verilator_version: VerilatorVersion,
-    on_rebuild: impl FnOnce() -> Result<(), Whatever>,
-) -> Result<(Utf8PathBuf, bool), Whatever> {
+    on_rebuild: impl FnOnce() -> Result<(), VerilatorError>,
+) -> Result<(Utf8PathBuf, bool), VerilatorError> {
     let ffi_artifact_directory = artifact_directory.join("ffi");
     fs::create_dir_all(&ffi_artifact_directory).whatever_context(
         "Failed to create ffi/ subdirectory under artifacts directory",

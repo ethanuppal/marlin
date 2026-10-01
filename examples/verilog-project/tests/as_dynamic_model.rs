@@ -15,15 +15,17 @@
 use std::path::Path;
 
 use example_verilog_project::Main;
-use marlin::verilator::{
-    AsDynamicVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
-    verilator_version,
+use marlin::{
+    verilator::{
+        AsDynamicVerilatedModel, VerilatorRuntime, VerilatorRuntimeOptions,
+        verilator_version,
+    },
+    verilog::prelude::VerilatorError,
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/main.sv"],

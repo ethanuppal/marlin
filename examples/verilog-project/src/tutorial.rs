@@ -18,13 +18,12 @@ use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 #[verilog(src = "src/main.sv", name = "main")]
 struct Main;
 
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],

@@ -103,11 +103,10 @@ vi tests/simple_test.rs
 // file: tests/simple_test.rs
 use tutorial_project::Main;
 use marlin::verilator::{VerilatorRuntime, VerilatorRuntimeOptions};
-use snafu::Whatever;
 
 #[test]
 //#[snafu::report]
-fn forwards_u32max_correctly() -> Result<(), Whatever> {
+fn forwards_u32max_correctly() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new(
         "build".into(),
         &["src/main.sv".as_ref()],
