@@ -17,13 +17,12 @@ use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 macro_rules! test {
     ($name:ident) => {
         #[test]
         #[snafu::report]
-        fn $name() -> Result<(), Whatever> {
+        fn $name() -> Result<(), VerilatorError> {
             let runtime = VerilatorRuntime::new2(
                 "artifacts",
                 &["src/main.sv"],

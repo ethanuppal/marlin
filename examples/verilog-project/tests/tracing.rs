@@ -22,11 +22,10 @@ use marlin::{
     },
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn forwards_correctly_vcd() -> Result<(), Whatever> {
+fn forwards_correctly_vcd() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],
@@ -59,7 +58,7 @@ fn forwards_correctly_vcd() -> Result<(), Whatever> {
 
 #[test]
 #[snafu::report]
-fn forwards_correctly_fst() -> Result<(), Whatever> {
+fn forwards_correctly_fst() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/main.sv"],

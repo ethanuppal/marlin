@@ -18,7 +18,7 @@ pub mod prelude {
     pub use crate as verilog;
     pub use marlin_verilator::{
         AsDynamicVerilatedModel, AsVerilatedModel, VerilatedModelConfig,
-        tracing::OpenTrace,
+        error::VerilatorError, tracing::OpenTrace,
     };
     pub use marlin_verilog_macro::verilog;
 }

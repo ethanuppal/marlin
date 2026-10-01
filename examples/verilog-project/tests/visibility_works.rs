@@ -19,11 +19,10 @@ use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts3",
         &["src/main.sv"],

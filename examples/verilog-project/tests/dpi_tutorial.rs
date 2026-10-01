@@ -19,7 +19,6 @@ use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 const SET_OUT_TO: i32 = 3;
 
@@ -30,7 +29,7 @@ pub extern "C" fn set_out(output: &mut i32) {
 
 #[test]
 #[snafu::report]
-fn main_tutorial() -> Result<(), Whatever> {
+fn main_tutorial() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/dpi.sv"],
@@ -68,7 +67,7 @@ pub extern "C" fn set_bool_out(output: &mut bool) {
 
 #[test]
 #[snafu::report]
-fn other_test() -> Result<(), Whatever> {
+fn other_test() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts",
         &["src/more_dpi.sv"],

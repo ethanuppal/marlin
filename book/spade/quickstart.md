@@ -93,11 +93,10 @@ Finally, we'll want to actually write the code that drives our hardware:
 ```rust
 // file: tests/simple_test.rs
 use marlin::spade::prelude::*;
-use snafu::Whatever;
 
 #[test]
 //#[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = SpadeRuntime::new(
         SpadeRuntimeOptions::default().call_swim_build(
             true, /* warning: not thread safe! don't use if you

@@ -9,10 +9,10 @@ use std::{env::current_dir, ffi::OsString, fs, process::Command};
 use camino::Utf8PathBuf;
 use marlin_verilator::{
     AsVerilatedModel, VerilatedModelConfig, VerilatorRuntime,
-    VerilatorRuntimeOptions, eprintln_nocapture,
+    VerilatorRuntimeOptions, eprintln_nocapture, error::VerilatorError,
 };
 use owo_colors::OwoColorize;
-use snafu::{OptionExt, ResultExt, Whatever, whatever};
+use snafu::{OptionExt, ResultExt, whatever};
 
 #[doc(hidden)]
 pub mod __reexports {
@@ -24,7 +24,8 @@ pub mod prelude {
     pub use crate as veryl;
     pub use crate::{VerylModelConfig, VerylRuntime, VerylRuntimeOptions};
     pub use marlin_verilator::{
-        AsDynamicVerilatedModel, AsVerilatedModel, tracing::OpenTrace,
+        AsDynamicVerilatedModel, AsVerilatedModel, error::VerilatorError,
+        tracing::OpenTrace,
     };
     pub use marlin_veryl_macro::veryl;
 }
@@ -121,7 +122,7 @@ impl VerylRuntime {
     /// Does NOT call `veryl build` by defaul because `veryl build` is not
     /// thread safe. You can enable this with [`VerylRuntimeOptions`] or just
     /// run it beforehand.
-    pub fn new(options: VerylRuntimeOptions) -> Result<Self, Whatever> {
+    pub fn new(options: VerylRuntimeOptions) -> Result<Self, VerilatorError> {
         let Some(veryl_toml_path) = search_for_veryl_toml(
             current_dir()
                 .whatever_context("Failed to get current directory")?
@@ -203,7 +204,7 @@ impl VerylRuntime {
     pub fn create_model<'ctx, M: AsVerilatedModel<'ctx>>(
         &'ctx self,
         config: &VerylModelConfig,
-    ) -> Result<M, Whatever> {
+    ) -> Result<M, VerilatorError> {
         self.verilator_runtime
             .create_model(&config.verilator_config)
     }

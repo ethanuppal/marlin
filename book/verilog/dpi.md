@@ -82,7 +82,6 @@ vi tests/dpi_test.rs
 
 ```rust
 // file: tests/dpi_test.rs
-use snafu::Whatever;
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
@@ -97,7 +96,7 @@ pub extern "C" fn three(out: &mut u32) {
 struct Main;
 
 //#[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &["src/dpi.sv".as_ref()],

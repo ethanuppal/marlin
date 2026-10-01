@@ -19,11 +19,10 @@ use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions, verilator_version},
     verilog::prelude::*,
 };
-use snafu::Whatever;
 
 #[test]
 #[snafu::report]
-fn mangled_works() -> Result<(), Whatever> {
+fn mangled_works() -> Result<(), VerilatorError> {
     let runtime = VerilatorRuntime::new2(
         "artifacts2",
         &["src/mangled.sv"],

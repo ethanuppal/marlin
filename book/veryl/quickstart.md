@@ -98,14 +98,13 @@ Finally, we'll want to actually write the code that drives our hardware in `simp
 ```rust
 // file: tests/simple_test.rs
 use marlin::veryl::prelude::*;
-use snafu::Whatever;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
 pub struct Wire;
 
 #[test]
 //#[snafu::report]
-fn forwards_correctly() -> Result<(), Whatever> {
+fn forwards_correctly() -> Result<(), VerilatorError> {
     let runtime = VerylRuntime::new(
         VerylRuntimeOptions::default().call_veryl_build(
             true, /* warning: not thread safe! don't use if you

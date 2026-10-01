@@ -13,12 +13,14 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use example_spade_project::Main;
-use marlin::{spade::prelude::*, verilator::verilator_version};
-use snafu::Whatever;
+use marlin::{
+    spade::prelude::*,
+    verilator::{error::VerilatorError, verilator_version},
+};
 
 #[test]
 #[snafu::report]
-fn main() -> Result<(), Whatever> {
+fn main() -> Result<(), VerilatorError> {
     let runtime = SpadeRuntime::new(
         SpadeRuntimeOptions::default()
             .call_swim_build(
