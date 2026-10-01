@@ -522,6 +522,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "marlin-builder"
+version = "0.20.4"
+dependencies = [
+ "boxcar",
+ "libloading",
+ "marlin-verilator-stable",
+]
+
+[[package]]
+name = "marlin-cxxrtl"
+version = "0.20.4"
+
+[[package]]
 name = "marlin-spade"
 version = "0.20.4"
 dependencies = [

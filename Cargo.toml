@@ -12,6 +12,8 @@ members = [
   "examples/verilog-project",
   "examples/spade-project",
   "examples/veryl_project",
+  "cxxrtl",
+  "builder",
 ]
 
 [workspace.package]
@@ -47,8 +49,10 @@ spade-parser = { version = "0.16.0", default-features = false }
 spade-ast = { version = "0.16.0", default-features = false }
 veryl-parser = { version = "0.14.2-rc.1", default-features = false }
 
+marlin-builder = { path = "builder", version = "0.20.4" }
 marlin-verilator-stable = { path = "verilator-stable", version = "3.0.0" }
 marlin-verilator = { path = "verilator", version = "0.20.4" }
+marlin-cxxrtl = { path = "cxxrtl", version = "0.20.4" }
 marlin-verilog = { path = "language-support/verilog", version = "0.20.4" }
 marlin-verilog-macro = { path = "language-support/verilog-macro", version = "0.20.4" }
 marlin-verilog-macro-builder = { path = "language-support/verilog-macro-builder", version = "0.20.4" }
