@@ -16,6 +16,9 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     /// The source-level name of the module.
     fn name() -> &'static str;
 
+    /// The Verilator name for the module.
+    fn mangled_name() -> &'static str;
+
     /// The path of the module's definition.
     fn source_path() -> &'static str;
 

@@ -17,24 +17,24 @@ use camino::{Utf8Path, Utf8PathBuf};
 use snafu::{Whatever, prelude::*};
 
 use crate::{
-    BuildTarget, PortDirection, VerilatedModelConfig, VerilatorRuntimeOptions,
-    VerilatorVersion, compute_edata_word_count_from_width_not_msb,
+    BuildTarget, CxxStandard, MangledVerilatorNameRef, PortDirection,
+    VerilatedModelConfig, VerilatorRuntimeOptions, VerilatorVersion,
+    compute_edata_word_count_from_width_not_msb,
     dpi::DpiFunction,
     ffi_names::{
         self, DPI_INIT_CALLBACK, TRACE_CLOSE_AND_DELETE, TRACE_DUMP,
         TRACE_EVER_ON, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
-    mangle_verilator_name,
     tracing::Waveform,
     types, verilator_version,
 };
 
 fn build_ffi_for_tracing(
     buffer: &mut String,
-    top_module: &str,
+    top_module_mangled: MangledVerilatorNameRef,
     waveform: Waveform,
 ) -> Result<(), Whatever> {
-    let open_trace = ffi_names::open_trace(top_module);
+    let open_trace = ffi_names::open_trace(top_module_mangled.as_str());
     let waveform_class = match waveform {
         Waveform::Vcd => "VerilatedVcdC",
         Waveform::Fst => "VerilatedFstC",
@@ -53,7 +53,7 @@ fn build_ffi_for_tracing(
     }}
 
     #include <stdio.h>
-    {waveform_class}* {open_trace}(V{top_module}* top, const char* path) {{
+    {waveform_class}* {open_trace}(V{top_module_mangled}* top, const char* path) {{
         {waveform_class}* trace = new {waveform_class};
         top->trace(trace, {trace_levels});
         trace->open(path);
@@ -107,7 +107,7 @@ fn build_ffi_for_tracing(
 /// \[1\]: https://verilator.org/guide/latest/connecting.html#wrappers-and-model-evaluation-loop
 fn build_ffi(
     artifact_directory: &Utf8Path,
-    top_module: &str,
+    top_module_mangled: MangledVerilatorNameRef,
     ports: &[(&str, usize, usize, PortDirection)],
     enable_tracing: Option<Waveform>,
     verilator_version: VerilatorVersion,
@@ -124,28 +124,28 @@ fn build_ffi(
         buffer.push_str("#include <stdint.h>\n");
     }
 
-    let new_top = ffi_names::new_top(top_module);
-    let top_eval = ffi_names::top_eval(top_module);
-    let delete_top = ffi_names::delete_top(top_module);
+    let new_top = ffi_names::new_top(top_module_mangled.as_str());
+    let top_eval = ffi_names::top_eval(top_module_mangled.as_str());
+    let delete_top = ffi_names::delete_top(top_module_mangled.as_str());
 
     writeln!(
         &mut buffer,
         r#"
 #include <cstring> // std::memcpy
 #include "verilated.h"
-#include "V{top_module}.h"
+#include "V{top_module_mangled}.h"
 
 extern "C" {{
     void* {new_top}() {{
-        return new V{top_module}{{}};
+        return new V{top_module_mangled}{{}};
     }}
 
     
-    void {top_eval}(V{top_module}* top) {{
+    void {top_eval}(V{top_module_mangled}* top) {{
         top->eval();
     }}
 
-    void {delete_top}(V{top_module}* top) {{
+    void {delete_top}(V{top_module_mangled}* top) {{
         delete top;
     }}
 "#
@@ -190,8 +190,8 @@ extern "C" {{
             }
         };
 
-        let pin_port = ffi_names::pin_port(top_module, port);
-        let read_port = ffi_names::read_port(top_module, port);
+        let pin_port = ffi_names::pin_port(top_module_mangled.as_str(), port);
+        let read_port = ffi_names::read_port(top_module_mangled.as_str(), port);
 
         match direction {
             PortDirection::Input | PortDirection::Inout => {
@@ -213,7 +213,7 @@ extern "C" {{
                 writeln!(
                     &mut buffer,
                     r#"
-    void {pin_port}(V{top_module}* top, {input_type}) {{
+    void {pin_port}(V{top_module_mangled}* top, {input_type}) {{
         {pin_code}
     }}
             "#
@@ -227,7 +227,7 @@ extern "C" {{
                 writeln!(
                     &mut buffer,
                     r#"
-    {return_type} {read_port}(V{top_module}* top) {{
+    {return_type} {read_port}(V{top_module_mangled}* top) {{
         return top->{port}{to_pointer_if_wide};
     }}
             "#
@@ -238,7 +238,7 @@ extern "C" {{
     }
 
     if let Some(waveform) = enable_tracing {
-        build_ffi_for_tracing(&mut buffer, top_module, waveform)
+        build_ffi_for_tracing(&mut buffer, top_module_mangled, waveform)
             .whatever_context(
                 "Failed to generate FFI bindings to Verilator tracing APIs",
             )?;
@@ -261,7 +261,7 @@ extern "C" {{
 ///
 /// This function is a nop if `dpi_functions.is_empty()`.
 fn bind_dpi_if_needed(
-    top_module: &str,
+    top_module_mangled: MangledVerilatorNameRef,
     dpi_functions: &[&'static dyn DpiFunction],
     dpi_artifact_directory: &Utf8Path,
 ) -> Result<(Option<Utf8PathBuf>, bool), Whatever> {
@@ -281,7 +281,7 @@ fn bind_dpi_if_needed(
 extern \"C\" void {DPI_INIT_CALLBACK}(void** callbacks) {{
 {}
 }}",
-        top_module,
+        top_module_mangled,
         dpi_functions
             .iter()
             .map(|dpi_function| {
@@ -419,6 +419,7 @@ pub fn build_library(
     include_directories: &[Utf8PathBuf],
     dpi_functions: &[&'static dyn DpiFunction],
     top_module: &str,
+    top_module_mangled: MangledVerilatorNameRef,
     ports: &[(&str, usize, usize, PortDirection)],
     artifact_directory: &Utf8Path,
     options: &VerilatorRuntimeOptions,
@@ -435,16 +436,19 @@ pub fn build_library(
     fs::create_dir_all(&dpi_artifact_directory).whatever_context(
         "Failed to create dpi/ subdirectory under artifacts directory",
     )?;
-    let shared_library_name = format!("marlin_V{top_module}");
+    let shared_library_name = format!("marlin_V{top_module_mangled}");
     let shared_library_path = verilator_artifact_directory
         .join(format!("lib{shared_library_name}.so"));
-    let static_library_path =
-        verilator_artifact_directory.join(format!("libV{top_module}.a"));
+    let static_library_path = verilator_artifact_directory
+        .join(format!("libV{top_module_mangled}.a"));
     let libverilated_path = verilator_artifact_directory.join("libverilated.a");
 
-    let (dpi_file, dpi_rebuilt) =
-        bind_dpi_if_needed(top_module, dpi_functions, &dpi_artifact_directory)
-            .whatever_context("Failed to build DPI functions")?;
+    let (dpi_file, dpi_rebuilt) = bind_dpi_if_needed(
+        top_module_mangled,
+        dpi_functions,
+        &dpi_artifact_directory,
+    )
+    .whatever_context("Failed to build DPI functions")?;
 
     if !options.force_verilator_rebuild
         && (!needs_verilator_rebuild(
@@ -461,7 +465,7 @@ pub fn build_library(
 
     let _ffi_wrappers = build_ffi(
         &ffi_artifact_directory,
-        top_module,
+        top_module_mangled,
         ports,
         config.enable_tracing,
         verilator_version,
@@ -476,13 +480,13 @@ pub fn build_library(
     if let Some(cxx_standard) = config.cxx_standard {
         cflags.push(
             match cxx_standard {
-                crate::CxxStandard::Cxx98 => "-std=c++98",
-                crate::CxxStandard::Cxx11 => "-std=c++11",
-                crate::CxxStandard::Cxx14 => "-std=c++14",
-                crate::CxxStandard::Cxx17 => "-std=c++17",
-                crate::CxxStandard::Cxx20 => "-std=c++20",
-                crate::CxxStandard::Cxx23 => "-std=c++23",
-                crate::CxxStandard::Cxx26 => "-std=c++26",
+                CxxStandard::Cxx98 => "-std=c++98",
+                CxxStandard::Cxx11 => "-std=c++11",
+                CxxStandard::Cxx14 => "-std=c++14",
+                CxxStandard::Cxx17 => "-std=c++17",
+                CxxStandard::Cxx20 => "-std=c++20",
+                CxxStandard::Cxx23 => "-std=c++23",
+                CxxStandard::Cxx26 => "-std=c++26",
             }
             .into(),
         );
@@ -508,12 +512,7 @@ pub fn build_library(
         .args(["-CFLAGS", &cflags_string])
         .args(["-MAKEFLAGS", &makeflags])
         .args(["--Mdir", verilator_artifact_directory.as_str()])
-        .args([
-            "--top-module",
-            &mangle_verilator_name(top_module).with_whatever_context(|_| {
-                format!("Failed to mangle top module ({top_module})")
-            })?,
-        ])
+        .args(["--top-module", top_module])
         .args(source_files)
         .arg(ffi_wrappers);
     for include_directory in include_directories {
@@ -549,6 +548,7 @@ pub fn build_library(
             }
         }
     }
+    println!("{verilator_command:?}");
     let verilator_output = verilator_command
         .output()
         .whatever_context("Invocation of Verilator failed")?;

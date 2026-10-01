@@ -17,6 +17,7 @@ use std::{
     cell::RefCell,
     cmp,
     collections::{HashMap, hash_map::Entry},
+    env,
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -62,8 +63,39 @@ const VERILATOR_ESCAPE_PREFIX: &str = "__";
 const VERILATOR_MANGLED_PREFIX: &str = "__0";
 const VERILATOR_MANGLED_DOUBLE_UNDERSCORE: &str = "___05F";
 
+pub struct MangledVerilatorName(String);
+
+impl fmt::Display for MangledVerilatorName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct MangledVerilatorNameRef<'a>(&'a str);
+
+impl<'a> MangledVerilatorNameRef<'a> {
+    pub fn as_str(&self) -> &'a str {
+        self.0
+    }
+}
+
+impl fmt::Display for MangledVerilatorNameRef<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl MangledVerilatorName {
+    pub fn as_ref(&self) -> MangledVerilatorNameRef {
+        MangledVerilatorNameRef(&self.0)
+    }
+}
+
 /// Performs Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
-pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
+pub fn mangle_verilator_name(
+    name: &str,
+) -> Result<MangledVerilatorName, Whatever> {
     if !name.is_ascii() {
         whatever!(
             "Non-ascii names are not supported for name demangling. Got {name}"
@@ -73,7 +105,7 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
     // Every character _except_ double underscore can be handled as a single
     // character, so we'll split on those, and then join them with
     // their replacement.
-    Ok(name
+    let mangled_name = name
         .split(VERILATOR_ESCAPE_PREFIX)
         .map(|segment| {
             let mut result = String::new();
@@ -85,18 +117,33 @@ pub fn mangle_verilator_name(name: &str) -> Result<String, Whatever> {
                     // encoding trick will not panic
                     let mut buffer = [0];
                     c.encode_utf8(&mut buffer);
-                    result.push_str(&format!("__0{:02X}", buffer[0]));
+                    // TODO: C++ `std::hex`: is it lowercase or uppercase? How
+                    // to tell?
+                    result.push_str(&format!("__0{:02x}", buffer[0]));
                 }
             }
             result
         })
         .collect::<Vec<_>>()
-        .join(VERILATOR_MANGLED_DOUBLE_UNDERSCORE))
+        .join(VERILATOR_MANGLED_DOUBLE_UNDERSCORE);
+    Ok(MangledVerilatorName(mangled_name))
 }
 
-/// Performs the inverse of Verilator's [name manglging](https://verilator.org/guide/latest/languages.html#signal-naming).
-pub fn demangle_verilator_name(name: &str) -> String {
-    name.split(VERILATOR_MANGLED_PREFIX)
+/// See [`mangle_verilator_name`] and <https://github.com/verilator/verilator/issues/8569>.
+pub fn mangle_verilator_name_hack(
+    name: &str,
+) -> Result<MangledVerilatorName, Whatever> {
+    match detect_os().whatever_context("Failed to detect OS")? {
+        BuildTarget::Linux => mangle_verilator_name(name),
+        BuildTarget::MacOS => {
+            mangle_verilator_name(&mangle_verilator_name(name)?.0)
+        }
+    }
+}
+/// Performs the inverse of Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
+pub fn demangle_verilator_name(name: MangledVerilatorNameRef) -> String {
+    name.0
+        .split(VERILATOR_MANGLED_PREFIX)
         .enumerate()
         .map(|(i, segment)| {
             if i != 0 {
@@ -561,6 +608,15 @@ fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
     Ok(())
 }
 
+/// Uses [`env::consts::OS`], so it is cheap to call from a proc macro.
+fn detect_os() -> Result<BuildTarget, Whatever> {
+    match env::consts::OS {
+        "linux" => Ok(BuildTarget::Linux),
+        "macos" | "apple" => Ok(BuildTarget::MacOS),
+        _ => whatever!("Unknown OS"),
+    }
+}
+
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
@@ -610,27 +666,8 @@ impl VerilatorRuntime {
             }
         }
 
-        let uname_output = Command::new("uname")
-            .output()
-            .whatever_context("Invocation of uname failed")?;
-
-        if !uname_output.status.success() {
-            whatever!(
-                "Invocation of uname failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-                uname_output.status,
-                String::from_utf8_lossy(&uname_output.stdout),
-                String::from_utf8_lossy(&uname_output.stderr)
-            );
-        }
-
-        let build_target = if String::from_utf8(uname_output.stdout)
-            .map(|s| s.trim() == "Darwin")
-            .unwrap_or(false)
-        {
-            BuildTarget::MacOS
-        } else {
-            BuildTarget::Linux
-        };
+        let build_target =
+            detect_os().whatever_context("Failed to detect OS")?;
 
         Ok(Self {
             artifact_directory: artifact_directory
@@ -703,7 +740,7 @@ impl VerilatorRuntime {
             )?;
 
         let delete_model: extern "C" fn(*mut ffi::c_void) = *unsafe {
-            library.get(format!("ffi_delete_V{}", M::name()).as_bytes())
+            library.get(ffi_names::delete_top(M::mangled_name()).as_bytes())
         }
         .expect("failed to get symbol");
 
@@ -842,10 +879,6 @@ impl VerilatorRuntime {
         ports: &[(&str, usize, usize, PortDirection)],
         config: &VerilatedModelConfig,
     ) -> Result<&Library, Whatever> {
-        if name.chars().any(|c| c == '\\' || c == ' ') {
-            whatever!("Escaped module names are not supported");
-        }
-
         if !self.source_files.iter().any(|source_file| {
             match (
                 source_file.canonicalize_utf8(),
@@ -872,6 +905,9 @@ impl VerilatorRuntime {
             );
         }
 
+        let mangled_name = mangle_verilator_name_hack(name)
+            .whatever_context("Failed to mangle module name")?;
+
         let mut hasher = hash::DefaultHasher::new();
         ports.hash(&mut hasher);
         config.hash(&mut hasher);
@@ -889,7 +925,8 @@ impl VerilatorRuntime {
             Entry::Occupied(entry) => *entry.get(),
             Entry::Vacant(entry) => {
                 let local_directory_name = format!(
-                    "{name}_{}_{}",
+                    "{}_{}_{}",
+                    mangled_name,
                     source_path.replace("_", "__").replace("/", "_"),
                     library_key.hash
                 );
@@ -974,6 +1011,7 @@ impl VerilatorRuntime {
                     &self.include_directories,
                     &self.dpi_functions,
                     name,
+                    mangled_name.as_ref(),
                     ports,
                     &local_artifacts_directory,
                     &self.options,
@@ -1047,11 +1085,17 @@ mod tests {
     #[test]
     fn name_mangling_works() {
         assert_eq!(
-            mangle_verilator_name("double__underscore").unwrap(),
+            mangle_verilator_name("double__underscore")
+                .unwrap()
+                .as_ref()
+                .as_str(),
             "double___05Funderscore"
         );
         assert_eq!(
-            mangle_verilator_name("*Symbols+").unwrap(),
+            mangle_verilator_name("*Symbols+")
+                .unwrap()
+                .as_ref()
+                .as_str(),
             "__02ASymbols__02B"
         )
     }
@@ -1060,14 +1104,18 @@ mod tests {
     fn name_mangling_and_demangling_is_idempotent() {
         assert_eq!(
             demangle_verilator_name(
-                &mangle_verilator_name("double__underscore").unwrap()
-            ),
+                mangle_verilator_name("double__underscore")
+                    .unwrap()
+                    .as_ref()
+            )
+            .as_str(),
             "double__underscore"
         );
         assert_eq!(
             demangle_verilator_name(
-                &mangle_verilator_name("*Symbols+").unwrap()
-            ),
+                mangle_verilator_name("*Symbols+").unwrap().as_ref()
+            )
+            .as_str(),
             "*Symbols+"
         );
     }

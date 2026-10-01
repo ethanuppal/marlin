@@ -11,6 +11,7 @@ use marlin_verilator::{
     ffi_names::{
         TRACE_CLOSE_AND_DELETE, TRACE_DUMP, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
+    mangle_verilator_name_hack,
 };
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -73,6 +74,10 @@ impl syn::parse::Parse for MacroArgs {
     }
 }
 
+/// - `macro_name` is used as the create prefix for necessary reexports under
+///   `__reexports`.
+/// - `top_name` should _not_ be mangled; this function will mangle it. (TODO:
+///   is this a good idea?)
 pub fn build_verilated_struct(
     macro_name: &str,
     top_name: syn::LitStr,
@@ -88,6 +93,17 @@ pub fn build_verilated_struct(
         }
     };
 
+    let top_name_mangled =
+        match mangle_verilator_name_hack(top_name.value().as_str()) {
+            Ok(mangled) => {
+                syn::LitStr::new(mangled.as_ref().as_str(), top_name.span())
+            }
+            Err(error) => {
+                return syn::Error::new(top_name.span(), error.to_string())
+                    .into_compile_error();
+            }
+        };
+
     let mut struct_members = vec![];
 
     let mut preeval_impl = vec![];
@@ -102,12 +118,12 @@ pub fn build_verilated_struct(
 
     verilated_model_init_impl.push(quote! {
         let new_model: extern "C" fn() -> *mut std::ffi::c_void =
-            *unsafe { library.get(concat!("ffi_new_V", #top_name).as_bytes()) }
+            *unsafe { library.get(concat!("ffi_new_V", #top_name_mangled).as_bytes()) }
                 .expect("failed to get symbol");
         let model = (new_model)();
 
         let eval_model: extern "C" fn(*mut std::ffi::c_void) =
-            *unsafe { library.get(concat!("ffi_V", #top_name, "_eval").as_bytes()) }
+            *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_eval").as_bytes()) }
                 .expect("failed to get symbol");
     });
     verilated_model_init_self.push(quote! {
@@ -120,7 +136,7 @@ pub fn build_verilated_struct(
         if port_name.chars().any(|c| c == '\\' || c == ' ') {
             return syn::Error::new_spanned(
                 top_name,
-                "Escaped module names are not supported",
+                "Escaped port names are not supported",
             )
             .into_compile_error();
         }
@@ -229,7 +245,7 @@ pub fn build_verilated_struct(
 
                 verilated_model_init_impl.push(quote! {
                     let #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type) =
-                        *unsafe { library.get(concat!("ffi_V", #top_name, "_pin_", #port_name).as_bytes()) }
+                        *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_pin_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
                 verilated_model_init_self.push(quote! { #setter });
@@ -299,7 +315,7 @@ pub fn build_verilated_struct(
 
                 verilated_model_init_impl.push(quote! {
                     let #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type =
-                        *unsafe { library.get(concat!("ffi_V", #top_name, "_read_", #port_name).as_bytes()) }
+                        *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_read_", #port_name).as_bytes()) }
                             .expect("failed to get symbol");
                 });
                 verilated_model_init_self.push(quote! { #getter });
@@ -383,6 +399,10 @@ pub fn build_verilated_struct(
                 #top_name
             }
 
+            fn mangled_name() -> &'static str {
+                #top_name_mangled
+            }
+
             fn source_path() -> &'static str {
                 #source_path
             }
@@ -400,7 +420,7 @@ pub fn build_verilated_struct(
                         use #crate_name::__reexports::verilator::tracing::__private::TraceApi;
 
                         let open_trace: extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_char) -> *mut std::ffi::c_void =
-                            *unsafe { library.get(concat!("ffi_V", #top_name, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
+                            *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
                         let dump: extern "C" fn(*mut std::ffi::c_void, u64) =
                             *unsafe { library.get(#TRACE_DUMP.as_bytes()).expect("failed to get dump symbol") };
                         let open_next: extern "C" fn(*mut std::ffi::c_void, bool) =
@@ -504,18 +524,29 @@ pub fn parse_verilog_ports(
     let Some(module) = (&ast).into_iter().find_map(|node| match node {
         RefNode::ModuleDeclarationAnsi(module) => {
             // taken from https://github.com/dalance/sv-parser/blob/master/README.md
-            fn get_identifier(node: RefNode) -> Option<Locate> {
+            fn get_identifier(node: RefNode) -> Option<(Locate, bool)> {
                 match unwrap_node!(node, SimpleIdentifier, EscapedIdentifier) {
-                    Some(RefNode::SimpleIdentifier(x)) => Some(x.nodes.0),
-                    Some(RefNode::EscapedIdentifier(x)) => Some(x.nodes.0),
+                    Some(RefNode::SimpleIdentifier(x)) => {
+                        Some((x.nodes.0, false))
+                    }
+                    Some(RefNode::EscapedIdentifier(x)) => {
+                        Some((x.nodes.0, true))
+                    }
                     _ => None,
                 }
             }
 
             let id = unwrap_node!(module, ModuleIdentifier).unwrap();
-            let id = get_identifier(id).unwrap();
+            let (id, is_escaped) = get_identifier(id).unwrap();
             let id = ast.get_str_trim(&id).unwrap();
-            if id == top_name.value().as_str() {
+            let id_to_compare = if is_escaped {
+                id.strip_prefix("\\").expect(
+                    "sv-parser reported escaped but was not actually escaped",
+                )
+            } else {
+                id
+            };
+            if id_to_compare == top_name.value().as_str() {
                 Some(module)
             } else {
                 None
