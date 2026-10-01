@@ -527,11 +527,10 @@ in our Spade file. You can instead put this in your <code>lib.rs</code> file if 
 <p>Finally, we'll want to actually write the code that drives our hardware:</p>
 <pre><pre class="playground"><code class="language-rust">// file: tests/simple_test.rs
 use marlin::spade::prelude::*;
-use snafu::Whatever;
 
 #[test]
 //#[snafu::report]
-fn main() -&gt; Result&lt;(), Whatever&gt; {
+fn main() -&gt; Result&lt;(), VerilatorError&gt; {
     let runtime = SpadeRuntime::new(
         SpadeRuntimeOptions::default().call_swim_build(
             true, /* warning: not thread safe! don't use if you

@@ -536,14 +536,13 @@ in our Veryl file. You can instead put this in your <code>lib.rs</code> file if 
 </span><span class="boring">fn main() {
 </span>// file: tests/simple_test.rs
 use marlin::veryl::prelude::*;
-use snafu::Whatever;
 
 #[veryl(src = "src/main.veryl", name = "Wire")]
 pub struct Wire;
 
 #[test]
 //#[snafu::report]
-fn forwards_correctly() -&gt; Result&lt;(), Whatever&gt; {
+fn forwards_correctly() -&gt; Result&lt;(), VerilatorError&gt; {
     let runtime = VerylRuntime::new(
         VerylRuntimeOptions::default().call_veryl_build(
             true, /* warning: not thread safe! don't use if you

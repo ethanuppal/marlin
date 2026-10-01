@@ -509,7 +509,6 @@ cargo add snafu --dev
 vi tests/dpi_test.rs
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">// file: tests/dpi_test.rs
-use snafu::Whatever;
 use marlin::{
     verilator::{VerilatorRuntime, VerilatorRuntimeOptions},
     verilog::prelude::*,
@@ -524,7 +523,7 @@ pub extern "C" fn three(out: &amp;mut u32) {
 struct Main;
 
 //#[snafu::report]
-fn main() -&gt; Result&lt;(), Whatever&gt; {
+fn main() -&gt; Result&lt;(), VerilatorError&gt; {
     let runtime = VerilatorRuntime::new(
         "artifacts".into(),
         &amp;["src/dpi.sv".as_ref()],
