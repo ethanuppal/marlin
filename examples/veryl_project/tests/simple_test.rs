@@ -15,8 +15,10 @@
 use example_veryl_project::Wire;
 use marlin::{
     verilator::verilator_version,
-    veryl::prelude::VerilatorError,
-    veryl::{VerylModelConfig, prelude::*},
+    veryl::{
+        VerylModelConfig,
+        prelude::{VerilatorError, *},
+    },
 };
 
 #[test]
