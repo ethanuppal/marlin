@@ -397,6 +397,10 @@ pub fn build_verilated_struct(
                 #top_name
             }
 
+            fn mangled_name() -> &'static str {
+                #top_name_mangled
+            }
+
             fn source_path() -> &'static str {
                 #source_path
             }

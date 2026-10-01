@@ -743,7 +743,7 @@ impl VerilatorRuntime {
             )?;
 
         let delete_model: extern "C" fn(*mut ffi::c_void) = *unsafe {
-            library.get(format!("ffi_delete_V{}", M::name()).as_bytes())
+            library.get(ffi_names::delete_top(M::mangled_name()).as_bytes())
         }
         .expect("failed to get symbol");
 
