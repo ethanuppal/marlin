@@ -116,7 +116,8 @@ pub fn mangle_verilator_name(
                     // encoding trick will not panic
                     let mut buffer = [0];
                     c.encode_utf8(&mut buffer);
-                    result.push_str(&format!("__0{:02X}", buffer[0]));
+                    // TODO: C++ `std::hex`: is it lowercase or uppercase? How to tell?
+                    result.push_str(&format!("__0{:02x}", buffer[0]));
                 }
             }
             result
