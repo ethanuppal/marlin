@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/ethanuppal/marlin/compare/v0.20.4...v0.21.0) (2026-10-01)
+
+
+### Features
+
+* **verilator:** Move to custom `Snafu` error type ([#272](https://github.com/ethanuppal/marlin/issues/272)) ([510da67](https://github.com/ethanuppal/marlin/commit/510da6713cd7a23f910c3367d4c6454936e0552b))
+
 ## [0.20.4](https://github.com/ethanuppal/marlin/compare/v0.20.3...v0.20.4) (2026-10-01)
 
 
