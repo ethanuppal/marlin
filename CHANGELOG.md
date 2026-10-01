@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.4](https://github.com/ethanuppal/marlin/compare/v0.20.3...v0.20.4) (2026-10-01)
+
+
+### Bug Fixes
+
+* **verilator:** Handle escaped Verilog module names ([#268](https://github.com/ethanuppal/marlin/issues/268)) ([65ada9e](https://github.com/ethanuppal/marlin/commit/65ada9ed5c5a325fc2a0271ff57b5a8cc5729d59))
+
 ## [0.20.3](https://github.com/ethanuppal/marlin/compare/v0.20.2...v0.20.3) (2026-09-12)
 
 
