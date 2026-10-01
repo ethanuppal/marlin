@@ -504,18 +504,29 @@ pub fn parse_verilog_ports(
     let Some(module) = (&ast).into_iter().find_map(|node| match node {
         RefNode::ModuleDeclarationAnsi(module) => {
             // taken from https://github.com/dalance/sv-parser/blob/master/README.md
-            fn get_identifier(node: RefNode) -> Option<Locate> {
+            fn get_identifier(node: RefNode) -> Option<(Locate, bool)> {
                 match unwrap_node!(node, SimpleIdentifier, EscapedIdentifier) {
-                    Some(RefNode::SimpleIdentifier(x)) => Some(x.nodes.0),
-                    Some(RefNode::EscapedIdentifier(x)) => Some(x.nodes.0),
+                    Some(RefNode::SimpleIdentifier(x)) => {
+                        Some((x.nodes.0, false))
+                    }
+                    Some(RefNode::EscapedIdentifier(x)) => {
+                        Some((x.nodes.0, true))
+                    }
                     _ => None,
                 }
             }
 
             let id = unwrap_node!(module, ModuleIdentifier).unwrap();
-            let id = get_identifier(id).unwrap();
+            let (id, is_escaped) = get_identifier(id).unwrap();
             let id = ast.get_str_trim(&id).unwrap();
-            if id == top_name.value().as_str() {
+            let id_to_compare = if is_escaped {
+                id.strip_prefix("\\").expect(
+                    "sv-parser reported escaped but was not actually escaped",
+                )
+            } else {
+                id
+            };
+            if id_to_compare == top_name.value().as_str() {
                 Some(module)
             } else {
                 None
