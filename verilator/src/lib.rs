@@ -74,7 +74,7 @@ impl fmt::Display for MangledVerilatorName {
 pub struct MangledVerilatorNameRef<'a>(&'a str);
 
 impl<'a> MangledVerilatorNameRef<'a> {
-    fn as_str(&self) -> &'a str {
+    pub fn as_str(&self) -> &'a str {
         self.0
     }
 }
