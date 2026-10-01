@@ -140,6 +140,7 @@ pub fn mangle_verilator_name_hack(
         }
     }
 }
+
 /// Performs the inverse of Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
 pub fn demangle_verilator_name(name: MangledVerilatorNameRef) -> String {
     name.0
