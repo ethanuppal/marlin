@@ -17,6 +17,7 @@ use std::{
     cell::RefCell,
     cmp,
     collections::{HashMap, hash_map::Entry},
+    env,
     ffi::{self, OsStr, OsString},
     fmt, fs,
     hash::{self, Hash, Hasher},
@@ -131,7 +132,12 @@ pub fn mangle_verilator_name(
 pub fn mangle_verilator_name_hack(
     name: &str,
 ) -> Result<MangledVerilatorName, Whatever> {
-    mangle_verilator_name(&mangle_verilator_name(name)?.0)
+    match detect_os().whatever_context("Failed to detect OS")? {
+        BuildTarget::Linux => mangle_verilator_name(name),
+        BuildTarget::MacOS => {
+            mangle_verilator_name(&mangle_verilator_name(name)?.0)
+        }
+    }
 }
 /// Performs the inverse of Verilator's [name mangling](https://verilator.org/guide/latest/languages.html#signal-naming).
 pub fn demangle_verilator_name(name: MangledVerilatorNameRef) -> String {
@@ -601,6 +607,15 @@ fn check_verilator_version(version: VerilatorVersion) -> Result<(), Whatever> {
     Ok(())
 }
 
+/// Uses [`env::consts::OS`], so it is cheap to call from a proc macro.
+fn detect_os() -> Result<BuildTarget, Whatever> {
+    match env::consts::OS {
+        "linux" => Ok(BuildTarget::Linux),
+        "macos" | "apple" => Ok(BuildTarget::MacOS),
+        _ => whatever!("Unknown OS"),
+    }
+}
+
 impl VerilatorRuntime {
     /// Creates a new runtime for instantiating (System)Verilog modules as Rust
     /// objects.
@@ -650,27 +665,8 @@ impl VerilatorRuntime {
             }
         }
 
-        let uname_output = Command::new("uname")
-            .output()
-            .whatever_context("Invocation of uname failed")?;
-
-        if !uname_output.status.success() {
-            whatever!(
-                "Invocation of uname failed with nonzero exit code {}\n\n--- STDOUT ---\n{}\n\n--- STDERR ---\n{}",
-                uname_output.status,
-                String::from_utf8_lossy(&uname_output.stdout),
-                String::from_utf8_lossy(&uname_output.stderr)
-            );
-        }
-
-        let build_target = if String::from_utf8(uname_output.stdout)
-            .map(|s| s.trim() == "Darwin")
-            .unwrap_or(false)
-        {
-            BuildTarget::MacOS
-        } else {
-            BuildTarget::Linux
-        };
+        let build_target =
+            detect_os().whatever_context("Failed to detect OS")?;
 
         Ok(Self {
             artifact_directory: artifact_directory
