@@ -74,8 +74,10 @@ impl syn::parse::Parse for MacroArgs {
     }
 }
 
-/// - `macro_name` is used as the create prefix for necessary reexports under `__reexports`.
-/// - `top_name` should _not_ be mangled; this function will mangle it. (TODO: is this a good idea?)
+/// - `macro_name` is used as the create prefix for necessary reexports under
+///   `__reexports`.
+/// - `top_name` should _not_ be mangled; this function will mangle it. (TODO:
+///   is this a good idea?)
 pub fn build_verilated_struct(
     macro_name: &str,
     top_name: syn::LitStr,
