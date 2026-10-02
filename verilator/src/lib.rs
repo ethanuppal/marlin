@@ -136,7 +136,7 @@ pub fn mangle_verilator_name_hack(
     name: &str,
     version: VerilatorVersion,
 ) -> Result<MangledVerilatorName, VerilatorError> {
-    if matches!(version, verilator_version!(5 052)) {
+    if version >= verilator_version!(5 052) {
         mangle_verilator_name(&mangle_verilator_name(name)?.0)
     } else {
         mangle_verilator_name(name)
