@@ -34,6 +34,7 @@ jobs:
           else
             sudo apt-get install -y verilator
           fi
+          verilator --version
       - name: Manual test
         run: |
           # any fst tracing test you add here needs the env var stuff
