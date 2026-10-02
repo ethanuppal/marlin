@@ -5,4 +5,4 @@ Thank you for thinking about contributing! I'll refine this document later, but 
 - Sign off your commits. You agree to the [DCO](https://developercertificate.org).
 - Please try to match existing code style to the best of your ability.
 - If in doubt about feature scope, make an issue where we can discuss!
-- Keep your LLM slop out of my codebase.
+- Keep your LLM slop out of my codebase. I reserve the right to ignore or close any PR I suspect violating the rules on usage of LLMs outlined in the README.
