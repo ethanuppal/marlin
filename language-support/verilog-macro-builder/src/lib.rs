@@ -11,7 +11,6 @@ use marlin_verilator::{
     ffi_names::{
         TRACE_CLOSE_AND_DELETE, TRACE_DUMP, TRACE_FLUSH, TRACE_OPEN_NEXT,
     },
-    mangle_verilator_name_hack,
 };
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -93,16 +92,7 @@ pub fn build_verilated_struct(
         }
     };
 
-    let top_name_mangled =
-        match mangle_verilator_name_hack(top_name.value().as_str()) {
-            Ok(mangled) => {
-                syn::LitStr::new(mangled.as_ref().as_str(), top_name.span())
-            }
-            Err(error) => {
-                return syn::Error::new(top_name.span(), error.to_string())
-                    .into_compile_error();
-            }
-        };
+    let top_name_mangled_str = quote! { mangled_name.as_ref().as_str() };
 
     let mut struct_members = vec![];
 
@@ -118,13 +108,13 @@ pub fn build_verilated_struct(
 
     verilated_model_init_impl.push(quote! {
         let new_model: extern "C" fn() -> *mut std::ffi::c_void =
-            *unsafe { library.get(concat!("ffi_new_V", #top_name_mangled).as_bytes()) }
-                .expect("failed to get symbol");
+            *unsafe { library.get(format!("{}{}", "ffi_new_V", #top_name_mangled_str).as_bytes()) }
+                .whatever_context("Failed to get constructor symbol")?;
         let model = (new_model)();
 
         let eval_model: extern "C" fn(*mut std::ffi::c_void) =
-            *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_eval").as_bytes()) }
-                .expect("failed to get symbol");
+            *unsafe { library.get(format!("{}{}{}", "ffi_V", #top_name_mangled_str, "_eval").as_bytes()) }
+                .whatever_context("Failed to get eval symbol")?;
     });
     verilated_model_init_self.push(quote! {
         eval_model,
@@ -245,8 +235,8 @@ pub fn build_verilated_struct(
 
                 verilated_model_init_impl.push(quote! {
                     let #setter: extern "C" fn(*mut std::ffi::c_void, #verilator_interface_port_type) =
-                        *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_pin_", #port_name).as_bytes()) }
-                            .expect("failed to get symbol");
+                        *unsafe { library.get(format!("{}{}{}{}", "ffi_V", #top_name_mangled_str, "_pin_", #port_name).as_bytes()) }
+                            .whatever_context("failed to get setter symbol")?;
                 });
                 verilated_model_init_self.push(quote! { #setter });
 
@@ -315,8 +305,8 @@ pub fn build_verilated_struct(
 
                 verilated_model_init_impl.push(quote! {
                     let #getter: extern "C" fn(*mut std::ffi::c_void) -> #verilator_interface_port_type =
-                        *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_read_", #port_name).as_bytes()) }
-                            .expect("failed to get symbol");
+                        *unsafe { library.get(format!("{}{}{}{}", "ffi_V", #top_name_mangled_str, "_read_", #port_name).as_bytes()) }
+                            .whatever_context("failed to get getter symbol")?;
                 });
                 verilated_model_init_self.push(quote! { #getter });
 
@@ -356,6 +346,8 @@ pub fn build_verilated_struct(
             _internal_trace_api: Option<#crate_name::__reexports::verilator::tracing::__private::TraceApi>,
             #[doc(hidden)]
             _internal_opened_trace: bool,
+            #[doc(hidden)]
+            _mangled_name: #crate_name::__reexports::verilator::MangledVerilatorName,
             #(#struct_members),*,
             #[doc = "# Safety\nThe Rust binding to the model will not outlive the runtime this model was created from (with lifetime `'ctx`) and is dropped when the runtime is."]
             #[doc(hidden)]
@@ -399,8 +391,8 @@ pub fn build_verilated_struct(
                 #top_name
             }
 
-            fn mangled_name() -> &'static str {
-                #top_name_mangled
+            fn mangled_name(&self) -> &str {
+                self._mangled_name.as_ref().as_str()
             }
 
             fn source_path() -> &'static str {
@@ -412,7 +404,15 @@ pub fn build_verilated_struct(
                 &PORTS
             }
 
-            fn init_from(library: &'ctx #crate_name::__reexports::libloading::Library, tracing_enabled: bool) -> Self {
+            unsafe fn init_from(
+                library: &'ctx #crate_name::__reexports::libloading::Library,
+                verilator_version: #crate_name::__reexports::verilator::VerilatorVersion,
+                tracing_enabled: bool
+            ) -> Result<Self, #crate_name::__reexports::verilator::error::VerilatorError> {
+                use #crate_name::__reexports::verilator::reexports::snafu::ResultExt;
+
+                let mangled_name = #crate_name::__reexports::verilator::mangle_verilator_name_hack(#top_name, verilator_version).whatever_context("Failed to mangle name")?;
+
                 #(#verilated_model_init_impl)*
 
                 let trace_api =
@@ -420,26 +420,27 @@ pub fn build_verilated_struct(
                         use #crate_name::__reexports::verilator::tracing::__private::TraceApi;
 
                         let open_trace: extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_char) -> *mut std::ffi::c_void =
-                            *unsafe { library.get(concat!("ffi_V", #top_name_mangled, "_open_trace").as_bytes()).expect("failed to get open_trace symbol") };
+                            *unsafe { library.get(format!("{}{}{}", "ffi_V", #top_name_mangled_str, "_open_trace").as_bytes()).whatever_context("Failed to get open_trace symbol")? };
                         let dump: extern "C" fn(*mut std::ffi::c_void, u64) =
-                            *unsafe { library.get(#TRACE_DUMP.as_bytes()).expect("failed to get dump symbol") };
+                            *unsafe { library.get(#TRACE_DUMP.as_bytes()).whatever_context("Failed to get dump symbol")? };
                         let open_next: extern "C" fn(*mut std::ffi::c_void, bool) =
-                            *unsafe { library.get(#TRACE_OPEN_NEXT.as_bytes()).expect("failed to get open_next symbol") };
+                            *unsafe { library.get(#TRACE_OPEN_NEXT.as_bytes()).whatever_context("Failed to get open_next symbol")? };
                         let flush: extern "C" fn(*mut std::ffi::c_void) =
-                            *unsafe { library.get(#TRACE_FLUSH.as_bytes()).expect("failed to get flush symbol") };
+                            *unsafe { library.get(#TRACE_FLUSH.as_bytes()).whatever_context("Failed to get flush symbol")? };
                         let close_and_delete: extern "C" fn(*mut std::ffi::c_void) =
-                            *unsafe { library.get(#TRACE_CLOSE_AND_DELETE.as_bytes()).expect("failed to get close_and_delete symbol") };
+                            *unsafe { library.get(#TRACE_CLOSE_AND_DELETE.as_bytes()).whatever_context("Failed to get close_and_delete symbol")? };
                         Some(TraceApi { open_trace, dump, open_next, flush, close_and_delete })
                     } else {
                         None
                     };
 
-                Self {
+                Ok(Self {
                     _internal_trace_api: trace_api,
                     _internal_opened_trace: false,
+                    _mangled_name: mangled_name,
                     #(#verilated_model_init_self),*,
                     _unsend_unsync: std::marker::PhantomData
-                }
+                })
             }
 
             unsafe fn model(&self) -> *mut std::ffi::c_void {

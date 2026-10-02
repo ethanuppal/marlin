@@ -8,7 +8,10 @@ use std::ffi;
 
 use libloading::Library;
 
-use crate::core::PortDirection;
+use crate::{
+    core::{PortDirection, VerilatorVersion},
+    error::VerilatorError,
+};
 
 /// You should not implement this `trait` manually. Instead, use a procedural
 /// macro like `#[verilog(...)]` to derive it for you.
@@ -17,7 +20,7 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     fn name() -> &'static str;
 
     /// The Verilator name for the module.
-    fn mangled_name() -> &'static str;
+    fn mangled_name(&self) -> &str;
 
     /// The path of the module's definition.
     fn source_path() -> &'static str;
@@ -27,7 +30,13 @@ pub trait AsVerilatedModel<'ctx>: 'ctx {
     fn ports() -> &'static [(&'static str, usize, usize, PortDirection)];
 
     #[doc(hidden)]
-    fn init_from(library: &'ctx Library, tracing_enabled: bool) -> Self;
+    unsafe fn init_from(
+        library: &'ctx Library,
+        verilator_version: VerilatorVersion,
+        tracing_enabled: bool,
+    ) -> Result<Self, VerilatorError>
+    where
+        Self: Sized;
 
     #[doc(hidden)]
     unsafe fn model(&self) -> *mut ffi::c_void;
