@@ -15,7 +15,6 @@
 use core::convert::Into;
 use std::{
     cell::RefCell,
-    cmp,
     collections::{HashMap, hash_map::Entry},
     env,
     ffi::{self, OsStr, OsString},
