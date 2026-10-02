@@ -4,7 +4,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at https://mozilla.org/MPL/2.0/.
 
-use std::fmt;
+use std::{cmp, fmt};
 
 use crate::types;
 
@@ -34,4 +34,30 @@ pub const fn compute_approx_width_from_edata_word_count(
     word_count: usize,
 ) -> usize {
     word_count * (types::EData::BITS as usize)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct VerilatorVersion {
+    pub major: usize,
+    pub minor: usize,
+}
+
+impl fmt::Display for VerilatorVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}.{:03}", self.major, self.minor)
+    }
+}
+
+impl cmp::PartialOrd for VerilatorVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl cmp::Ord for VerilatorVersion {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.major
+            .cmp(&other.major)
+            .then(self.minor.cmp(&other.minor))
+    }
 }

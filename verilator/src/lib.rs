@@ -15,7 +15,6 @@
 use core::convert::Into;
 use std::{
     cell::RefCell,
-    cmp,
     collections::{HashMap, hash_map::Entry},
     env,
     ffi::{self, OsStr, OsString},
@@ -42,7 +41,6 @@ use snafu::{OptionExt, ResultExt, whatever};
 mod build_library;
 pub mod dpi;
 pub mod dynamic;
-pub mod error;
 pub mod ffi_names;
 pub mod nocapture;
 pub mod tracing;
@@ -61,7 +59,7 @@ pub mod reexports {
     pub use snafu;
 }
 
-pub use marlin_verilator_stable::types;
+pub use marlin_verilator_stable::{core::VerilatorVersion, error, types};
 
 const VERILATOR_ESCAPE_PREFIX: &str = "__";
 const VERILATOR_MANGLED_PREFIX: &str = "__0";
@@ -136,12 +134,12 @@ pub fn mangle_verilator_name(
 /// See [`mangle_verilator_name`] and <https://github.com/verilator/verilator/issues/8569>.
 pub fn mangle_verilator_name_hack(
     name: &str,
+    version: VerilatorVersion,
 ) -> Result<MangledVerilatorName, VerilatorError> {
-    match detect_os().whatever_context("Failed to detect OS")? {
-        BuildTarget::Linux => mangle_verilator_name(name),
-        BuildTarget::MacOS => {
-            mangle_verilator_name(&mangle_verilator_name(name)?.0)
-        }
+    if version >= verilator_version!(5 052) {
+        mangle_verilator_name(&mangle_verilator_name(name)?.0)
+    } else {
+        mangle_verilator_name(name)
     }
 }
 
@@ -463,6 +461,7 @@ pub struct VerilatorRuntime {
     include_directories: Vec<Utf8PathBuf>,
     dpi_functions: Vec<&'static dyn DpiFunction>,
     options: VerilatorRuntimeOptions,
+    /// Dynamically-determined Verilator version.
     verilator_version: VerilatorVersion,
     /// Mapping between hardware (top, path) and arena index of Verilator
     /// implementations.
@@ -534,12 +533,6 @@ fn one_time_library_setup(
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct VerilatorVersion {
-    pub major: usize,
-    pub minor: usize,
-}
-
 #[macro_export]
 macro_rules! verilator_version {
     ($major:literal $minor:literal) => {
@@ -549,26 +542,6 @@ macro_rules! verilator_version {
             minor: $minor,
         }
     };
-}
-
-impl fmt::Display for VerilatorVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{:03}", self.major, self.minor)
-    }
-}
-
-impl cmp::PartialOrd for VerilatorVersion {
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl cmp::Ord for VerilatorVersion {
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.major
-            .cmp(&other.major)
-            .then(self.minor.cmp(&other.minor))
-    }
 }
 
 pub const MINIMUM_SUPPORTED_VERILATOR: VerilatorVersion =
@@ -746,12 +719,19 @@ impl VerilatorRuntime {
                 "Failed to build or retrieve verilator dynamic library. Try removing the build directory if it is corrupted.",
             )?;
 
-        let delete_model: extern "C" fn(*mut ffi::c_void) = *unsafe {
-            library.get(ffi_names::delete_top(M::mangled_name()).as_bytes())
+        let model = unsafe {
+            M::init_from(
+                library,
+                self.verilator_version,
+                config.enable_tracing.is_some(),
+            )
         }
-        .expect("failed to get symbol");
+        .whatever_context("Failed to create model")?;
 
-        let model = M::init_from(library, config.enable_tracing.is_some());
+        let delete_model: extern "C" fn(*mut ffi::c_void) = *unsafe {
+            library.get(ffi_names::delete_top(model.mangled_name()).as_bytes())
+        }
+        .whatever_context("Failed to get deallocator symbol")?;
 
         self.model_deallocators.borrow_mut().push(ModelDeallocator {
             // SAFETY: The `model` cannot outlive the runtime, and it is the
@@ -912,8 +892,9 @@ impl VerilatorRuntime {
             );
         }
 
-        let mangled_name = mangle_verilator_name_hack(name)
-            .whatever_context("Failed to mangle module name")?;
+        let mangled_name =
+            mangle_verilator_name_hack(name, self.verilator_version)
+                .whatever_context("Failed to mangle module name")?;
 
         let mut hasher = hash::DefaultHasher::new();
         ports.hash(&mut hasher);

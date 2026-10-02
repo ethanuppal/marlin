@@ -10,6 +10,7 @@ pub mod reexports {
 
 pub mod core;
 pub mod dynamic;
+pub mod error;
 pub mod generated;
 pub mod tracing;
 /// Verilator-defined types for C FFI.
