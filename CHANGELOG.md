@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/ethanuppal/marlin/compare/v0.21.0...v0.21.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **verilator:** Update mangling hack ([#275](https://github.com/ethanuppal/marlin/issues/275)) ([3ff44ae](https://github.com/ethanuppal/marlin/commit/3ff44aeabfa7d1bfa518925018167b45ec668bba))
+
 ## [0.21.0](https://github.com/ethanuppal/marlin/compare/v0.20.4...v0.21.0) (2026-10-01)
 
 
