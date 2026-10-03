@@ -17,3 +17,6 @@ syn.workspace = true
 quote.workspace = true
 
 sv-parser.workspace = true
+
+[lints]
+workspace = true

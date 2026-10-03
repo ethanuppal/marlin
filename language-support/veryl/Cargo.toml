@@ -18,3 +18,6 @@ snafu.workspace = true
 owo-colors.workspace = true
 toml.workspace = true
 libloading.workspace = true
+
+[lints]
+workspace = true
